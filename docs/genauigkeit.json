@@ -1,0 +1,139 @@
+{
+  "date": "2026-09-03",
+  "mode": "rule-only",
+  "total": 198,
+  "stages": {
+    "rule": {
+      "count": 191,
+      "correct": 187
+    },
+    "unzugeordnet": {
+      "count": 7,
+      "correct": 0
+    }
+  },
+  "accuracyTotal": 0.9444444444444444,
+  "accuracyAssigned": 0.9790575916230366,
+  "perCategory": [
+    {
+      "cat": "Lebensmittel",
+      "support": 20,
+      "precision": 1,
+      "recall": 1
+    },
+    {
+      "cat": "Mobilität",
+      "support": 17,
+      "precision": 1,
+      "recall": 1
+    },
+    {
+      "cat": "Restaurants & Cafés",
+      "support": 16,
+      "precision": 1,
+      "recall": 1
+    },
+    {
+      "cat": "Freizeit & Kultur",
+      "support": 16,
+      "precision": 1,
+      "recall": 0.875
+    },
+    {
+      "cat": "Abos & Medien",
+      "support": 15,
+      "precision": 1,
+      "recall": 1
+    },
+    {
+      "cat": "Drogerie & Haushalt",
+      "support": 11,
+      "precision": 0.9090909090909091,
+      "recall": 0.9090909090909091
+    },
+    {
+      "cat": "Kleidung",
+      "support": 11,
+      "precision": 1,
+      "recall": 1
+    },
+    {
+      "cat": "Gesundheit",
+      "support": 9,
+      "precision": 1,
+      "recall": 0.8888888888888888
+    },
+    {
+      "cat": "Online-Handel",
+      "support": 9,
+      "precision": 1,
+      "recall": 1
+    },
+    {
+      "cat": "Wohnen",
+      "support": 8,
+      "precision": 1,
+      "recall": 1
+    },
+    {
+      "cat": "Versicherungen",
+      "support": 8,
+      "precision": 1,
+      "recall": 1
+    },
+    {
+      "cat": "Einkommen",
+      "support": 8,
+      "precision": 1,
+      "recall": 1
+    },
+    {
+      "cat": "Energie",
+      "support": 7,
+      "precision": 0.875,
+      "recall": 1
+    },
+    {
+      "cat": "Telekommunikation",
+      "support": 7,
+      "precision": 1,
+      "recall": 1
+    },
+    {
+      "cat": "Bildung",
+      "support": 7,
+      "precision": 1,
+      "recall": 0.8571428571428571
+    },
+    {
+      "cat": "Reisen",
+      "support": 7,
+      "precision": 1,
+      "recall": 1
+    },
+    {
+      "cat": "Umbuchung",
+      "support": 6,
+      "precision": 1,
+      "recall": 1
+    },
+    {
+      "cat": "Sonstiges",
+      "support": 6,
+      "precision": null,
+      "recall": 0
+    },
+    {
+      "cat": "Bargeld",
+      "support": 5,
+      "precision": 1,
+      "recall": 1
+    },
+    {
+      "cat": "Gebühren & Zinsen",
+      "support": 5,
+      "precision": 0.7142857142857143,
+      "recall": 1
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+"Umsätze Girokonto";"Zeitraum: 30 Tage";
+"Neuer Kontostand";"1.111,11 EUR";
+
+"Buchungstag";"Wertstellung (Valuta)";"Vorgang";"Buchungstext";"Umsatz in EUR";
+"14.02.2026";"14.02.2026";"Lastschrift / Belastung";"Auftraggeber: PayPal Europe S.a.r.l. et Cie S.C.A Buchungstext: 1030123456789 PP.1234.PP . SPOTIFY, Ihr Einkauf bei SPOTIFY Ref. ABC123/4567";"-10,99";
+"13.02.2026";"13.02.2026";"Übertrag / Überweisung";"Empfänger: Hausverwaltung Meier Kto/IBAN: DE02120300000000202051 BLZ/BIC: BYLADEM1001 Buchungstext: Miete Februar Ref. XYZ";"-780,00";
+"12.02.2026";"12.02.2026";"Lastschrift / Belastung";"Auftraggeber: LIDL SAGT DANKE Buchungstext: 2026-02-11T18:22 Debitk.5 2028-12 Ref. Q1/2";"-31,20";
+"11.02.2026";"11.02.2026";"Lohn / Gehalt";"Auftraggeber: Musterfirma GmbH Buchungstext: Gehalt 02/2026 Ref. 1";"2.850,00";
+"Alter Saldo";"";"";"";"0,00";

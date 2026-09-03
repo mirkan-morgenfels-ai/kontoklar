@@ -1,0 +1,14 @@
+Umsatzanzeige;Datei erstellt am: 01.07.2026 10:15
+;
+IBAN;DE98 5001 0517 5407 3249 31
+Kontoname;Girokonto
+Bank;ING
+Kunde;Erika Musterfrau
+Zeitraum;01.01.2026 - 30.06.2026
+Saldo;1.234,56;EUR
+;
+Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Saldo;Währung;Betrag;Währung
+10.01.2026;10.01.2026;EDEKA MUENCHEN;Lastschrift;EDEKA SAGT DANKE 12345 MUENCHEN;1.100,11;EUR;-45,67;EUR
+12.01.2026;12.01.2026;Deutsche Bahn AG;Lastschrift;DB Vertrieb Fahrkarte 987654;1.054,44;EUR;-89,90;EUR
+15.01.2026;15.01.2026;Musterfirma GmbH;Gehalt/Rente;Lohn Gehalt 01/2026;3.904,44;EUR;2.850,00;EUR
+20.01.2026;20.01.2026;Stadtwerke Muenchen;Lastschrift;Abschlag Strom Vertrag 5566;3.804,44;EUR;-100,00;EUR

@@ -1,0 +1,1392 @@
+{
+ "description": "Von Hand gelabeltes, synthetisches Testset fuer die Genauigkeitsmessung. Keine echten Personen oder Konten.",
+ "createdAt": "2026-09-03",
+ "cases": [
+  {
+   "counterparty": "REWE SAGT DANKE. 45123456",
+   "purpose": "NR12345 Einkauf",
+   "type": "Kartenzahlung",
+   "amount": -33.72,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "EDEKA MUENCHEN",
+   "purpose": "EDEKA SAGT DANKE 12345 MUENCHEN",
+   "type": "Lastschrift",
+   "amount": -45.67,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "ALDI SUED SAGT DANKE",
+   "purpose": "2026-01-07T17:02 Debitk.5 2028-12",
+   "type": "Kartenzahlung",
+   "amount": -23.45,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "Lidl sagt Danke",
+   "purpose": "Kartenzahlung girocard",
+   "type": "Kartenzahlung",
+   "amount": -31.2,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "PENNY MARKT GMBH",
+   "purpose": "PENNY SAGT DANKE",
+   "type": "Kartenzahlung",
+   "amount": -12.8,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "Netto Marken-Discount",
+   "purpose": "Einkauf",
+   "type": "Kartenzahlung",
+   "amount": -18.95,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "KAUFLAND MUENCHEN",
+   "purpose": "Kaufland Dankt",
+   "type": "Kartenzahlung",
+   "amount": -64.1,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "Alnatura Super Natur Markt",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -27.4,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "Denns BioMarkt GmbH",
+   "purpose": "",
+   "type": "Presentment",
+   "amount": -19.99,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "Baeckerei Rischart",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -4.2,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "Hofpfisterei",
+   "purpose": "Filiale 12",
+   "type": "Kartenzahlung",
+   "amount": -6.1,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "Metzgerei Huber",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -14.3,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "V-Markt Muenchen",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -52.0,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "Getraenke Orterer",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -22.5,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "Flink SE",
+   "purpose": "Flink Lieferung",
+   "type": "Presentment",
+   "amount": -24.9,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "Picnic GmbH",
+   "purpose": "Bestellung 12345",
+   "type": "Lastschrift",
+   "amount": -58.3,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "HelloFresh Deutschland",
+   "purpose": "Box KW 3",
+   "type": "Lastschrift",
+   "amount": -49.99,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "Tegut",
+   "purpose": "tegut sagt danke",
+   "type": "Kartenzahlung",
+   "amount": -21.1,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "NORMA Lebensmittel",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -9.8,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "Wochenmarkt Stand 12",
+   "purpose": "Obst und Gemuese",
+   "type": "Kartenzahlung",
+   "amount": -11.0,
+   "label": "Lebensmittel"
+  },
+  {
+   "counterparty": "DM DROGERIEMARKT SAGT DANKE",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -17.45,
+   "label": "Drogerie & Haushalt"
+  },
+  {
+   "counterparty": "dm-drogerie markt",
+   "purpose": "dm sagt danke",
+   "type": "Kartenzahlung",
+   "amount": -9.95,
+   "label": "Drogerie & Haushalt"
+  },
+  {
+   "counterparty": "ROSSMANN 1234",
+   "purpose": "Rossmann",
+   "type": "Kartenzahlung",
+   "amount": -13.2,
+   "label": "Drogerie & Haushalt"
+  },
+  {
+   "counterparty": "Mueller Drogerie",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -8.75,
+   "label": "Drogerie & Haushalt"
+  },
+  {
+   "counterparty": "IKEA Deutschland GmbH",
+   "purpose": "IKEA Muenchen",
+   "type": "Kartenzahlung",
+   "amount": -89.0,
+   "label": "Drogerie & Haushalt"
+  },
+  {
+   "counterparty": "OBI Baumarkt",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -45.3,
+   "label": "Drogerie & Haushalt"
+  },
+  {
+   "counterparty": "Hornbach Baumarkt AG",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -120.0,
+   "label": "Drogerie & Haushalt"
+  },
+  {
+   "counterparty": "Fressnapf Tiernahrung",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -34.9,
+   "label": "Drogerie & Haushalt"
+  },
+  {
+   "counterparty": "Blume 2000",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -12.0,
+   "label": "Drogerie & Haushalt"
+  },
+  {
+   "counterparty": "TEDi GmbH",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -6.5,
+   "label": "Drogerie & Haushalt"
+  },
+  {
+   "counterparty": "Waschsalon Schwabing",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -7.0,
+   "label": "Drogerie & Haushalt"
+  },
+  {
+   "counterparty": "Ristorante Da Luigi",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -42.5,
+   "label": "Restaurants & Cafés"
+  },
+  {
+   "counterparty": "McDonalds 1234",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -11.49,
+   "label": "Restaurants & Cafés"
+  },
+  {
+   "counterparty": "Burger King",
+   "purpose": "",
+   "type": "Presentment",
+   "amount": -9.99,
+   "label": "Restaurants & Cafés"
+  },
+  {
+   "counterparty": "Starbucks Coffee",
+   "purpose": "",
+   "type": "Presentment",
+   "amount": -6.12,
+   "label": "Restaurants & Cafés"
+  },
+  {
+   "counterparty": "Cafe Luitpold",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -8.9,
+   "label": "Restaurants & Cafés"
+  },
+  {
+   "counterparty": "Lieferando.de",
+   "purpose": "Bestellung 987",
+   "type": "Lastschrift",
+   "amount": -23.4,
+   "label": "Restaurants & Cafés"
+  },
+  {
+   "counterparty": "Wolt Enterprises Deutschland",
+   "purpose": "Wolt",
+   "type": "Presentment",
+   "amount": -18.7,
+   "label": "Restaurants & Cafés"
+  },
+  {
+   "counterparty": "Augustiner Braeustuben",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -36.2,
+   "label": "Restaurants & Cafés"
+  },
+  {
+   "counterparty": "Vapiano SE",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -15.9,
+   "label": "Restaurants & Cafés"
+  },
+  {
+   "counterparty": "Doener Kebap Haus",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -7.5,
+   "label": "Restaurants & Cafés"
+  },
+  {
+   "counterparty": "Studentenwerk Muenchen Mensa",
+   "purpose": "Mensa Aufladung",
+   "type": "Kartenzahlung",
+   "amount": -20.0,
+   "label": "Restaurants & Cafés"
+  },
+  {
+   "counterparty": "Sushi Bar Sakura",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -28.0,
+   "label": "Restaurants & Cafés"
+  },
+  {
+   "counterparty": "Pizzeria Napoli",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -19.5,
+   "label": "Restaurants & Cafés"
+  },
+  {
+   "counterparty": "Hans im Glueck Burgergrill",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -17.8,
+   "label": "Restaurants & Cafés"
+  },
+  {
+   "counterparty": "Eiscafe Venezia",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -5.4,
+   "label": "Restaurants & Cafés"
+  },
+  {
+   "counterparty": "Dean&David",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -12.3,
+   "label": "Restaurants & Cafés"
+  },
+  {
+   "counterparty": "Hausverwaltung Schmidt",
+   "purpose": "Miete Januar Musterstr. 1",
+   "type": "Dauerauftrag",
+   "amount": -780.0,
+   "label": "Wohnen"
+  },
+  {
+   "counterparty": "Vonovia SE",
+   "purpose": "Miete 01/2026 Whg 12",
+   "type": "Lastschrift",
+   "amount": -950.0,
+   "label": "Wohnen"
+  },
+  {
+   "counterparty": "Max Mueller",
+   "purpose": "Kaltmiete Februar",
+   "type": "Dauerauftrag",
+   "amount": -620.0,
+   "label": "Wohnen"
+  },
+  {
+   "counterparty": "ARD ZDF Deutschlandradio",
+   "purpose": "Rundfunkbeitrag 01.2026-03.2026",
+   "type": "Lastschrift",
+   "amount": -55.08,
+   "label": "Wohnen"
+  },
+  {
+   "counterparty": "Studentenwerk Muenchen",
+   "purpose": "Miete Wohnheim Olympiadorf",
+   "type": "Lastschrift",
+   "amount": -345.0,
+   "label": "Wohnen"
+  },
+  {
+   "counterparty": "Wohnungsgenossenschaft Muenchen-West eG",
+   "purpose": "Nutzungsentgelt Januar",
+   "type": "Lastschrift",
+   "amount": -710.0,
+   "label": "Wohnen"
+  },
+  {
+   "counterparty": "GEWOFAG Wohnen GmbH",
+   "purpose": "Miete",
+   "type": "Lastschrift",
+   "amount": -820.0,
+   "label": "Wohnen"
+  },
+  {
+   "counterparty": "Immobilienverwaltung Bauer",
+   "purpose": "Nebenkostenabrechnung 2025",
+   "type": "Ueberweisung",
+   "amount": -240.0,
+   "label": "Wohnen"
+  },
+  {
+   "counterparty": "Stadtwerke Muenchen GmbH",
+   "purpose": "Abschlag Strom Vertrag 5566",
+   "type": "Lastschrift",
+   "amount": -100.0,
+   "label": "Energie"
+  },
+  {
+   "counterparty": "E.ON Energie Deutschland GmbH",
+   "purpose": "Strom Abschlag",
+   "type": "Lastschrift",
+   "amount": -65.0,
+   "label": "Energie"
+  },
+  {
+   "counterparty": "Vattenfall Europe Sales",
+   "purpose": "Abschlag Gas",
+   "type": "Lastschrift",
+   "amount": -90.0,
+   "label": "Energie"
+  },
+  {
+   "counterparty": "Tibber Deutschland GmbH",
+   "purpose": "Rechnung Januar",
+   "type": "Lastschrift",
+   "amount": -72.4,
+   "label": "Energie"
+  },
+  {
+   "counterparty": "Octopus Energy Germany",
+   "purpose": "Stromabschlag",
+   "type": "Lastschrift",
+   "amount": -58.0,
+   "label": "Energie"
+  },
+  {
+   "counterparty": "Mainova AG",
+   "purpose": "Abschlag Fernwaerme",
+   "type": "Lastschrift",
+   "amount": -80.0,
+   "label": "Energie"
+  },
+  {
+   "counterparty": "EnBW Energie Baden-Wuerttemberg",
+   "purpose": "Strom",
+   "type": "Lastschrift",
+   "amount": -70.0,
+   "label": "Energie"
+  },
+  {
+   "counterparty": "Telekom Deutschland GmbH",
+   "purpose": "Mobilfunk Rechnung 01/2026",
+   "type": "Lastschrift",
+   "amount": -29.95,
+   "label": "Telekommunikation"
+  },
+  {
+   "counterparty": "Vodafone GmbH",
+   "purpose": "Kundennummer 123456 Rechnung",
+   "type": "Lastschrift",
+   "amount": -39.99,
+   "label": "Telekommunikation"
+  },
+  {
+   "counterparty": "O2 Telefonica Germany",
+   "purpose": "Rechnung",
+   "type": "Lastschrift",
+   "amount": -19.99,
+   "label": "Telekommunikation"
+  },
+  {
+   "counterparty": "1&1 Telecom GmbH",
+   "purpose": "DSL Rechnung",
+   "type": "Lastschrift",
+   "amount": -34.99,
+   "label": "Telekommunikation"
+  },
+  {
+   "counterparty": "congstar GmbH",
+   "purpose": "Mobilfunk",
+   "type": "Lastschrift",
+   "amount": -15.0,
+   "label": "Telekommunikation"
+  },
+  {
+   "counterparty": "Drillisch Online GmbH",
+   "purpose": "winSIM Rechnung",
+   "type": "Lastschrift",
+   "amount": -9.99,
+   "label": "Telekommunikation"
+  },
+  {
+   "counterparty": "M-net Telekommunikations GmbH",
+   "purpose": "Internet Rechnung",
+   "type": "Lastschrift",
+   "amount": -44.9,
+   "label": "Telekommunikation"
+  },
+  {
+   "counterparty": "Deutsche Bahn AG",
+   "purpose": "DB Vertrieb Fahrkarte 987654",
+   "type": "Lastschrift",
+   "amount": -89.9,
+   "label": "Mobilität"
+  },
+  {
+   "counterparty": "DB Vertrieb GmbH",
+   "purpose": "Deutschlandticket Januar",
+   "type": "Lastschrift",
+   "amount": -58.0,
+   "label": "Mobilität"
+  },
+  {
+   "counterparty": "MVG Muenchner Verkehrsgesellschaft",
+   "purpose": "IsarCard",
+   "type": "Lastschrift",
+   "amount": -63.2,
+   "label": "Mobilität"
+  },
+  {
+   "counterparty": "ARAL Station 1234",
+   "purpose": "Tankstelle",
+   "type": "Kartenzahlung",
+   "amount": -65.4,
+   "label": "Mobilität"
+  },
+  {
+   "counterparty": "Shell Deutschland Oil",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -58.3,
+   "label": "Mobilität"
+  },
+  {
+   "counterparty": "Uber BV",
+   "purpose": "Uber Fahrt",
+   "type": "Presentment",
+   "amount": -14.56,
+   "label": "Mobilität"
+  },
+  {
+   "counterparty": "FlixBus DACH GmbH",
+   "purpose": "Buchung 123",
+   "type": "Presentment",
+   "amount": -24.99,
+   "label": "Mobilität"
+  },
+  {
+   "counterparty": "Sixt SE",
+   "purpose": "Mietwagen",
+   "type": "Kartenzahlung",
+   "amount": -120.0,
+   "label": "Mobilität"
+  },
+  {
+   "counterparty": "Lufthansa AG",
+   "purpose": "Flug MUC-HAM",
+   "type": "Kartenzahlung",
+   "amount": -189.0,
+   "label": "Mobilität"
+  },
+  {
+   "counterparty": "APCOA Parking Deutschland",
+   "purpose": "Parkhaus",
+   "type": "Kartenzahlung",
+   "amount": -8.0,
+   "label": "Mobilität"
+  },
+  {
+   "counterparty": "ADAC e.V.",
+   "purpose": "Mitgliedsbeitrag 2026",
+   "type": "Lastschrift",
+   "amount": -59.0,
+   "label": "Mobilität"
+  },
+  {
+   "counterparty": "Freenow",
+   "purpose": "FREE NOW Fahrt",
+   "type": "Presentment",
+   "amount": -17.3,
+   "label": "Mobilität"
+  },
+  {
+   "counterparty": "ShareNow GmbH",
+   "purpose": "Carsharing",
+   "type": "Lastschrift",
+   "amount": -22.4,
+   "label": "Mobilität"
+  },
+  {
+   "counterparty": "TIER Mobility SE",
+   "purpose": "",
+   "type": "Presentment",
+   "amount": -4.2,
+   "label": "Mobilität"
+  },
+  {
+   "counterparty": "Nextbike GmbH",
+   "purpose": "",
+   "type": "Presentment",
+   "amount": -3.0,
+   "label": "Mobilität"
+  },
+  {
+   "counterparty": "TUEV SUED Auto Service",
+   "purpose": "HU AU",
+   "type": "Kartenzahlung",
+   "amount": -140.0,
+   "label": "Mobilität"
+  },
+  {
+   "counterparty": "Ryanair DAC",
+   "purpose": "Flug",
+   "type": "Presentment",
+   "amount": -49.99,
+   "label": "Mobilität"
+  },
+  {
+   "counterparty": "Netflix International B.V.",
+   "purpose": "Netflix Mitgliedschaft 123456",
+   "type": "Lastschrift",
+   "amount": -12.99,
+   "label": "Abos & Medien"
+  },
+  {
+   "counterparty": "Spotify AB",
+   "purpose": "Spotify Premium",
+   "type": "Direct Debit",
+   "amount": -10.99,
+   "label": "Abos & Medien"
+  },
+  {
+   "counterparty": "Amazon Prime",
+   "purpose": "Prime Mitgliedschaft",
+   "type": "Lastschrift",
+   "amount": -8.99,
+   "label": "Abos & Medien"
+  },
+  {
+   "counterparty": "APPLE.COM/BILL",
+   "purpose": "iCloud 200GB",
+   "type": "Presentment",
+   "amount": -2.99,
+   "label": "Abos & Medien"
+  },
+  {
+   "counterparty": "Google Play",
+   "purpose": "YouTube Premium",
+   "type": "Presentment",
+   "amount": -12.99,
+   "label": "Abos & Medien"
+  },
+  {
+   "counterparty": "DAZN Limited",
+   "purpose": "",
+   "type": "Lastschrift",
+   "amount": -29.99,
+   "label": "Abos & Medien"
+  },
+  {
+   "counterparty": "Disney Plus",
+   "purpose": "",
+   "type": "Lastschrift",
+   "amount": -8.99,
+   "label": "Abos & Medien"
+  },
+  {
+   "counterparty": "Sueddeutsche Zeitung GmbH",
+   "purpose": "SZ Plus Abo",
+   "type": "Lastschrift",
+   "amount": -19.99,
+   "label": "Abos & Medien"
+  },
+  {
+   "counterparty": "Adobe Systems Software Ireland",
+   "purpose": "Creative Cloud",
+   "type": "Presentment",
+   "amount": -11.89,
+   "label": "Abos & Medien"
+  },
+  {
+   "counterparty": "OpenAI LLC",
+   "purpose": "ChatGPT Plus",
+   "type": "Presentment",
+   "amount": -22.99,
+   "label": "Abos & Medien"
+  },
+  {
+   "counterparty": "Audible GmbH",
+   "purpose": "Audible Abo",
+   "type": "Lastschrift",
+   "amount": -9.95,
+   "label": "Abos & Medien"
+  },
+  {
+   "counterparty": "Microsoft Payments",
+   "purpose": "Microsoft 365",
+   "type": "Presentment",
+   "amount": -7.0,
+   "label": "Abos & Medien"
+  },
+  {
+   "counterparty": "PayPal Europe S.a.r.l. et Cie S.C.A",
+   "purpose": "PP.1234.PP . SPOTIFY, Ihr Einkauf bei SPOTIFY",
+   "type": "Lastschrift",
+   "amount": -10.99,
+   "label": "Abos & Medien"
+  },
+  {
+   "counterparty": "Github Inc",
+   "purpose": "",
+   "type": "Presentment",
+   "amount": -4.0,
+   "label": "Abos & Medien"
+  },
+  {
+   "counterparty": "Overleaf",
+   "purpose": "",
+   "type": "Presentment",
+   "amount": -8.0,
+   "label": "Abos & Medien"
+  },
+  {
+   "counterparty": "FitX Deutschland GmbH",
+   "purpose": "Mitgliedsbeitrag",
+   "type": "Lastschrift",
+   "amount": -29.9,
+   "label": "Freizeit & Kultur"
+  },
+  {
+   "counterparty": "McFIT GmbH",
+   "purpose": "Beitrag",
+   "type": "Lastschrift",
+   "amount": -24.9,
+   "label": "Freizeit & Kultur"
+  },
+  {
+   "counterparty": "Urban Sports Club",
+   "purpose": "",
+   "type": "Lastschrift",
+   "amount": -59.0,
+   "label": "Freizeit & Kultur"
+  },
+  {
+   "counterparty": "CinemaxX Entertainment",
+   "purpose": "Kino",
+   "type": "Kartenzahlung",
+   "amount": -14.5,
+   "label": "Freizeit & Kultur"
+  },
+  {
+   "counterparty": "CTS Eventim AG",
+   "purpose": "Ticket Konzert",
+   "type": "Kartenzahlung",
+   "amount": -78.0,
+   "label": "Freizeit & Kultur"
+  },
+  {
+   "counterparty": "Deutsches Museum",
+   "purpose": "Eintritt",
+   "type": "Kartenzahlung",
+   "amount": -15.0,
+   "label": "Freizeit & Kultur"
+  },
+  {
+   "counterparty": "Thalia Buecher GmbH",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -24.99,
+   "label": "Freizeit & Kultur"
+  },
+  {
+   "counterparty": "Hugendubel",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -18.0,
+   "label": "Freizeit & Kultur"
+  },
+  {
+   "counterparty": "Decathlon Deutschland",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -45.0,
+   "label": "Freizeit & Kultur"
+  },
+  {
+   "counterparty": "MediaMarkt",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -129.0,
+   "label": "Freizeit & Kultur"
+  },
+  {
+   "counterparty": "Saturn Electro",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -59.99,
+   "label": "Freizeit & Kultur"
+  },
+  {
+   "counterparty": "TSV Musterstadt e.V.",
+   "purpose": "Mitgliedsbeitrag 2026",
+   "type": "Lastschrift",
+   "amount": -120.0,
+   "label": "Freizeit & Kultur"
+  },
+  {
+   "counterparty": "Boulderwelt Muenchen",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -13.5,
+   "label": "Freizeit & Kultur"
+  },
+  {
+   "counterparty": "Kletterhalle Thalkirchen",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -16.0,
+   "label": "Freizeit & Kultur"
+  },
+  {
+   "counterparty": "Musikschule Sendling",
+   "purpose": "Gitarrenunterricht",
+   "type": "Lastschrift",
+   "amount": -65.0,
+   "label": "Freizeit & Kultur"
+  },
+  {
+   "counterparty": "Stadtwerke Muenchen Baeder",
+   "purpose": "Olympiabad",
+   "type": "Kartenzahlung",
+   "amount": -5.6,
+   "label": "Freizeit & Kultur"
+  },
+  {
+   "counterparty": "H&M Hennes & Mauritz",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -39.99,
+   "label": "Kleidung"
+  },
+  {
+   "counterparty": "ZARA Deutschland",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -59.95,
+   "label": "Kleidung"
+  },
+  {
+   "counterparty": "Zalando SE",
+   "purpose": "Bestellung 10023",
+   "type": "Lastschrift",
+   "amount": -89.9,
+   "label": "Kleidung"
+  },
+  {
+   "counterparty": "C&A Mode",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -29.0,
+   "label": "Kleidung"
+  },
+  {
+   "counterparty": "Deichmann SE",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -49.9,
+   "label": "Kleidung"
+  },
+  {
+   "counterparty": "Primark",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -22.0,
+   "label": "Kleidung"
+  },
+  {
+   "counterparty": "ABOUT YOU SE",
+   "purpose": "",
+   "type": "Presentment",
+   "amount": -64.95,
+   "label": "Kleidung"
+  },
+  {
+   "counterparty": "Uniqlo Europe",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -34.9,
+   "label": "Kleidung"
+  },
+  {
+   "counterparty": "Snipes SE",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -89.99,
+   "label": "Kleidung"
+  },
+  {
+   "counterparty": "Peek & Cloppenburg",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -119.0,
+   "label": "Kleidung"
+  },
+  {
+   "counterparty": "Temu",
+   "purpose": "",
+   "type": "Presentment",
+   "amount": -9.8,
+   "label": "Kleidung"
+  },
+  {
+   "counterparty": "Apotheke am Marienplatz",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -14.8,
+   "label": "Gesundheit"
+  },
+  {
+   "counterparty": "Shop Apotheke",
+   "purpose": "Bestellung",
+   "type": "Lastschrift",
+   "amount": -32.5,
+   "label": "Gesundheit"
+  },
+  {
+   "counterparty": "Zahnarztpraxis Dr. Meier",
+   "purpose": "Rechnung PZR",
+   "type": "Ueberweisung",
+   "amount": -89.0,
+   "label": "Gesundheit"
+  },
+  {
+   "counterparty": "Fielmann AG",
+   "purpose": "Brille",
+   "type": "Kartenzahlung",
+   "amount": -199.0,
+   "label": "Gesundheit"
+  },
+  {
+   "counterparty": "Techniker Krankenkasse",
+   "purpose": "Beitrag Januar",
+   "type": "Lastschrift",
+   "amount": -210.0,
+   "label": "Gesundheit"
+  },
+  {
+   "counterparty": "Physiotherapie Zentrum Nord",
+   "purpose": "Rechnung",
+   "type": "Ueberweisung",
+   "amount": -45.0,
+   "label": "Gesundheit"
+  },
+  {
+   "counterparty": "Praxis Dr. med. Schmidt",
+   "purpose": "Privatrechnung",
+   "type": "Ueberweisung",
+   "amount": -60.0,
+   "label": "Gesundheit"
+  },
+  {
+   "counterparty": "Sanitaetshaus Mueller",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -25.0,
+   "label": "Gesundheit"
+  },
+  {
+   "counterparty": "DocMorris",
+   "purpose": "",
+   "type": "Lastschrift",
+   "amount": -18.9,
+   "label": "Gesundheit"
+  },
+  {
+   "counterparty": "HUK-COBURG Versicherung",
+   "purpose": "KFZ Versicherung",
+   "type": "Lastschrift",
+   "amount": -45.0,
+   "label": "Versicherungen"
+  },
+  {
+   "counterparty": "Allianz Versicherungs-AG",
+   "purpose": "Haftpflicht",
+   "type": "Lastschrift",
+   "amount": -7.5,
+   "label": "Versicherungen"
+  },
+  {
+   "counterparty": "ERGO Versicherung AG",
+   "purpose": "Hausrat",
+   "type": "Lastschrift",
+   "amount": -9.9,
+   "label": "Versicherungen"
+  },
+  {
+   "counterparty": "Getsafe GmbH",
+   "purpose": "Haftpflichtversicherung",
+   "type": "Lastschrift",
+   "amount": -4.99,
+   "label": "Versicherungen"
+  },
+  {
+   "counterparty": "AXA Versicherung AG",
+   "purpose": "Berufsunfaehigkeit",
+   "type": "Lastschrift",
+   "amount": -55.0,
+   "label": "Versicherungen"
+  },
+  {
+   "counterparty": "CosmosDirekt",
+   "purpose": "Risikolebensversicherung",
+   "type": "Lastschrift",
+   "amount": -12.3,
+   "label": "Versicherungen"
+  },
+  {
+   "counterparty": "Debeka Krankenversicherungsverein",
+   "purpose": "Zahnzusatz",
+   "type": "Lastschrift",
+   "amount": -18.0,
+   "label": "Versicherungen"
+  },
+  {
+   "counterparty": "Versicherungskammer Bayern",
+   "purpose": "Beitrag",
+   "type": "Lastschrift",
+   "amount": -30.0,
+   "label": "Versicherungen"
+  },
+  {
+   "counterparty": "Ludwig-Maximilians-Universitaet Muenchen",
+   "purpose": "Rueckmeldung Semesterbeitrag",
+   "type": "Ueberweisung",
+   "amount": -85.0,
+   "label": "Bildung"
+  },
+  {
+   "counterparty": "Technische Universitaet Muenchen",
+   "purpose": "Semesterbeitrag",
+   "type": "Ueberweisung",
+   "amount": -85.0,
+   "label": "Bildung"
+  },
+  {
+   "counterparty": "Muenchner Volkshochschule",
+   "purpose": "Kurs Spanisch A1",
+   "type": "Lastschrift",
+   "amount": -120.0,
+   "label": "Bildung"
+  },
+  {
+   "counterparty": "Udemy Inc",
+   "purpose": "",
+   "type": "Presentment",
+   "amount": -14.99,
+   "label": "Bildung"
+  },
+  {
+   "counterparty": "Springer Nature",
+   "purpose": "Lehrbuch",
+   "type": "Kartenzahlung",
+   "amount": -49.99,
+   "label": "Bildung"
+  },
+  {
+   "counterparty": "Stadtbibliothek Muenchen",
+   "purpose": "Jahresgebuehr",
+   "type": "Kartenzahlung",
+   "amount": -20.0,
+   "label": "Bildung"
+  },
+  {
+   "counterparty": "Copyshop Uni",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -6.4,
+   "label": "Bildung"
+  },
+  {
+   "counterparty": "Booking.com B.V.",
+   "purpose": "Hotel Berlin",
+   "type": "Presentment",
+   "amount": -240.0,
+   "label": "Reisen"
+  },
+  {
+   "counterparty": "Airbnb Payments",
+   "purpose": "Reservation ABC",
+   "type": "Presentment",
+   "amount": -310.0,
+   "label": "Reisen"
+  },
+  {
+   "counterparty": "Motel One Muenchen",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -129.0,
+   "label": "Reisen"
+  },
+  {
+   "counterparty": "TUI Deutschland GmbH",
+   "purpose": "Reise 12345",
+   "type": "Lastschrift",
+   "amount": -899.0,
+   "label": "Reisen"
+  },
+  {
+   "counterparty": "A&O Hostel Hamburg",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -68.0,
+   "label": "Reisen"
+  },
+  {
+   "counterparty": "Jugendherberge Garmisch",
+   "purpose": "",
+   "type": "Kartenzahlung",
+   "amount": -42.0,
+   "label": "Reisen"
+  },
+  {
+   "counterparty": "HRS GmbH",
+   "purpose": "Hotelbuchung",
+   "type": "Kartenzahlung",
+   "amount": -150.0,
+   "label": "Reisen"
+  },
+  {
+   "counterparty": "Amazon EU S.a.r.L.",
+   "purpose": "Amazon.de Bestellung 302-1234567",
+   "type": "Presentment",
+   "amount": -49.99,
+   "label": "Online-Handel"
+  },
+  {
+   "counterparty": "AMAZON PAYMENTS EUROPE",
+   "purpose": "",
+   "type": "Lastschrift",
+   "amount": -23.9,
+   "label": "Online-Handel"
+  },
+  {
+   "counterparty": "eBay GmbH",
+   "purpose": "Kauf",
+   "type": "Lastschrift",
+   "amount": -15.0,
+   "label": "Online-Handel"
+  },
+  {
+   "counterparty": "OTTO GmbH & Co KG",
+   "purpose": "Bestellung",
+   "type": "Lastschrift",
+   "amount": -79.0,
+   "label": "Online-Handel"
+  },
+  {
+   "counterparty": "PayPal Europe",
+   "purpose": "1030123456789 PP.1234.PP . ETSY, Ihr Einkauf bei ETSY",
+   "type": "Lastschrift",
+   "amount": -27.5,
+   "label": "Online-Handel"
+  },
+  {
+   "counterparty": "Klarna Bank AB",
+   "purpose": "Rechnung 4711",
+   "type": "Lastschrift",
+   "amount": -45.0,
+   "label": "Online-Handel"
+  },
+  {
+   "counterparty": "AliExpress",
+   "purpose": "",
+   "type": "Presentment",
+   "amount": -12.3,
+   "label": "Online-Handel"
+  },
+  {
+   "counterparty": "Galaxus Deutschland",
+   "purpose": "",
+   "type": "Lastschrift",
+   "amount": -89.0,
+   "label": "Online-Handel"
+  },
+  {
+   "counterparty": "Tchibo GmbH",
+   "purpose": "Bestellung",
+   "type": "Lastschrift",
+   "amount": -29.9,
+   "label": "Online-Handel"
+  },
+  {
+   "counterparty": "",
+   "purpose": "Bargeldauszahlung GA NR 12345",
+   "type": "Auszahlung",
+   "amount": -100.0,
+   "label": "Bargeld"
+  },
+  {
+   "counterparty": "GELDAUTOMAT SPARKASSE",
+   "purpose": "",
+   "type": "Auszahlung",
+   "amount": -50.0,
+   "label": "Bargeld"
+  },
+  {
+   "counterparty": "Cash26 Rewe",
+   "purpose": "Cash26 Auszahlung",
+   "type": "ATM",
+   "amount": -40.0,
+   "label": "Bargeld"
+  },
+  {
+   "counterparty": "DKB Geldautomat",
+   "purpose": "Auszahlung",
+   "type": "Kartenzahlung",
+   "amount": -200.0,
+   "label": "Bargeld"
+  },
+  {
+   "counterparty": "Bargeldeinzahlung",
+   "purpose": "Einzahlung",
+   "type": "Einzahlung",
+   "amount": 150.0,
+   "label": "Bargeld"
+  },
+  {
+   "counterparty": "",
+   "purpose": "Kontofuehrungsentgelt",
+   "type": "Entgelt",
+   "amount": -4.9,
+   "label": "Gebühren & Zinsen"
+  },
+  {
+   "counterparty": "comdirect",
+   "purpose": "Rechnungsabschluss Zinsen",
+   "type": "Abschluss",
+   "amount": -2.13,
+   "label": "Gebühren & Zinsen"
+  },
+  {
+   "counterparty": "ING",
+   "purpose": "Kartengebuehr Visa",
+   "type": "Gebuehr",
+   "amount": -2.0,
+   "label": "Gebühren & Zinsen"
+  },
+  {
+   "counterparty": "N26",
+   "purpose": "Bank fee Metal",
+   "type": "Fee",
+   "amount": -16.9,
+   "label": "Gebühren & Zinsen"
+  },
+  {
+   "counterparty": "DKB AG",
+   "purpose": "Sollzinsen",
+   "type": "Zinsen",
+   "amount": -5.4,
+   "label": "Gebühren & Zinsen"
+  },
+  {
+   "counterparty": "Musterfirma GmbH",
+   "purpose": "Gehalt Januar 2026",
+   "type": "Eingang",
+   "amount": 2850.0,
+   "label": "Einkommen"
+  },
+  {
+   "counterparty": "Musterfirma GmbH",
+   "purpose": "Lohn / Gehalt 02/2026",
+   "type": "Gehalt/Rente",
+   "amount": 2850.0,
+   "label": "Einkommen"
+  },
+  {
+   "counterparty": "Ludwig-Maximilians-Universitaet",
+   "purpose": "Bezuege Hilfskraft 01/2026",
+   "type": "Gutschrift",
+   "amount": 520.0,
+   "label": "Einkommen"
+  },
+  {
+   "counterparty": "Familienkasse Bayern Sued",
+   "purpose": "Kindergeld 01/26",
+   "type": "Gutschrift",
+   "amount": 250.0,
+   "label": "Einkommen"
+  },
+  {
+   "counterparty": "Finanzamt Muenchen",
+   "purpose": "Einkommensteuer Erstattung 2025",
+   "type": "Gutschrift",
+   "amount": 412.0,
+   "label": "Einkommen"
+  },
+  {
+   "counterparty": "Bundesagentur fuer Arbeit",
+   "purpose": "Arbeitslosengeld",
+   "type": "Gutschrift",
+   "amount": 1200.0,
+   "label": "Einkommen"
+  },
+  {
+   "counterparty": "Studentenwerk Muenchen",
+   "purpose": "BAfoeG 01/2026",
+   "type": "Gutschrift",
+   "amount": 600.0,
+   "label": "Einkommen"
+  },
+  {
+   "counterparty": "Anna Beispiel",
+   "purpose": "Nachhilfe Januar",
+   "type": "Gutschrift",
+   "amount": 120.0,
+   "label": "Einkommen"
+  },
+  {
+   "counterparty": "Trade Republic Bank GmbH",
+   "purpose": "Sparplan MSCI World",
+   "type": "Ueberweisung",
+   "amount": -200.0,
+   "label": "Umbuchung"
+  },
+  {
+   "counterparty": "Scalable Capital GmbH",
+   "purpose": "Einzahlung Depot",
+   "type": "Ueberweisung",
+   "amount": -500.0,
+   "label": "Umbuchung"
+  },
+  {
+   "counterparty": "Max Mustermann",
+   "purpose": "Umbuchung auf Tagesgeld",
+   "type": "Ueberweisung",
+   "amount": -1000.0,
+   "label": "Umbuchung"
+  },
+  {
+   "counterparty": "Max Mustermann",
+   "purpose": "Uebertrag Sparbuch",
+   "type": "Dauerauftrag",
+   "amount": -150.0,
+   "label": "Umbuchung"
+  },
+  {
+   "counterparty": "DKB AG",
+   "purpose": "Kreditkartenabrechnung Visa",
+   "type": "Lastschrift",
+   "amount": -312.44,
+   "label": "Umbuchung"
+  },
+  {
+   "counterparty": "N26 Spaces",
+   "purpose": "Internal transfer",
+   "type": "Internal Transfer",
+   "amount": -300.0,
+   "label": "Umbuchung"
+  },
+  {
+   "counterparty": "Franz Huber Schreinerei",
+   "purpose": "Rechnung 4711 Regal",
+   "type": "Ueberweisung",
+   "amount": -300.0,
+   "label": "Sonstiges"
+  },
+  {
+   "counterparty": "Erika Musterfrau",
+   "purpose": "Geschenk Hochzeit",
+   "type": "Ueberweisung",
+   "amount": -100.0,
+   "label": "Sonstiges"
+  },
+  {
+   "counterparty": "Deutsches Rotes Kreuz",
+   "purpose": "Spende",
+   "type": "Lastschrift",
+   "amount": -20.0,
+   "label": "Sonstiges"
+  },
+  {
+   "counterparty": "Landeshauptstadt Muenchen",
+   "purpose": "Bussgeld Aktenzeichen 123",
+   "type": "Ueberweisung",
+   "amount": -30.0,
+   "label": "Sonstiges"
+  },
+  {
+   "counterparty": "Stadt Muenchen KVR",
+   "purpose": "Personalausweis Gebuehr",
+   "type": "Kartenzahlung",
+   "amount": -37.0,
+   "label": "Sonstiges"
+  },
+  {
+   "counterparty": "Foto Meyer",
+   "purpose": "Passbilder",
+   "type": "Kartenzahlung",
+   "amount": -15.0,
+   "label": "Sonstiges"
+  }
+ ]
+}

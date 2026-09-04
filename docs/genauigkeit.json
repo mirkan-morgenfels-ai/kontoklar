@@ -1,19 +1,19 @@
 {
-  "date": "2026-09-03",
+  "date": "2026-09-04",
   "mode": "rule-only",
   "total": 198,
   "stages": {
     "rule": {
-      "count": 191,
-      "correct": 187
+      "count": 190,
+      "correct": 188
     },
     "unzugeordnet": {
-      "count": 7,
+      "count": 8,
       "correct": 0
     }
   },
-  "accuracyTotal": 0.9444444444444444,
-  "accuracyAssigned": 0.9790575916230366,
+  "accuracyTotal": 0.9494949494949495,
+  "accuracyAssigned": 0.9894736842105263,
   "perCategory": [
     {
       "cat": "Lebensmittel",
@@ -103,7 +103,7 @@
       "cat": "Bildung",
       "support": 7,
       "precision": 1,
-      "recall": 0.8571428571428571
+      "recall": 1
     },
     {
       "cat": "Reisen",
@@ -132,7 +132,7 @@
     {
       "cat": "Gebühren & Zinsen",
       "support": 5,
-      "precision": 0.7142857142857143,
+      "precision": 1,
       "recall": 1
     }
   ]

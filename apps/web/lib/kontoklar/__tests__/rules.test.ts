@@ -54,6 +54,14 @@ describe("Regel-Engine: Beispiele", () => {
   test("Bargeld und Gebühren", () => {
     expect(match("", "Bargeldauszahlung GA NR 12345", "Auszahlung", -100)).toBe("Bargeld");
     expect(match("", "Kontoführungsentgelt", "Entgelt", -4.9)).toBe("Gebühren & Zinsen");
+    expect(match("", "Kontoführungsentgelt", "Lastschrift", -4.9)).toBe("Gebühren & Zinsen");
+    expect(match("DKB AG", "Sollzinsen", "Lastschrift", -5.4)).toBe("Gebühren & Zinsen");
+    expect(match("N26", "Bank fee Metal", "Lastschrift", -16.9)).toBe("Gebühren & Zinsen");
+  });
+  test("Gebühren im Verwendungszweck zählen nicht bei Nicht-Bank-Empfängern", () => {
+    expect(match("Stadtbibliothek Muenchen", "Jahresgebuehr", "Kartenzahlung", -20)).toBe("Bildung");
+    expect(match("Stadt Muenchen KVR", "Personalausweis Gebuehr", "Kartenzahlung", -37)).toBeNull();
+    expect(match("Musikschule Sendling", "Kursgebuehr Gitarre", "Lastschrift", -65)).toBe("Freizeit & Kultur");
   });
   test("Umbuchung", () => {
     expect(match("Trade Republic Bank GmbH", "Sparplan", "Überweisung", -200)).toBe("Umbuchung");

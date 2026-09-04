@@ -69,15 +69,15 @@ Geschätzte variable Kosten bei 300 Buchungen je Nutzer: etwa 0,02 $ bei 100 Nut
 
 ## Genauigkeit
 
-Gemessen mit `pnpm --filter web accuracy` auf einem von Hand gelabelten, synthetischen Testset mit 198 Buchungen (`data/k2/testset.json`), Stand 03.09.2026, nur Regel-Engine (noch ohne API-Key):
+Gemessen mit `pnpm --filter web accuracy` auf einem von Hand gelabelten, synthetischen Testset mit 198 Buchungen (`data/k2/testset.json`), Stand 04.09.2026, nur Regel-Engine (noch ohne API-Key):
 
 | Stufe | Anteil der Buchungen | Accuracy |
 |---|---|---|
-| Regel-Engine | 96,5 % | 97,9 % |
+| Regel-Engine | 96,0 % | 98,9 % |
 | Embedding-kNN | noch nicht gemessen | – |
 | Sprachmodell-Fallback | noch nicht gemessen | – |
-| offen (keine Regel) | 3,5 % | – |
-| Gesamt (offene zählen als falsch) | 100 % | 94,4 % |
+| offen (keine Regel) | 4,0 % | – |
+| Gesamt (offene zählen als falsch) | 100 % | 94,9 % |
 
 Das Testset wurde parallel zum Regelsatz erstellt; die hohe Regelabdeckung ist deshalb kein Beleg für echte Kontohistorien. Precision und Recall je Kategorie, Fehlerliste und offene Messungen stehen in `docs/genauigkeit.md`. Ziel für v1: mindestens 90 % Accuracy auf den häufigen Kategorien.
 

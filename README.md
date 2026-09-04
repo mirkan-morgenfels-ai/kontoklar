@@ -5,7 +5,7 @@ Kategorisiert Bankumsätze aus CSV-Exporten und zeigt, wohin das Geld geht. Rege
 [![CI](https://github.com/mirkan-morgenfels-ai/AI-Project-2/actions/workflows/ci.yml/badge.svg)](https://github.com/mirkan-morgenfels-ai/AI-Project-2/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
-Live-Demo: [Platzhalter: https://<domain>/projects/kontoklar]
+Live-Demo: https://kontoklar-eight.vercel.app/projects/kontoklar
 
 **English summary.** KontoKlar categorizes German bank account CSV exports (DKB, ING, comdirect, N26) and builds a household dashboard: monthly spending by category, recurring payments, and a personal inflation rate that weights official Destatis price indices with the user's own spending shares. Categorization is a three-stage hybrid: a client-side rule engine, then OpenAI embeddings with k-nearest-neighbour voting against a labelled example set, then a small LLM only for low-confidence cases. Results are cached per merchant, requests are rate-limited and bot-protected, so variable API cost stays near zero. No transactions are stored server-side; only a pseudonymized merchant string ever leaves the browser.
 

@@ -34,6 +34,10 @@ Next.js 15 App Router, TypeScript strict, Tailwind 4, Papa Parse, Recharts, Open
 - Deutsch in der Oberfläche, Englisch in Code-Bezeichnern. Keine Kommentarzeilen im Code.
 - Genauigkeitsangaben nur aus `pnpm --filter web accuracy`, nie geschätzt.
 
+## Betrieb lokal
+- `next build` und `next dev` nie gleichzeitig im selben Verzeichnis laufen lassen; der Build überschreibt `.next` und der Dev-Server antwortet danach mit 500.
+- Die API-Route ist fail-closed: ohne OPENAI_API_KEY, ohne Beispielset oder bei nicht erreichbarem Rate-Limit antwortet sie 503, nie mit ungebremsten Aufrufen.
+
 ## Konfidenzschwellen
 Regel 1,0. kNN >= 0,80 übernehmen. 0,50 bis 0,80 übernehmen und markieren. < 0,50 Fallback (Sprachmodell), Ergebnis mit 0,50 gecacht.
 

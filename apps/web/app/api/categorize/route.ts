@@ -8,6 +8,8 @@ import type { ApiDisabledResponse } from "@/lib/kontoklar/types";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const MAX_BODY_BYTES = 200_000;
+
 function disabled(reason: string) {
   const body: ApiDisabledResponse = { disabled: true, reason };
   return NextResponse.json(body, { status: 503 });
@@ -16,6 +18,9 @@ function disabled(reason: string) {
 export async function POST(request: Request) {
   const client = openAiClient();
   if (!client) return disabled("API-Schritt deaktiviert: kein OPENAI_API_KEY gesetzt. Die Regel-Engine arbeitet weiter.");
+
+  const contentLength = Number(request.headers.get("content-length") ?? "0");
+  if (contentLength > MAX_BODY_BYTES) return NextResponse.json({ error: "Anfrage zu groß" }, { status: 413 });
 
   let payload: { texts?: unknown; turnstileToken?: unknown };
   try {
@@ -46,13 +51,15 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Tageslimit erreicht. Die Regel-Engine bleibt aktiv." }, { status: 429, headers: { "retry-after": String(Math.max(1, Math.ceil((reset - Date.now()) / 1000))) } });
       }
       console.error("ratelimit unavailable", (e as Error).name);
+      return NextResponse.json({ error: "Rate-Limit nicht erreichbar. Die Regel-Engine bleibt aktiv." }, { status: 503 });
     }
   }
 
   const labeled = await loadLabeledVectors();
+  if (labeled.length === 0) return disabled("API-Schritt deaktiviert: Beispielset data/k2/labeled-embeddings.json fehlt. Die Regel-Engine arbeitet weiter.");
   const deps: CategorizeDeps = {
     cache: redis ? createRedisCache(redis) : null,
-    embed: labeled.length > 0 ? createOpenAiEmbed(client) : null,
+    embed: createOpenAiEmbed(client),
     labeled,
     fallback: createOpenAiFallback(client),
   };

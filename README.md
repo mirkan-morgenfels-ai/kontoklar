@@ -65,6 +65,8 @@ Serverseitig gespeichert wird ausschließlich ein Cache von normalisiertem Händ
 | Tageslimit 30 Aufrufe pro IP, Cloudflare Turnstile | Schutz vor Skripten und Massenanfragen |
 | Hartes Monatslimit an der Anbieter-Konsole | Kosten sind nach oben gedeckelt |
 
+Die API-Route ist fail-closed: Ohne OpenAI-Key, ohne Beispielset oder wenn das Rate-Limit nicht erreichbar ist, antwortet sie mit 503 und die Oberfläche zeigt das an; Bodies über 200 KB werden abgelehnt, mehr als 500 unbekannte Händler je Upload bleiben unangefragt zur Prüfung markiert.
+
 Geschätzte variable Kosten bei 300 Buchungen je Nutzer: etwa 0,02 $ bei 100 Nutzern im Monat, etwa 0,21 $ bei 1.000, etwa 2,10 $ bei 10.000. Bei Erreichen eines Limits bleibt die Regel-Engine aktiv.
 
 ## Genauigkeit

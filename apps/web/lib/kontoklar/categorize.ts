@@ -29,7 +29,7 @@ export function applyRules(transactions: Transaction[], engine: RuleEngine = def
   });
 }
 
-export function collectApiTexts(items: CategorizedTransaction[]): string[] {
+export function collectApiCandidates(items: CategorizedTransaction[]): string[] {
   const seen = new Set<string>();
   for (const it of items) {
     if (it.categorization.source !== "none") continue;
@@ -37,7 +37,11 @@ export function collectApiTexts(items: CategorizedTransaction[]): string[] {
     if (it.merchantKey === "") continue;
     seen.add(it.merchantKey);
   }
-  return [...seen].slice(0, MAX_TEXTS_PER_CALL);
+  return [...seen];
+}
+
+export function collectApiTexts(items: CategorizedTransaction[]): string[] {
+  return collectApiCandidates(items).slice(0, MAX_TEXTS_PER_CALL);
 }
 
 export function categorizationFromApi(item: ApiCategorizeItem): Categorization {

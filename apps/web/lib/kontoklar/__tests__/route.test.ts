@@ -4,6 +4,7 @@ const embeddingsCreate = vi.fn();
 const chatCreate = vi.fn();
 const redisStore = new Map<string, string>();
 const limitCalls: string[] = [];
+const state = { labeledEmpty: false, limiterDown: false };
 
 vi.mock("openai", () => ({
   default: class {
@@ -35,6 +36,7 @@ vi.mock("@portfolio/ratelimit", async (importOriginal) => {
     ...mod,
     createRateLimiter: () => ({
       async limit(id: string) {
+        if (state.limiterDown) throw new Error("upstash down");
         limitCalls.push(id);
         const success = limitCalls.filter((x) => x === id).length <= 2;
         return { success, limit: 2, remaining: 0, reset: Date.now() + 1000 };
@@ -47,11 +49,14 @@ vi.mock("../providers", async (importOriginal) => {
   const mod = await importOriginal<typeof import("../providers")>();
   return {
     ...mod,
-    loadLabeledVectors: async () => [
-      { text: "REWE", category: "Lebensmittel", vector: [1, 0, 0] },
-      { text: "DM", category: "Drogerie & Haushalt", vector: [0, 1, 0] },
-      { text: "NETFLIX", category: "Abos & Medien", vector: [0, 0, 1] },
-    ],
+    loadLabeledVectors: async () =>
+      state.labeledEmpty
+        ? []
+        : [
+            { text: "REWE", category: "Lebensmittel", vector: [1, 0, 0] },
+            { text: "DM", category: "Drogerie & Haushalt", vector: [0, 1, 0] },
+            { text: "NETFLIX", category: "Abos & Medien", vector: [0, 0, 1] },
+          ],
   };
 });
 
@@ -70,6 +75,8 @@ describe("POST /api/categorize", () => {
   beforeEach(() => {
     redisStore.clear();
     limitCalls.length = 0;
+    state.labeledEmpty = false;
+    state.limiterDown = false;
     embeddingsCreate.mockReset();
     chatCreate.mockReset();
     delete process.env.OPENAI_API_KEY;
@@ -135,6 +142,34 @@ describe("POST /api/categorize", () => {
     const third = await post({ texts: ["C LADEN"] }, { "x-forwarded-for": "1.1.1.1" });
     expect(third.status).toBe(429);
     expect(third.headers.get("retry-after")).toBeTruthy();
+  });
+
+  test("ohne Beispielset antwortet die Route mit 503 disabled statt Sprachmodell für alles", async () => {
+    process.env.OPENAI_API_KEY = "test";
+    state.labeledEmpty = true;
+    const res = await post({ texts: ["REWE SAGT DANKE"] });
+    expect(res.status).toBe(503);
+    expect(await res.json()).toMatchObject({ disabled: true });
+    expect(chatCreate).not.toHaveBeenCalled();
+    expect(embeddingsCreate).not.toHaveBeenCalled();
+  });
+
+  test("Rate-Limit nicht erreichbar: fail-closed mit 503, kein OpenAI-Aufruf", async () => {
+    process.env.OPENAI_API_KEY = "test";
+    process.env.UPSTASH_REDIS_REST_URL = "https://example.upstash.io";
+    process.env.UPSTASH_REDIS_REST_TOKEN = "token";
+    state.limiterDown = true;
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const res = await post({ texts: ["REWE SAGT DANKE"] });
+    expect(res.status).toBe(503);
+    expect(embeddingsCreate).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  test("zu großer Body wird mit 413 abgelehnt", async () => {
+    process.env.OPENAI_API_KEY = "test";
+    const res = await post({ texts: ["REWE"] }, { "content-length": "500000" });
+    expect(res.status).toBe(413);
   });
 
   test("Turnstile: mit Secret aber ohne Token 403", async () => {

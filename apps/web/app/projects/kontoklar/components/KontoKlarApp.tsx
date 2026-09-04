@@ -3,7 +3,8 @@
 import { useCallback, useState } from "react";
 import type { ParseResult } from "@portfolio/csv";
 import type { Category } from "@/lib/kontoklar/categories";
-import { applyManualToSameMerchant, applyRules, callCategorizeApi, collectApiTexts, mergeApiResults, setManualCategory, summarize } from "@/lib/kontoklar/categorize";
+import { applyManualToSameMerchant, applyRules, callCategorizeApi, collectApiCandidates, collectApiTexts, mergeApiResults, setManualCategory, summarize } from "@/lib/kontoklar/categorize";
+import { MAX_TEXTS_PER_CALL } from "@/lib/kontoklar/types";
 import type { CategorizedTransaction } from "@/lib/kontoklar/types";
 import { formatPercent } from "@/lib/kontoklar/analytics";
 import { Dashboard } from "./Dashboard";
@@ -15,6 +16,7 @@ interface ApiInfo {
   status: "skipped" | "disabled" | "ok" | "error";
   message?: string;
   sentTexts: string[];
+  skipped?: number;
   stats?: { cached: number; embedded: number; fallback: number };
 }
 
@@ -33,6 +35,7 @@ export function KontoKlarApp({ turnstileSiteKey }: { turnstileSiteKey: string })
     const ruled = applyRules(result.transactions);
     setItems(ruled);
     const texts = options.useApi ? collectApiTexts(ruled) : [];
+    const skipped = options.useApi ? Math.max(0, collectApiCandidates(ruled).length - texts.length) : 0;
     if (!options.useApi) {
       setApiInfo({ status: "skipped", sentTexts: [] });
       setBusy(false);
@@ -47,7 +50,7 @@ export function KontoKlarApp({ turnstileSiteKey }: { turnstileSiteKey: string })
       const res = await callCategorizeApi(texts, options.turnstileToken ?? undefined);
       if (res.ok && res.response) {
         setItems(mergeApiResults(ruled, res.response.results));
-        setApiInfo({ status: "ok", sentTexts: texts, stats: res.response.stats });
+        setApiInfo({ status: "ok", sentTexts: texts, skipped, stats: res.response.stats });
       } else if (res.disabled) {
         setApiInfo({ status: "disabled", message: res.message, sentTexts: texts });
       } else {
@@ -123,6 +126,11 @@ export function KontoKlarApp({ turnstileSiteKey }: { turnstileSiteKey: string })
             </Notice>
           )}
           {apiInfo?.status === "ok" && apiInfo.sentTexts.length === 0 && <Notice tone="ok">Alle Buchungen wurden im Browser zugeordnet. Nichts wurde übertragen.</Notice>}
+          {apiInfo?.skipped ? (
+            <Notice tone="warn">
+              {apiInfo.skipped} weitere unbekannte Händler wurden nicht angefragt (höchstens {MAX_TEXTS_PER_CALL} je Upload). Sie bleiben zur Prüfung markiert; ein kleinerer Zeitraum je Datei hilft.
+            </Notice>
+          ) : null}
           {showSent && apiInfo && apiInfo.sentTexts.length > 0 && (
             <div className="rounded-md border border-line bg-paper p-3 text-xs">
               <p className="mb-1 font-medium">Übertragene Händlertexte (pseudonymisiert):</p>

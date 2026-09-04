@@ -97,6 +97,15 @@ export function UploadPanel({ turnstileSiteKey, busy, onParsed }: Props) {
         onDragLeave={() => setDragOver(false)}
         onDrop={onDrop}
         onClick={() => inputRef.current?.click()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            inputRef.current?.click();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label="CSV-Datei auswählen"
         className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-10 text-center transition ${
           dragOver ? "border-gold bg-gold-soft" : "border-line bg-paper hover:border-gold"
         }`}

@@ -13,6 +13,10 @@ Next.js 15 App Router, TypeScript strict, Tailwind 4, Papa Parse, Recharts, Open
 - `pnpm --filter web embeddings:build` (data/k2/labeled-examples.json -> data/k2/labeled-embeddings.json, braucht OPENAI_API_KEY)
 - `DESTATIS_TOKEN=... pnpm --filter web cpi:build`
 
+## Git und Deployment
+- Remote: https://github.com/mirkan-morgenfels-ai/AI-Project-2 (privat). Vercel-Projekt `kontoklar` (Team AI-Team, Root `apps/web`) deployt jeden Push auf `main`; Produktions-URL https://kontoklar-eight.vercel.app.
+- Commits müssen mit der GitHub-noreply-Adresse des Kontos mirkan-morgenfels-ai signiert sein (repo-lokal per `git config user.email` gesetzt), sonst blockiert Vercel das Deployment („commit email could not be matched“).
+
 ## Struktur K2
 - `packages/csv/` Bank-Parser (DKB, ING, comdirect, N26, generisch), Erkennung, Fixtures
 - `packages/ratelimit/` Upstash-Rate-Limit, Turnstile-Verifikation

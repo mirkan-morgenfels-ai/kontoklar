@@ -64,9 +64,9 @@ describe("verifyTurnstile", () => {
 });
 
 describe("Hilfsfunktionen", () => {
-  test("clientIpFromHeaders nimmt die erste x-forwarded-for-Adresse", () => {
+  test("clientIpFromHeaders bevorzugt x-real-ip, dann die erste x-forwarded-for-Adresse", () => {
     expect(clientIpFromHeaders(new Headers({ "x-forwarded-for": "5.5.5.5, 10.0.0.1" }))).toBe("5.5.5.5");
-    expect(clientIpFromHeaders(new Headers({ "x-real-ip": "6.6.6.6" }))).toBe("6.6.6.6");
+    expect(clientIpFromHeaders(new Headers({ "x-real-ip": "6.6.6.6", "x-forwarded-for": "1.1.1.1" }))).toBe("6.6.6.6");
     expect(clientIpFromHeaders(new Headers())).toBe("unknown");
   });
   test("hasUpstashEnv", () => {

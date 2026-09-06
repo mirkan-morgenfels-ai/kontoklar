@@ -15,7 +15,7 @@ export function Card({ title, children, aside }: { title?: string; children: Rea
 }
 
 export function Stat({ label, value, hint, tone = "ink" }: { label: string; value: string; hint?: string; tone?: "ink" | "moss" | "wine" | "gold" }) {
-  const color = { ink: "text-ink", moss: "text-moss", wine: "text-wine", gold: "text-gold" }[tone];
+  const color = { ink: "text-ink", moss: "text-moss", wine: "text-wine", gold: "text-gold-deep" }[tone];
   return (
     <div className="rounded-lg border border-line bg-paper px-4 py-3">
       <p className="text-xs uppercase tracking-wide text-stone">{label}</p>
@@ -58,7 +58,7 @@ export function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${cls}`}
+      className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:cursor-not-allowed disabled:opacity-50 ${cls}`}
     >
       {children}
     </button>
@@ -72,5 +72,10 @@ export function Notice({ tone, children }: { tone: "info" | "warn" | "error" | "
     error: "border-wine/40 bg-wine-soft text-wine",
     ok: "border-moss/40 bg-moss-soft text-moss",
   }[tone];
-  return <div className={`rounded-md border px-3 py-2 text-sm ${cls}`}>{children}</div>;
+  const role = tone === "error" || tone === "warn" ? "alert" : "status";
+  return (
+    <div role={role} className={`rounded-md border px-3 py-2 text-sm ${cls}`}>
+      {children}
+    </div>
+  );
 }

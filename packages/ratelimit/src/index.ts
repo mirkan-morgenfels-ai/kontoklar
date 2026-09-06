@@ -95,10 +95,12 @@ export async function verifyTurnstile(token: string | undefined, remoteIp: strin
 }
 
 export function clientIpFromHeaders(headers: Headers): string {
+  const real = headers.get("x-real-ip")?.trim();
+  if (real) return real;
   const forwarded = headers.get("x-forwarded-for");
   if (forwarded) {
     const first = forwarded.split(",")[0]?.trim();
     if (first) return first;
   }
-  return headers.get("x-real-ip") ?? headers.get("cf-connecting-ip") ?? "unknown";
+  return headers.get("cf-connecting-ip") ?? "unknown";
 }

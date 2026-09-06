@@ -48,13 +48,13 @@ export function ReviewTable({ items, onChange, onApplyToMerchant }: Props) {
       title="2. Prüfen und korrigieren"
       aside={
         <div className="flex flex-wrap items-center gap-2 text-sm">
-          <button type="button" onClick={() => setFilter("review")} className={`rounded-md px-2 py-1 ${filter === "review" ? "bg-ink text-white" : "text-stone hover:text-ink"}`}>
+          <button type="button" aria-pressed={filter === "review"} onClick={() => setFilter("review")} className={`rounded-md px-2 py-1 ${filter === "review" ? "bg-ink text-white" : "text-stone hover:text-ink"}`}>
             Zur Prüfung ({reviewCount})
           </button>
-          <button type="button" onClick={() => setFilter("all")} className={`rounded-md px-2 py-1 ${filter === "all" ? "bg-ink text-white" : "text-stone hover:text-ink"}`}>
+          <button type="button" aria-pressed={filter === "all"} onClick={() => setFilter("all")} className={`rounded-md px-2 py-1 ${filter === "all" ? "bg-ink text-white" : "text-stone hover:text-ink"}`}>
             Alle ({items.length})
           </button>
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Suchen …" className="rounded-md border border-line px-2 py-1 text-sm" />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Suchen …" aria-label="Buchungen durchsuchen" className="rounded-md border border-line px-2 py-1 text-sm" />
         </div>
       }
     >
@@ -135,8 +135,8 @@ function ConfidenceBar({ value, review }: { value: number; review: boolean }) {
   const pct = Math.round(value * 100);
   const color = review ? "bg-gold" : "bg-moss";
   return (
-    <div className="flex items-center gap-2">
-      <div className="h-1.5 w-16 overflow-hidden rounded bg-line">
+    <div className="flex items-center gap-2" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={review ? `Konfidenz ${pct} Prozent, zur Prüfung` : `Konfidenz ${pct} Prozent`}>
+      <div className="h-1.5 w-16 overflow-hidden rounded bg-line" aria-hidden="true">
         <div className={`h-full ${color}`} style={{ width: `${pct}%` }} />
       </div>
       <span className="text-xs text-stone">{pct} %</span>

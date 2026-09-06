@@ -47,7 +47,7 @@ export function Dashboard({ items }: { items: CategorizedTransaction[] }) {
           <Stat label="Wiederkehrend je Monat" value={formatEur(monthlyRecurring)} hint={`${recurring.length} erkannte Zahlungen`} tone="gold" />
         </div>
 
-        <div className="mt-6 h-72 w-full">
+        <div className="mt-6 h-72 w-full" role="img" aria-label={`Gestapeltes Balkendiagramm der Ausgaben je Monat nach Kategorie, ${months.length} Monate, Einnahmen als grüner Balken`}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
               <CartesianGrid stroke="#e3e0d6" vertical={false} />

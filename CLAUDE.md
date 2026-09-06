@@ -38,6 +38,10 @@ Next.js 15 App Router, TypeScript strict, Tailwind 4, Papa Parse, Recharts, Open
 - `next build` und `next dev` nie gleichzeitig im selben Verzeichnis laufen lassen; der Build überschreibt `.next` und der Dev-Server antwortet danach mit 500.
 - Die API-Route ist fail-closed: ohne OPENAI_API_KEY, ohne Beispielset oder bei nicht erreichbarem Rate-Limit antwortet sie 503, nie mit ungebremsten Aufrufen.
 
+## Sicherheit und Zugänglichkeit
+- Sicherheits-Header (CSP mit Turnstile-Ausnahmen, HSTS, X-Frame-Options, Referrer-Policy, Permissions-Policy) stehen in `apps/web/next.config.ts`; neue externe Quellen müssen dort in der CSP eingetragen werden.
+- Goldton für Text ist `text-gold-deep` (#7d5f17, AA-Kontrast); `gold` (#b8912f) nur für Flächen, Rahmen, Fokusringe. Fokus-Ringe global in `globals.css`.
+
 ## Konfidenzschwellen
 Regel 1,0. kNN >= 0,80 übernehmen. 0,50 bis 0,80 übernehmen und markieren. < 0,50 Fallback (Sprachmodell), Ergebnis mit 0,50 gecacht.
 

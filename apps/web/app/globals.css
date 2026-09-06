@@ -4,6 +4,7 @@
   --color-ink: #111111;
   --color-paper: #fbfaf6;
   --color-gold: #b8912f;
+  --color-gold-deep: #7d5f17;
   --color-gold-soft: #f3e9c9;
   --color-moss: #2f6b3a;
   --color-moss-soft: #dfeadf;
@@ -22,4 +23,16 @@ body {
   background: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
 }

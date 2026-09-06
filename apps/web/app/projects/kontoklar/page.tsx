@@ -3,7 +3,7 @@ import Link from "next/link";
 import { KontoKlarApp } from "./components/KontoKlarApp";
 
 export const metadata: Metadata = {
-  title: "KontoKlar – Bankumsätze kategorisieren",
+  title: "Bankumsätze kategorisieren",
   description: "Kategorisiert Bankumsätze aus CSV-Exporten von DKB, ING, comdirect und N26. Keine Kontoanbindung, keine Speicherung.",
 };
 
@@ -13,7 +13,7 @@ export default function KontoKlarPage() {
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-gold">K2 · Portfolio</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-gold-deep">K2 · Portfolio</p>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">KontoKlar</h1>
           <p className="mt-2 max-w-2xl text-sm text-stone">
             Bank-CSV rein, Dashboard raus. Regel-Engine zuerst, Embeddings zweitens, Sprachmodell nur als Fallback. Keine Kontoanbindung, keine Speicherung von Umsätzen.

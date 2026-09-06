@@ -106,7 +106,7 @@ export function UploadPanel({ turnstileSiteKey, busy, onParsed }: Props) {
         role="button"
         tabIndex={0}
         aria-label="CSV-Datei auswählen"
-        className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-10 text-center transition ${
+        className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-10 text-center transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold ${
           dragOver ? "border-gold bg-gold-soft" : "border-line bg-paper hover:border-gold"
         }`}
       >
@@ -132,7 +132,7 @@ export function UploadPanel({ turnstileSiteKey, busy, onParsed }: Props) {
           <div className="text-sm">
             <span className="mb-1 block text-xs uppercase tracking-wide text-stone">API-Schritt</span>
             <label className="flex items-center gap-2">
-              <input type="checkbox" checked={useApi} onChange={(e) => setUseApi(e.target.checked)} />
+              <input type="checkbox" checked={useApi} onChange={(e) => setUseApi(e.target.checked)} className="accent-moss" />
               <span>Unbekannte Händler per Embedding-API klären</span>
             </label>
             <p className="mt-1 text-xs text-stone">Aus: nur die Regel-Engine, nichts verlässt den Browser.</p>

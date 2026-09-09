@@ -8,6 +8,7 @@ import {
   type ApiCategorizeItem,
   type ApiCategorizeResponse,
   type ApiDisabledResponse,
+  type ApiStatusResponse,
   type CategorizedTransaction,
   type Categorization,
 } from "./types";
@@ -96,6 +97,17 @@ export async function callCategorizeApi(texts: string[], turnstileToken?: string
     return { ok: false, status: res.status, message };
   }
   return { ok: true, response: data };
+}
+
+export async function fetchApiStatus(fetchImpl: typeof fetch = fetch): Promise<ApiStatusResponse> {
+  try {
+    const res = await fetchImpl("/api/categorize", { method: "GET", cache: "no-store" });
+    if (!res.ok) return { enabled: false, turnstile: false, reason: "Der Server hat nicht geantwortet." };
+    const data = (await res.json()) as Partial<ApiStatusResponse>;
+    return { enabled: data.enabled === true, turnstile: data.turnstile === true, reason: data.reason };
+  } catch {
+    return { enabled: false, turnstile: false, reason: "Der Server ist nicht erreichbar." };
+  }
 }
 
 export interface Summary {

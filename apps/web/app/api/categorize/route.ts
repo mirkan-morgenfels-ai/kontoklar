@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { Redis } from "@upstash/redis";
 import { assertLimit, clientIpFromHeaders, createRateLimiter, hasUpstashEnv, RateLimitError, TurnstileError, verifyTurnstile } from "@portfolio/ratelimit";
-import { createOpenAiEmbed, createOpenAiFallback, createRedisCache, loadLabeledVectors, openAiClient } from "@/lib/kontoklar/providers";
+import { createOpenAiEmbed, createOpenAiFallback, createRedisCache, loadLabeledVectors, openAiClient, providerStatus } from "@/lib/kontoklar/providers";
 import { categorizeTexts, sanitizeTexts, type CategorizeDeps } from "@/lib/kontoklar/server";
-import type { ApiDisabledResponse } from "@/lib/kontoklar/types";
+import type { ApiDisabledResponse, ApiStatusResponse } from "@/lib/kontoklar/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,6 +13,18 @@ const MAX_BODY_BYTES = 200_000;
 function disabled(reason: string) {
   const body: ApiDisabledResponse = { disabled: true, reason };
   return NextResponse.json(body, { status: 503 });
+}
+
+export async function GET() {
+  const status = await providerStatus();
+  const body: ApiStatusResponse = status.openai && status.labeled > 0
+    ? { enabled: true, turnstile: status.turnstile }
+    : {
+        enabled: false,
+        turnstile: status.turnstile,
+        reason: !status.openai ? "Auf dem Server ist kein OpenAI-Schlüssel hinterlegt." : "Das Beispielset mit Vektoren fehlt auf dem Server.",
+      };
+  return NextResponse.json(body, { headers: { "cache-control": "no-store" } });
 }
 
 export async function POST(request: Request) {

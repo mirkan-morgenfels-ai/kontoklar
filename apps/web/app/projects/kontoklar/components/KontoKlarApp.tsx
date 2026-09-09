@@ -115,7 +115,7 @@ export function KontoKlarApp({ turnstileSiteKey }: { turnstileSiteKey: string })
         <div className="mt-4 space-y-2">
           {busy && <Notice tone="info">Unbekannte Händler werden über die API geklärt …</Notice>}
           {apiInfo?.status === "skipped" && <Notice tone="info">API-Schritt ausgeschaltet. Nur die Regel-Engine hat gearbeitet; nichts hat den Browser verlassen.</Notice>}
-          {apiInfo?.status === "disabled" && <Notice tone="warn">{apiInfo.message ?? "API-Schritt nicht verfügbar."} Nichts wurde übertragen.</Notice>}
+          {apiInfo?.status === "disabled" && <Notice tone="info">API-Schritt derzeit nicht verfügbar, nur die Regel-Engine hat gearbeitet. Nichts wurde übertragen.</Notice>}
           {apiInfo?.status === "error" && <Notice tone="error">API-Fehler: {apiInfo.message}. Die Regel-Engine bleibt aktiv.</Notice>}
           {apiInfo?.status === "ok" && apiInfo.sentTexts.length > 0 && (
             <Notice tone="ok">

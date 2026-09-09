@@ -43,6 +43,12 @@ export interface ApiDisabledResponse {
   reason: string;
 }
 
+export interface ApiStatusResponse {
+  enabled: boolean;
+  turnstile: boolean;
+  reason?: string;
+}
+
 export const THRESHOLDS = {
   accept: 0.8,
   review: 0.5,

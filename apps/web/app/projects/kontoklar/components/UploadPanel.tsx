@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { decodeCsvBytes, detectBank, parseBankCsv, previewHeaders, SUPPORTED_BANKS, type Bank, type GenericMapping, type ParseResult } from "@portfolio/csv";
+import { fetchApiStatus } from "@/lib/kontoklar/categorize";
+import type { ApiStatusResponse } from "@/lib/kontoklar/types";
 import { Button, Card, Notice } from "./ui";
 import { Turnstile } from "./Turnstile";
 
@@ -24,11 +26,24 @@ export function UploadPanel({ turnstileSiteKey, busy, onParsed }: Props) {
   const [bank, setBank] = useState<Bank | "auto">("auto");
   const [detected, setDetected] = useState<Bank | "unknown" | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [useApi, setUseApi] = useState(true);
+  const [useApi, setUseApi] = useState(false);
+  const [apiStatus, setApiStatus] = useState<ApiStatusResponse | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [mapping, setMapping] = useState<GenericMapping>(EMPTY_MAPPING);
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchApiStatus().then((status) => {
+      if (cancelled) return;
+      setApiStatus(status);
+      setUseApi(status.enabled);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const preview = useMemo(() => {
     if (!text) return null;
@@ -76,7 +91,8 @@ export function UploadPanel({ turnstileSiteKey, busy, onParsed }: Props) {
         ? parseBankCsv(text, "generic", { ...mapping, purpose: mapping.purpose || mapping.counterparty })
         : parseBankCsv(text, effectiveBank as Bank);
       if (result.transactions.length === 0) {
-        setError("Keine Buchungen gefunden. Bitte Bank oder Spaltenzuordnung prüfen.");
+        const columns = preview?.columns.length ? ` Erkannte Spalten: ${preview.columns.join(" · ")}.` : "";
+        setError(`Keine Buchungen gefunden (${result.skipped} Zeilen ohne gültiges Datum oder Betrag).${columns} Bitte Bank oder Spaltenzuordnung prüfen.`);
         return;
       }
       onParsed(result, fileName, { useApi, turnstileToken });
@@ -85,7 +101,7 @@ export function UploadPanel({ turnstileSiteKey, busy, onParsed }: Props) {
     }
   };
 
-  const turnstileRequired = useApi && turnstileSiteKey !== "" && !turnstileToken;
+  const turnstileRequired = useApi && turnstileSiteKey !== "" && apiStatus?.turnstile === true && !turnstileToken;
 
   return (
     <Card title="1. CSV-Export hochladen">
@@ -132,10 +148,16 @@ export function UploadPanel({ turnstileSiteKey, busy, onParsed }: Props) {
           <div className="text-sm">
             <span className="mb-1 block text-xs uppercase tracking-wide text-stone">API-Schritt</span>
             <label className="flex items-center gap-2">
-              <input type="checkbox" checked={useApi} onChange={(e) => setUseApi(e.target.checked)} className="accent-moss" />
-              <span>Unbekannte Händler per Embedding-API klären</span>
+              <input type="checkbox" checked={useApi} disabled={!apiStatus?.enabled} onChange={(e) => setUseApi(e.target.checked)} className="accent-moss" />
+              <span className={apiStatus?.enabled ? "" : "text-stone"}>Unbekannte Händler per Embedding-API klären</span>
             </label>
-            <p className="mt-1 text-xs text-stone">Aus: nur die Regel-Engine, nichts verlässt den Browser.</p>
+            <p className="mt-1 text-xs text-stone">
+              {apiStatus === null
+                ? "Verfügbarkeit wird geprüft …"
+                : apiStatus.enabled
+                  ? "Aus: nur die Regel-Engine, nichts verlässt den Browser."
+                  : `Derzeit nicht verfügbar: ${apiStatus.reason ?? "unbekannter Grund"} Die Regel-Engine arbeitet allein; nichts verlässt den Browser.`}
+            </p>
           </div>
         </div>
       )}
@@ -177,7 +199,7 @@ export function UploadPanel({ turnstileSiteKey, busy, onParsed }: Props) {
         </div>
       )}
 
-      {text && useApi && turnstileSiteKey && (
+      {text && useApi && turnstileSiteKey && apiStatus?.turnstile && (
         <div className="mt-5">
           <p className="mb-1 text-xs uppercase tracking-wide text-stone">Bot-Prüfung</p>
           <Turnstile siteKey={turnstileSiteKey} onToken={onToken} />

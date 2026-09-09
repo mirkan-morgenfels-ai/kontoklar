@@ -1,7 +1,7 @@
 import type { Transaction } from "@portfolio/csv";
 import { describe, expect, test, vi } from "vitest";
 import { categoryTotals, monthlyBreakdown } from "../analytics";
-import { applyManualToSameMerchant, applyRules, callCategorizeApi, collectApiTexts, mergeApiResults, setManualCategory, summarize } from "../categorize";
+import { applyManualToSameMerchant, applyRules, callCategorizeApi, collectApiTexts, fetchApiStatus, mergeApiResults, setManualCategory, summarize } from "../categorize";
 
 function tx(partial: Partial<Transaction> & { id: string }): Transaction {
   return {
@@ -95,6 +95,19 @@ describe("callCategorizeApi", () => {
     });
     const r = await callCategorizeApi(["REWE SAGT DANKE"], "tok", fetchImpl as unknown as typeof fetch);
     expect(r.ok).toBe(true);
+  });
+});
+
+describe("fetchApiStatus", () => {
+  test("liest enabled und reason, fällt bei Fehlern auf deaktiviert zurück", async () => {
+    const ok = vi.fn(async () => new Response(JSON.stringify({ enabled: true, turnstile: false }), { status: 200 }));
+    expect(await fetchApiStatus(ok as unknown as typeof fetch)).toEqual({ enabled: true, turnstile: false, reason: undefined });
+    const down = vi.fn(async () => {
+      throw new Error("offline");
+    });
+    expect((await fetchApiStatus(down as unknown as typeof fetch)).enabled).toBe(false);
+    const bad = vi.fn(async () => new Response("x", { status: 500 }));
+    expect((await fetchApiStatus(bad as unknown as typeof fetch)).enabled).toBe(false);
   });
 });
 

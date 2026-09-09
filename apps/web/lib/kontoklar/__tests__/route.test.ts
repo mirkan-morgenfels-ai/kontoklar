@@ -49,6 +49,12 @@ vi.mock("../providers", async (importOriginal) => {
   const mod = await importOriginal<typeof import("../providers")>();
   return {
     ...mod,
+    providerStatus: async () => ({
+      openai: Boolean(process.env.OPENAI_API_KEY),
+      upstash: Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN),
+      turnstile: Boolean(process.env.TURNSTILE_SECRET_KEY),
+      labeled: state.labeledEmpty ? 0 : 3,
+    }),
     loadLabeledVectors: async () =>
       state.labeledEmpty
         ? []
@@ -59,6 +65,11 @@ vi.mock("../providers", async (importOriginal) => {
           ],
   };
 });
+
+async function get() {
+  const { GET } = await import("../../../app/api/categorize/route");
+  return GET();
+}
 
 async function post(body: unknown, headers: Record<string, string> = {}) {
   const { POST } = await import("../../../app/api/categorize/route");
@@ -86,6 +97,20 @@ describe("POST /api/categorize", () => {
   });
   afterEach(() => {
     process.env = { ...env };
+  });
+
+  test("GET meldet den Status: ohne Key deaktiviert, mit Key und Beispielset aktiv", async () => {
+    const off = await (await get()).json();
+    expect(off).toMatchObject({ enabled: false, turnstile: false });
+    expect(String(off.reason)).toMatch(/OpenAI/);
+    process.env.OPENAI_API_KEY = "test";
+    process.env.TURNSTILE_SECRET_KEY = "secret";
+    const on = await (await get()).json();
+    expect(on).toEqual({ enabled: true, turnstile: true });
+    state.labeledEmpty = true;
+    const noSet = await (await get()).json();
+    expect(noSet.enabled).toBe(false);
+    expect(String(noSet.reason)).toMatch(/Beispielset/);
   });
 
   test("ohne OPENAI_API_KEY antwortet die Route mit 503 disabled", async () => {

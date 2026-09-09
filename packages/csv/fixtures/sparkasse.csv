@@ -1,0 +1,5 @@
+"Auftragskonto";"Buchungstag";"Valutadatum";"Buchungstext";"Verwendungszweck";"Glaeubiger ID";"Mandatsreferenz";"Kundenreferenz (End-to-End)";"Sammlerreferenz";"Lastschrift Ursprungsbetrag";"Auslagenersatz Ruecklastschrift";"Beguenstigter/Zahlungspflichtiger";"Kontonummer/IBAN";"BIC (SWIFT-Code)";"Betrag";"Waehrung";"Info"
+"DE12345678901234567890";"14.01.26";"14.01.26";"KARTENZAHLUNG";"2026-01-13T18:22 Debitk.5 2028-12";"";"";"";"";"";"";"LIDL SAGT DANKE";"DE98765432109876543210";"COBADEFFXXX";"-31,20";"EUR";"Umsatz gebucht"
+"DE12345678901234567890";"15.01.26";"15.01.26";"FOLGELASTSCHRIFT";"Beitrag Januar Mitgliedsnr 4711";"DE98ZZZ09999999999";"M-4711";"";"";"";"";"FitX Deutschland GmbH";"DE33333333333333333333";"COBADEFFXXX";"-29,90";"EUR";"Umsatz gebucht"
+"DE12345678901234567890";"16.01.26";"16.01.26";"LOHN GEHALT";"Gehalt 01/2026";"";"";"";"";"";"";"Musterfirma GmbH";"DE22222222222222222222";"COBADEFFXXX";"2.850,00";"EUR";"Umsatz gebucht"
+"DE12345678901234567890";"17.01.26";"17.01.26";"BARGELDAUSZAHLUNG";"2026-01-17T10:05 Debitk.5 2028-12 GA NR00012345";"";"";"";"";"";"";"";"";"";"-100,00";"EUR";"Umsatz gebucht"

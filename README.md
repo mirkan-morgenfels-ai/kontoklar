@@ -15,7 +15,7 @@ Seit comdirect seinen Finanzmanager 2023 eingestellt hat, fehlt vielen Kunden de
 
 ## Was KontoKlar macht
 
-- Liest die Umsatz-CSV von DKB, ING, comdirect und N26 ein; andere Banken über ein generisches Spalten-Mapping.
+- Liest die Umsatz-CSV von DKB, ING, comdirect, N26, VR-Bank und Sparkasse ein; andere Banken über ein generisches Spalten-Mapping. PDF-Kontoauszüge werden nicht gelesen; die Oberfläche erklärt dann den Weg zum CSV-Export.
 - Kategorisiert jede Buchung in drei Stufen: Regel-Engine, Embedding-Ähnlichkeit, Sprachmodell-Fallback.
 - Zeigt jede automatische Zuordnung mit Konfidenz an; unsichere Fälle sind zur Prüfung markiert und lassen sich mit einem Klick korrigieren.
 - Erkennt wiederkehrende Zahlungen (Abos, Miete, Versicherungen) über Rhythmus und Betrag.
@@ -91,7 +91,9 @@ Das Testset wurde parallel zum Regelsatz erstellt; die hohe Regelabdeckung ist d
 | ING | unterstützt | Semikolon, Dezimalkomma, Betrag mit „EUR"-Suffix, Metadaten vor der Kopfzeile |
 | comdirect | unterstützt | Semikolon, Empfänger und Verwendungszweck gemeinsam in „Buchungstext", wird heuristisch getrennt |
 | N26 | unterstützt | Komma, englische Spaltennamen, Fremdwährung mit Originalbetrag |
-| Sparkasse und andere | generisch | Spalten werden beim Upload manuell zugeordnet |
+| VR-Bank, Volksbank, Raiffeisenbank | unterstützt | neues Format (19 Spalten, „Name Zahlungsbeteiligter“, Windows-1252) und altes Format mit Soll/Haben-Kennzeichen |
+| Sparkasse | unterstützt | CSV-CAMT und CSV-MT940, zweistellige Jahre, Windows-1252 |
+| Andere | generisch | Spalten werden beim Upload manuell zugeordnet |
 
 Testdateien liegen unter `packages/csv/fixtures/` und sind synthetisch. Der DKB-Parser akzeptiert die Datumsformate TT.MM.JJJJ und TT.MM.JJ; welches der echte Export nutzt, ist noch zu verifizieren.
 

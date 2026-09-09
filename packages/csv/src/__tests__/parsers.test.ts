@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { decodeCsvBytes } from "../decode";
+import { decodeCsvBytes, detectFileKind } from "../decode";
 import { detectBank } from "../detect";
 import { parseBankCsv, previewHeaders } from "../index";
 
@@ -16,6 +16,9 @@ describe("detectBank", () => {
     expect(detectBank(fixture("ing.csv"))).toBe("ing");
     expect(detectBank(fixture("comdirect.csv"))).toBe("comdirect");
     expect(detectBank(fixture("n26.csv"))).toBe("n26");
+    expect(detectBank(fixture("vrbank.csv"))).toBe("vrbank");
+    expect(detectBank(fixture("vrbank-alt.csv"))).toBe("vrbank");
+    expect(detectBank(fixture("sparkasse.csv"))).toBe("sparkasse");
     expect(detectBank(fixture("generic-sparkasse.csv"))).toBe("unknown");
   });
 });
@@ -109,6 +112,54 @@ describe("N26", () => {
   });
   test("Beträge über 1.000 mit Dezimalpunkt", () => {
     expect(result.transactions[4]?.amount).toBe(-1234.56);
+  });
+});
+
+describe("VR-Bank (neues Exportformat)", () => {
+  const result = parseBankCsv(fixture("vrbank.csv"));
+  test("Felder, Windows-1252 und Vorzeichen", () => {
+    expect(result.transactions).toHaveLength(4);
+    expect(result.transactions[0]).toMatchObject({
+      bookingDate: "2026-03-03",
+      counterparty: "REWE SAGT DANKE. 45123456",
+      purpose: "NR12345 Einkauf 02.03.2026",
+      amount: -42.17,
+      type: "Kartenzahlung",
+      currency: "EUR",
+    });
+    expect(result.transactions[1]?.purpose).toBe("Abschlag Strom März");
+    expect(result.transactions[2]?.amount).toBe(2850);
+  });
+});
+
+describe("VR-Bank (altes Exportformat mit Soll/Haben)", () => {
+  const result = parseBankCsv(fixture("vrbank-alt.csv"));
+  test("Soll wird negativ, Haben positiv, Vorgang und Zweck getrennt", () => {
+    expect(result.transactions).toHaveLength(3);
+    expect(result.transactions[0]).toMatchObject({ counterparty: "EDEKA MUENCHEN", amount: -45.67, type: "Kartenzahlung", purpose: "EDEKA SAGT DANKE 12345 MUENCHEN" });
+    expect(result.transactions[1]).toMatchObject({ counterparty: "Musterfirma GmbH", amount: 2850, type: "Gehalt/Rente" });
+    expect(result.transactions[2]?.amount).toBe(-780);
+    expect(result.warnings).toHaveLength(0);
+  });
+});
+
+describe("Sparkasse (CAMT-CSV)", () => {
+  const result = parseBankCsv(fixture("sparkasse.csv"));
+  test("zweistellige Jahre, Umlaut-freie Kopfzeile, leerer Empfänger", () => {
+    expect(result.transactions).toHaveLength(4);
+    expect(result.transactions[0]).toMatchObject({ bookingDate: "2026-01-14", counterparty: "LIDL SAGT DANKE", amount: -31.2, type: "KARTENZAHLUNG" });
+    expect(result.transactions[2]?.amount).toBe(2850);
+    expect(result.transactions[3]).toMatchObject({ counterparty: "", amount: -100, type: "BARGELDAUSZAHLUNG" });
+  });
+});
+
+describe("detectFileKind", () => {
+  test("PDF, ZIP, Text, leer", () => {
+    expect(detectFileKind(new TextEncoder().encode("%PDF-1.7 ...").buffer)).toBe("pdf");
+    expect(detectFileKind(new Uint8Array([0x50, 0x4b, 0x03, 0x04]).buffer)).toBe("zip");
+    expect(detectFileKind(new TextEncoder().encode("Buchungstag;Betrag\n01.01.2026;-1,00\n").buffer)).toBe("text");
+    expect(detectFileKind(new ArrayBuffer(0))).toBe("empty");
+    expect(detectFileKind(new Uint8Array([0x00, 0x01, 0x02]).buffer)).toBe("binary");
   });
 });
 

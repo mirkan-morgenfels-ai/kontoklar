@@ -1,4 +1,4 @@
-export type Bank = "dkb" | "ing" | "comdirect" | "n26" | "generic";
+export type Bank = "dkb" | "ing" | "comdirect" | "n26" | "vrbank" | "sparkasse" | "generic";
 
 export interface Transaction {
   id: string;

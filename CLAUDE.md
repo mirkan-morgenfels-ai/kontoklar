@@ -18,7 +18,7 @@ Next.js 15 App Router, TypeScript strict, Tailwind 4, Papa Parse, Recharts, Open
 - Commits müssen mit der GitHub-noreply-Adresse des Kontos mirkan-morgenfels-ai signiert sein (repo-lokal per `git config user.email` gesetzt), sonst blockiert Vercel das Deployment („commit email could not be matched“).
 
 ## Struktur K2
-- `packages/csv/` Bank-Parser (DKB, ING, comdirect, N26, generisch), Erkennung, Fixtures
+- `packages/csv/` Bank-Parser (DKB, ING, comdirect, N26, VR-Bank, Sparkasse, generisch), Erkennung, Dateityp-Prüfung (PDF/ZIP werden abgewiesen), Fixtures
 - `packages/ratelimit/` Upstash-Rate-Limit, Turnstile-Verifikation
 - `apps/web/lib/kontoklar/` Kategorien, Händler-Normalisierung, Regel-Engine, kNN, Server-Pipeline, Abo-Erkennung, Inflation
 - `apps/web/app/api/categorize/route.ts` API-Route (Turnstile -> Rate-Limit -> Cache -> Embedding+kNN -> Fallback -> Cache)

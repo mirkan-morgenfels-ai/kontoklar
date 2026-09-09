@@ -1,0 +1,11 @@
+"VR Bank Musterstadt eG"
+"Umsätze Girokonto";"DE12345678901234567890"
+
+"Buchungstag";"Valuta";"Auftraggeber/Zahlungsempfänger";"Empfänger/Zahlungspflichtiger";"Konto-Nr.";"IBAN";"BLZ";"BIC";"Vorgang/Verwendungszweck";"Kundenreferenz";"Währung";"Umsatz";" "
+"10.02.2026";"10.02.2026";"Max Mustermann";"EDEKA MUENCHEN";"";"DE98765432109876543210";"";"COBADEFFXXX";"Kartenzahlung
+EDEKA SAGT DANKE 12345 MUENCHEN";"";"EUR";"45,67";"S"
+"11.02.2026";"11.02.2026";"Max Mustermann";"Musterfirma GmbH";"";"DE22222222222222222222";"";"COBADEFFXXX";"Gehalt/Rente
+Lohn Gehalt 02/2026";"";"EUR";"2.850,00";"H"
+"12.02.2026";"12.02.2026";"Max Mustermann";"Hausverwaltung Schmidt";"";"DE02120300000000202051";"";"BYLADEM1001";"Dauerauftrag
+Miete Februar Musterstr. 1";"";"EUR";"780,00";"S"
+"";"";"";"";"";"";"";"";"Anfangssaldo";"";"EUR";"1.000,00";"H"

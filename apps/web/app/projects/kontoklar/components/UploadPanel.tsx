@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react";
-import { decodeCsvBytes, detectBank, parseBankCsv, previewHeaders, SUPPORTED_BANKS, type Bank, type GenericMapping, type ParseResult } from "@portfolio/csv";
+import { decodeCsvBytes, detectBank, detectFileKind, parseBankCsv, previewHeaders, SUPPORTED_BANKS, type Bank, type GenericMapping, type ParseResult } from "@portfolio/csv";
 import { fetchApiStatus } from "@/lib/kontoklar/categorize";
 import type { ApiStatusResponse } from "@/lib/kontoklar/types";
 import { Button, Card, Notice } from "./ui";
@@ -62,6 +62,21 @@ export function UploadPanel({ turnstileSiteKey, busy, onParsed }: Props) {
     setError(null);
     setFileName(file.name);
     const buffer = await file.arrayBuffer();
+    const kind = detectFileKind(buffer);
+    if (kind !== "text") {
+      setText(null);
+      setDetected(null);
+      setError(
+        kind === "pdf"
+          ? "PDF-Kontoauszüge kann KontoKlar nicht lesen. Bitte im Online-Banking den CSV-Export der Umsätze wählen (bei VR-Bank und Volksbanken: Umsätze → Exportieren → CSV; bei Sparkassen: Umsätze → Export → CSV-CAMT)."
+          : kind === "zip"
+            ? "Das ist eine Excel- oder ZIP-Datei. Bitte die Umsätze als CSV exportieren oder in Excel über „Speichern unter“ als CSV ablegen."
+            : kind === "empty"
+              ? "Die Datei ist leer."
+              : "Das ist keine Textdatei. Bitte den CSV-Export der Bank verwenden.",
+      );
+      return;
+    }
     const decoded = decodeCsvBytes(buffer);
     setText(decoded);
     const d = detectBank(decoded);
@@ -128,7 +143,7 @@ export function UploadPanel({ turnstileSiteKey, busy, onParsed }: Props) {
       >
         <input ref={inputRef} type="file" accept=".csv,text/csv" className="hidden" onChange={onFileChange} data-testid="csv-input" />
         <p className="text-sm font-medium">CSV hierher ziehen oder klicken</p>
-        <p className="mt-1 text-xs text-stone">DKB, ING, comdirect, N26 werden erkannt. Andere Banken über Spaltenzuordnung. Die Datei bleibt im Browser.</p>
+        <p className="mt-1 text-xs text-stone">DKB, ING, comdirect, N26, VR-Bank und Sparkasse werden erkannt. Andere Banken über Spaltenzuordnung. Nur CSV, keine PDF. Die Datei bleibt im Browser.</p>
         {fileName && <p className="mt-3 text-xs text-moss">Geladen: {fileName}</p>}
       </div>
 

@@ -1,5 +1,7 @@
 import { defineConfig } from "@playwright/test";
 
+const executablePath = process.env.PLAYWRIGHT_CHROMIUM_PATH;
+
 export default defineConfig({
   testDir: "./e2e",
   timeout: 60_000,
@@ -7,6 +9,7 @@ export default defineConfig({
   use: {
     baseURL: "http://localhost:3000",
     headless: true,
+    ...(executablePath ? { launchOptions: { executablePath } } : {}),
   },
   webServer: {
     command: process.env.CI ? "pnpm exec next start" : "pnpm exec next dev",

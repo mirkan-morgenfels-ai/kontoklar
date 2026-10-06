@@ -2,7 +2,6 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import OpenAI from "openai";
 import { Redis } from "@upstash/redis";
-import { hasUpstashEnv } from "@portfolio/ratelimit";
 import { isCategory } from "./categories";
 import type { LabeledVector } from "./knn";
 import type { CategoryCache, EmbedFn, FallbackFn } from "./server";
@@ -85,23 +84,7 @@ export async function loadLabeledVectors(): Promise<LabeledVector[]> {
   return labeledCache;
 }
 
-export interface ProviderStatus {
-  openai: boolean;
-  upstash: boolean;
-  turnstile: boolean;
-  labeled: number;
-}
-
-export async function providerStatus(): Promise<ProviderStatus> {
-  return {
-    openai: Boolean(process.env.OPENAI_API_KEY),
-    upstash: hasUpstashEnv(),
-    turnstile: Boolean(process.env.TURNSTILE_SECRET_KEY),
-    labeled: (await loadLabeledVectors()).length,
-  };
-}
-
-export function openAiClient(): OpenAI | null {
-  if (!process.env.OPENAI_API_KEY) return null;
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY, maxRetries: 1, timeout: 20_000 });
+export function openAiClient(apiKey: string | undefined = process.env.OPENAI_API_KEY): OpenAI | null {
+  if (!apiKey) return null;
+  return new OpenAI({ apiKey, maxRetries: 1, timeout: 20_000 });
 }

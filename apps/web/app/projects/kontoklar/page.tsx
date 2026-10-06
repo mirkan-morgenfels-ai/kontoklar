@@ -4,7 +4,8 @@ import { KontoKlarApp } from "./components/KontoKlarApp";
 
 export const metadata: Metadata = {
   title: "Bankumsätze kategorisieren",
-  description: "Kategorisiert Bankumsätze aus CSV-Exporten von DKB, ING, comdirect und N26. Keine Kontoanbindung, keine Speicherung.",
+  description:
+    "Kategorisiert Bankumsätze aus CSV-Exporten von DKB, ING, comdirect, N26, VR-Bank (Volksbanken und Raiffeisenbanken) und Sparkasse; andere Banken über eine Spaltenzuordnung. Keine Kontoanbindung, keine Speicherung von Umsätzen.",
 };
 
 export default function KontoKlarPage() {

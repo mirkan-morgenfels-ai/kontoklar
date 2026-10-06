@@ -11,18 +11,36 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v5
+      - name: Secret DESTATIS_TOKEN prüfen
+        id: token
+        env:
+          DESTATIS_TOKEN: ${{ secrets.DESTATIS_TOKEN }}
+        run: |
+          if [ -z "$DESTATIS_TOKEN" ]; then
+            echo "::notice title=Destatis CPI übersprungen::Das Repository-Secret DESTATIS_TOKEN ist nicht gesetzt. data/k2/cpi.json bleibt unverändert. Secret unter Settings > Secrets and variables > Actions anlegen und den Workflow von Hand starten."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.token.outputs.available == 'true'
+        uses: actions/checkout@v5
+      - if: steps.token.outputs.available == 'true'
+        uses: pnpm/action-setup@v6
+      - if: steps.token.outputs.available == 'true'
+        uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter web cpi:build
+      - if: steps.token.outputs.available == 'true'
+        run: pnpm install --frozen-lockfile
+      - if: steps.token.outputs.available == 'true'
+        run: pnpm --filter web cpi:build
         env:
           DESTATIS_TOKEN: ${{ secrets.DESTATIS_TOKEN }}
-      - run: pnpm --filter web test
+      - if: steps.token.outputs.available == 'true'
+        run: pnpm --filter web test
       - name: Änderung committen
+        if: steps.token.outputs.available == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

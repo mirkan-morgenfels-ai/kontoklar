@@ -109,6 +109,10 @@ describe("fetchApiStatus", () => {
     const bad = vi.fn(async () => new Response("x", { status: 500 }));
     expect((await fetchApiStatus(bad as unknown as typeof fetch)).enabled).toBe(false);
   });
+  test("übernimmt die Liste fehlender Variablen und verwirft Nicht-Strings", async () => {
+    const off = vi.fn(async () => new Response(JSON.stringify({ enabled: false, turnstile: false, reason: "r", missing: ["OPENAI_API_KEY", 7, "IP_HASH_SECRET"] }), { status: 200 }));
+    expect(await fetchApiStatus(off as unknown as typeof fetch)).toEqual({ enabled: false, turnstile: false, reason: "r", missing: ["OPENAI_API_KEY", "IP_HASH_SECRET"] });
+  });
 });
 
 describe("analytics", () => {

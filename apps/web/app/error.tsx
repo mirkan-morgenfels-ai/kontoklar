@@ -7,7 +7,7 @@ export default function ErrorPage({ reset }: { error: Error & { digest?: string 
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center gap-4 px-6 py-16">
       <p className="text-xs uppercase tracking-[0.2em] text-wine">Fehler</p>
       <h1 className="text-3xl font-semibold tracking-tight">Etwas ist schiefgelaufen</h1>
-      <p className="text-stone">Die Seite konnte nicht dargestellt werden. Deine Daten wurden dabei nicht übertragen; alles bleibt im Browser.</p>
+      <p className="text-stone">Die Seite konnte nicht dargestellt werden. Durch diesen Fehler wurden keine Daten übertragen. Bitte laden Sie die Seite neu oder versuchen Sie es erneut.</p>
       <div className="flex gap-4 text-sm">
         <button type="button" onClick={reset} className="rounded-md border border-ink bg-ink px-3 py-1.5 font-medium text-white hover:border-wine hover:bg-wine">
           Erneut versuchen

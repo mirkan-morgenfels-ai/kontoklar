@@ -11,7 +11,7 @@ function fixture(name: string): string {
 }
 
 describe("detectBank", () => {
-  test("erkennt alle vier Banken", () => {
+  test("erkennt DKB, ING, comdirect, N26, VR-Bank (neu und alt) und Sparkasse, generische Datei bleibt unbekannt", () => {
     expect(detectBank(fixture("dkb.csv"))).toBe("dkb");
     expect(detectBank(fixture("ing.csv"))).toBe("ing");
     expect(detectBank(fixture("comdirect.csv"))).toBe("comdirect");

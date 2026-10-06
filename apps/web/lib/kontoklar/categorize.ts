@@ -104,7 +104,8 @@ export async function fetchApiStatus(fetchImpl: typeof fetch = fetch): Promise<A
     const res = await fetchImpl("/api/categorize", { method: "GET", cache: "no-store" });
     if (!res.ok) return { enabled: false, turnstile: false, reason: "Der Server hat nicht geantwortet." };
     const data = (await res.json()) as Partial<ApiStatusResponse>;
-    return { enabled: data.enabled === true, turnstile: data.turnstile === true, reason: data.reason };
+    const missing = Array.isArray(data.missing) ? data.missing.filter((m): m is string => typeof m === "string") : undefined;
+    return { enabled: data.enabled === true, turnstile: data.turnstile === true, reason: data.reason, missing };
   } catch {
     return { enabled: false, turnstile: false, reason: "Der Server ist nicht erreichbar." };
   }

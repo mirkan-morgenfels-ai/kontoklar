@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { decodeCsvBytes, detectBank, detectFileKind, parseBankCsv, previewHeaders, SUPPORTED_BANKS, type Bank, type GenericMapping, type ParseResult } from "@portfolio/csv";
 import { fetchApiStatus } from "@/lib/kontoklar/categorize";
@@ -38,7 +39,7 @@ export function UploadPanel({ turnstileSiteKey, busy, onParsed }: Props) {
     void fetchApiStatus().then((status) => {
       if (cancelled) return;
       setApiStatus(status);
-      setUseApi(status.enabled);
+      if (!status.enabled) setUseApi(false);
     });
     return () => {
       cancelled = true;
@@ -167,11 +168,23 @@ export function UploadPanel({ turnstileSiteKey, busy, onParsed }: Props) {
               <span className={apiStatus?.enabled ? "" : "text-stone"}>Unbekannte Händler per Embedding-API klären</span>
             </label>
             <p className="mt-1 text-xs text-stone">
-              {apiStatus === null
-                ? "Verfügbarkeit wird geprüft …"
-                : apiStatus.enabled
-                  ? "Aus: nur die Regel-Engine, nichts verlässt den Browser."
-                  : `Derzeit nicht verfügbar: ${apiStatus.reason ?? "unbekannter Grund"} Die Regel-Engine arbeitet allein; nichts verlässt den Browser.`}
+              {apiStatus === null ? (
+                "Verfügbarkeit wird geprüft …"
+              ) : apiStatus.enabled ? (
+                <>
+                  {useApi
+                    ? "An: Händlernamen ohne Regeltreffer gehen an den Server und von dort an OpenAI."
+                    : "Aus: nur die Regel-Engine, nichts verlässt den Browser. Mit Haken gehen Händlernamen ohne Regeltreffer an den Server und von dort an OpenAI."}{" "}
+                  Der Server speichert die Zuordnungen und einen Zähler zu Ihrer pseudonymisierten IP-Adresse bei Upstash; die
+                  Bot-Prüfung lädt Cloudflare Turnstile. Einzelheiten:{" "}
+                  <Link href="/datenschutz" className="underline decoration-gold underline-offset-2 hover:text-ink">
+                    Datenschutzerklärung
+                  </Link>
+                  .
+                </>
+              ) : (
+                `Derzeit nicht verfügbar: ${apiStatus.missing?.length ? "Der API-Schritt ist auf dem Server noch nicht vollständig eingerichtet." : (apiStatus.reason ?? "unbekannter Grund")} Die Regel-Engine arbeitet allein; nichts verlässt den Browser.`
+              )}
             </p>
           </div>
         </div>

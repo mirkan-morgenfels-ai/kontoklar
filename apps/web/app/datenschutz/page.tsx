@@ -1,52 +1,147 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { LegalPage, LegalSection } from "@/components/LegalPage";
+import { PRIVACY_FACTS } from "@/lib/kontoklar/privacy";
+import { OPERATOR } from "@/lib/operator";
 
 export const metadata: Metadata = { title: "Datenschutzerklärung" };
 
 export default function DatenschutzPage() {
+  const f = PRIVACY_FACTS;
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-2xl font-semibold tracking-tight">Datenschutzerklärung</h1>
-      <div className="mt-6 space-y-6 text-sm leading-relaxed">
-        <section>
-          <h2 className="font-semibold">Verantwortlicher</h2>
-          <p>Mirkan Deniz Günkaya, [Platzhalter: Anschrift], München, [Platzhalter: E-Mail-Adresse].</p>
-        </section>
-        <section>
-          <h2 className="font-semibold">Hosting</h2>
-          <p>
-            Die Seite wird bei Vercel Inc. gehostet. Beim Aufruf werden technisch notwendige Verbindungsdaten (IP-Adresse, Zeitpunkt, aufgerufene Seite, Browser) verarbeitet, um die Seite auszuliefern (Art. 6 Abs. 1 lit. f DSGVO). Es gibt kein Tracking und keine Werbe-Cookies.
-          </p>
-        </section>
-        <section>
-          <h2 className="font-semibold">KontoKlar: Verarbeitung im Browser</h2>
-          <p>
-            Hochgeladene CSV-Dateien werden ausschließlich im Browser gelesen und ausgewertet. Umsätze, Namen, IBANs, Verwendungszwecke, Beträge und Buchungsdaten werden nicht an den Server übertragen und nicht gespeichert.
-          </p>
-        </section>
-        <section>
-          <h2 className="font-semibold">KontoKlar: Optionaler API-Schritt</h2>
-          <p>
-            Wenn der API-Schritt eingeschaltet ist, überträgt der Browser für Buchungen, die die Regel-Engine nicht zuordnen kann, ausschließlich den normalisierten Händlerteil des Buchungstexts (zum Beispiel „REWE SAGT DANKE“) an die Route <code>/api/categorize</code>. Überweisungen an Privatpersonen sowie alle Gutschriften werden nie übertragen. Der Server berechnet dazu Text-Embeddings und in seltenen Fällen eine Kategorie über ein Sprachmodell bei OpenAI (OpenAI Ireland Ltd.); es gelten die Datenverarbeitungsbedingungen des Anbieters. Das Ergebnis wird als Zuordnung von Händlername zu Kategorie und Konfidenz für 30 Tage in einer Datenbank bei Upstash (Redis) gespeichert. Rechtsgrundlage ist die Einwilligung durch das Einschalten des Schritts (Art. 6 Abs. 1 lit. a DSGVO). Der Schritt lässt sich vor jedem Upload ausschalten; dann arbeitet nur die Regel-Engine.
-          </p>
-        </section>
-        <section>
-          <h2 className="font-semibold">Missbrauchsschutz</h2>
-          <p>
-            Zum Schutz der API-Route vor automatisierten Anfragen wird Cloudflare Turnstile eingesetzt und die Zahl der Aufrufe je IP-Adresse begrenzt (30 pro Tag). Dabei verarbeitet Cloudflare Inc. Verbindungsdaten des Browsers; die IP-Adresse wird für das Limit in gehashter Form kurzzeitig bei Upstash gespeichert (Art. 6 Abs. 1 lit. f DSGVO).
-          </p>
-        </section>
-        <section>
-          <h2 className="font-semibold">Ihre Rechte</h2>
-          <p>Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch sowie das Recht auf Beschwerde bei einer Aufsichtsbehörde. Da keine Umsätze gespeichert werden, beschränkt sich eine Auskunft auf die oben genannten Verbindungsdaten und Cache-Einträge.</p>
-        </section>
-        <p className="text-stone">Stand: [Platzhalter: Datum der Veröffentlichung]. Änderungen an den übertragenen oder gespeicherten Daten werden hier und im README-Abschnitt „Was den Browser verlässt“ dokumentiert.</p>
-      </div>
-      <p className="mt-10 text-sm">
-        <Link href="/" className="underline">
-          Zurück zur Startseite
-        </Link>
-      </p>
-    </main>
+    <LegalPage title="Datenschutzerklärung" updated={OPERATOR.lastUpdated}>
+      <LegalSection title="1. Verantwortlicher">
+        <p>
+          Verantwortlich für die Datenverarbeitung auf dieser Seite im Sinne der Datenschutz-Grundverordnung (DSGVO) ist{" "}
+          {OPERATOR.name}, {OPERATOR.city}. Kontakt per E-Mail:{" "}
+          <a href={`mailto:${OPERATOR.email}`} className="text-moss underline">
+            {OPERATOR.email}
+          </a>
+          .
+        </p>
+      </LegalSection>
+
+      <LegalSection title="2. Das Wichtigste in Kürze">
+        <p>
+          Diese Seite ist ein privates, nicht-kommerzielles Projekt. Sie verwendet keine Cookies, keine Analyse- oder
+          Tracking-Dienste und keine Werbung. Hochgeladene CSV-Dateien werden nur in Ihrem Browser ausgewertet. Nur wenn Sie
+          den optionalen API-Schritt nutzen, verlassen einzelne normalisierte Händlernamen den Browser (Abschnitt 4). Der
+          API-Schritt steht nur zur Verfügung, wenn er auf dem Server vollständig eingerichtet ist; die Seite zeigt beim
+          Upload an, ob das der Fall ist.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="3. KontoKlar: Verarbeitung im Browser">
+        <p>
+          Hochgeladene CSV-Dateien werden ausschließlich im Browser gelesen und ausgewertet. Umsätze, Namen, IBANs,
+          Verwendungszwecke, Beträge und Buchungsdaten werden nicht an den Server übertragen und nicht gespeichert. Das
+          können Sie in den Entwicklerwerkzeugen Ihres Browsers (Netzwerk-Tab) nachvollziehen.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="4. KontoKlar: Optionaler API-Schritt">
+        <p>
+          Wenn der API-Schritt eingeschaltet ist, überträgt der Browser für Buchungen, die die Regel-Engine nicht zuordnen
+          kann, ausschließlich den normalisierten Händlerteil des Buchungstexts (zum Beispiel „REWE SAGT DANKE“) an die
+          Route <code>/api/categorize</code>, höchstens {f.maxTextsPerUpload} Texte je Upload, zusammen mit dem Token der
+          Bot-Prüfung (Abschnitt 5). Überweisungen an Privatpersonen sowie alle Gutschriften werden nie übertragen. Die
+          Oberfläche zeigt nach jedem Upload, welche Texte übertragen wurden.
+        </p>
+        <p>
+          Der Server berechnet für diese Händlernamen Text-Embeddings und in seltenen Fällen eine Kategorie über ein
+          Sprachmodell bei OpenAI (OpenAI Ireland Ltd.); es gelten die Datenverarbeitungsbedingungen des Anbieters. Das
+          Ergebnis wird als Zuordnung von Händlername zu Kategorie und Konfidenz für {f.cacheDays} Tage in einer
+          Redis-Datenbank bei Upstash gespeichert, damit derselbe Händlername nicht erneut angefragt werden muss. Dieser
+          Eintrag enthält weder Ihre IP-Adresse noch andere Angaben über Sie.
+        </p>
+        <p>
+          Rechtsgrundlage ist Ihre Einwilligung durch das Einschalten des Schritts (Art. 6 Abs. 1 lit. a DSGVO). Sie können
+          den Schritt vor jedem Upload ausschalten und die Einwilligung damit jederzeit für die Zukunft widerrufen; dann
+          arbeitet nur die Regel-Engine.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="5. Missbrauchsschutz für den API-Schritt">
+        <p>
+          <strong>Bot-Prüfung.</strong> Wenn Sie den API-Schritt nutzen, lädt die Seite das Prüf-Widget Cloudflare Turnstile
+          von Cloudflare, Inc. (challenges.cloudflare.com). Cloudflare verarbeitet dabei Verbindungs- und Browserdaten,
+          insbesondere Ihre IP-Adresse, um automatisierte Zugriffe zu erkennen. Zur Prüfung des Ergebnisses sendet der
+          Server das Token und Ihre IP-Adresse an Cloudflare. Ohne eingeschalteten API-Schritt wird Turnstile nicht geladen.
+        </p>
+        <p>
+          <strong>Aufruflimit.</strong> Je Tagesfenster (Kalendertag nach koordinierter Weltzeit, UTC) sind{" "}
+          {f.rateLimitRequests} API-Aufrufe möglich; Aufrufe aus dem vorherigen Tagesfenster werden anteilig mitgezählt
+          (gleitendes Fenster).
+          Dafür bildet der Server aus Ihrer IP-Adresse mit einem geheimen Server-Schlüssel einen HMAC-SHA256-Wert (64
+          Hexadezimalzeichen). Bei einer IPv6-Adresse verwendet er dafür nur die ersten {f.ipv6PrefixBits} Bit, also das
+          Präfix des Netzes, aus dem Sie zugreifen; alle Geräte mit demselben Präfix teilen sich das Limit. Nur dieser Wert wird
+          zusammen mit der Zahl Ihrer Aufrufe im jeweiligen Tagesfenster als Zähler bei Upstash gespeichert; die
+          IP-Adresse selbst wird dort nicht gespeichert. Es handelt sich um eine Pseudonymisierung, keine Anonymisierung:
+          Wer den Schlüssel kennt, könnte prüfen, ob ein Wert zu einer bestimmten IP-Adresse oder einem bestimmten
+          IPv6-Präfix gehört. Der Schlüssel liegt nur in der Server-Konfiguration. Jeder Zähler wird von Upstash automatisch{" "}
+          {f.rateLimitRetentionHours} Stunden und {f.rateLimitRetentionExtraSeconds} Sekunde nach dem ersten Aufruf im
+          jeweiligen Tagesfenster gelöscht.
+        </p>
+        <p>
+          Zweck ist der Schutz der Seite vor automatisierten Massenanfragen und unkontrollierten Kosten. Rechtsgrundlage ist
+          Art. 6 Abs. 1 lit. f DSGVO; das berechtigte Interesse liegt im sicheren und wirtschaftlich tragbaren Betrieb des
+          API-Schritts. Ist der Schutz nicht vollständig eingerichtet, bleibt der API-Schritt abgeschaltet; ist der Zähler
+          nicht erreichbar, lehnt der Server die Anfrage ab, ohne Händlernamen an OpenAI zu senden.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="6. Hosting und Server-Logdaten">
+        <p>
+          Die Seite wird bei Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, USA, gehostet. Beim Aufruf der Seite
+          verarbeitet Vercel technisch notwendige Daten, um die Seite auszuliefern, insbesondere IP-Adresse, Datum und Uhrzeit
+          der Anfrage, aufgerufene Adresse, übertragene Datenmenge, Browsertyp und Betriebssystem sowie die verweisende Seite.
+          Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; das berechtigte Interesse liegt im sicheren und stabilen Betrieb der
+          Seite. Vercel verarbeitet diese Daten als Auftragsverarbeiter; die Übermittlung in die USA stützt sich auf die
+          Standardvertragsklauseln der EU-Kommission und die Zertifizierung von Vercel unter dem EU-US Data Privacy Framework.
+          Einzelheiten stehen in der Datenschutzerklärung von Vercel unter https://vercel.com/legal/privacy-policy.
+        </p>
+        <p>
+          Der Betreiber selbst wertet diese Logdaten nicht aus. Vercel Web Analytics und Speed Insights sind nicht aktiviert.
+          Die API-Route schreibt bei Fehlern nur Fehlerart und Statuscode in das Protokoll, keine Buchungstexte und keine
+          IP-Adressen.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="7. Kontakt per E-Mail">
+        <p>
+          Wenn Sie per E-Mail Kontakt aufnehmen, werden die von Ihnen mitgeteilten Daten (E-Mail-Adresse, Inhalt der
+          Nachricht) zur Bearbeitung der Anfrage verarbeitet (Art. 6 Abs. 1 lit. f DSGVO, bei vorvertraglichen Anfragen lit.
+          b). Die Daten werden gelöscht, sobald die Anfrage erledigt ist und keine gesetzlichen Aufbewahrungspflichten
+          entgegenstehen.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="8. Externe Links">
+        <p>
+          Die Startseite verlinkt auf das Projekt DepotDoktor, das unter einer eigenen Adresse betrieben wird und eine eigene
+          Datenschutzerklärung hat. Beim Anklicken eines externen Links verlassen Sie diese Seite; für die Datenverarbeitung
+          dort gilt die Datenschutzerklärung des jeweiligen Angebots.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="9. Ihre Rechte">
+        <p>
+          Sie haben gegenüber dem Verantwortlichen das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16),
+          Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20) und Widerspruch gegen
+          Verarbeitungen auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO (Art. 21). Eine Einwilligung können Sie jederzeit mit
+          Wirkung für die Zukunft widerrufen (Art. 7 Abs. 3). Außerdem können Sie sich bei einer Datenschutz-Aufsichtsbehörde
+          beschweren, in Bayern beim Bayerischen Landesamt für Datenschutzaufsicht (BayLDA), Promenade 18, 91522 Ansbach. Da
+          keine Umsätze gespeichert werden, beschränkt sich eine Auskunft auf die oben genannten Verbindungsdaten und
+          Cache-Einträge.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="10. Änderungen">
+        <p>
+          Diese Datenschutzerklärung wird angepasst, wenn sich die Seite oder die Rechtslage ändert. Änderungen an den
+          übertragenen oder gespeicherten Daten werden hier und im README-Abschnitt „Was den Browser verlässt“ dokumentiert.
+          Es gilt die jeweils hier veröffentlichte Fassung.
+        </p>
+      </LegalSection>
+    </LegalPage>
   );
 }

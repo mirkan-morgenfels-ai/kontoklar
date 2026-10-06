@@ -84,7 +84,7 @@ export function KontoKlarApp({ turnstileSiteKey }: { turnstileSiteKey: string })
         <UploadPanel turnstileSiteKey={turnstileSiteKey} busy={busy} onParsed={onParsed} />
         <Card title="Was den Browser verlässt">
           <p className="text-sm text-stone">
-            Nur der normalisierte Händlerteil einer Buchung, den die Regel-Engine nicht kennt, zum Beispiel <code className="rounded bg-paper px-1">REWE SAGT DANKE</code>. Keine Namen, IBANs, Verwendungszwecke, Beträge oder Buchungsdaten. Überweisungen an Privatpersonen werden nie gesendet. Der Server speichert nur einen Cache von Händlername zu Kategorie für 30 Tage.
+            Nur der normalisierte Händlerteil einer Buchung, den die Regel-Engine nicht kennt, zum Beispiel <code className="rounded bg-paper px-1">REWE SAGT DANKE</code>. Keine Namen, IBANs, Verwendungszwecke, Beträge oder Buchungsdaten. Überweisungen an Privatpersonen werden nie gesendet, und ohne eingeschalteten API-Schritt verlässt gar nichts den Browser. Der Server speichert einen Cache von Händlername zu Kategorie für 30 Tage und für das Aufruflimit einen Zähler unter einem HMAC-Wert Ihrer IP-Adresse, nicht die IP-Adresse selbst; Einzelheiten stehen in der Datenschutzerklärung.
           </p>
         </Card>
       </div>
@@ -115,7 +115,7 @@ export function KontoKlarApp({ turnstileSiteKey }: { turnstileSiteKey: string })
         <div className="mt-4 space-y-2">
           {busy && <Notice tone="info">Unbekannte Händler werden über die API geklärt …</Notice>}
           {apiInfo?.status === "skipped" && <Notice tone="info">API-Schritt ausgeschaltet. Nur die Regel-Engine hat gearbeitet; nichts hat den Browser verlassen.</Notice>}
-          {apiInfo?.status === "disabled" && <Notice tone="info">API-Schritt derzeit nicht verfügbar, nur die Regel-Engine hat gearbeitet. Nichts wurde übertragen.</Notice>}
+          {apiInfo?.status === "disabled" && <Notice tone="info">API-Schritt derzeit nicht verfügbar, nur die Regel-Engine hat gearbeitet. Der Server hat die Händlertexte nicht verarbeitet und nichts gespeichert.</Notice>}
           {apiInfo?.status === "error" && <Notice tone="error">API-Fehler: {apiInfo.message}. Die Regel-Engine bleibt aktiv.</Notice>}
           {apiInfo?.status === "ok" && apiInfo.sentTexts.length > 0 && (
             <Notice tone="ok">

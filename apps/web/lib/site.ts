@@ -34,7 +34,7 @@ export const PROJECTS: readonly Project[] = [
     code: "K1",
     number: "01",
     topic: "Finanzdaten",
-    kicker: "Projekt K1",
+    kicker: "Projekt 01",
     title: "DepotDoktor",
     description:
       "Depot-Steuer- und Performance-Analyzer für Broker-CSV-Exporte. Die Auswertung läuft vollständig im Browser.",
@@ -47,7 +47,7 @@ export const PROJECTS: readonly Project[] = [
     code: "K2",
     number: "02",
     topic: "Maschinelles Lernen",
-    kicker: "Projekt K2",
+    kicker: "Projekt 02",
     title: "KontoKlar",
     description: "Kategorisiert Bankumsätze aus CSV-Exporten und zeigt, wohin das Geld geht.",
     href: "/projects/kontoklar",
@@ -59,7 +59,7 @@ export const PROJECTS: readonly Project[] = [
     code: "K3",
     number: "03",
     topic: "Graph-ML",
-    kicker: "Projekt K3",
+    kicker: "Projekt 03",
     title: "NetzRadar",
     description:
       "Anomalie-Erkennung in Transaktionsnetzwerken: klassische Baseline gegen Graph Neural Networks, mit zeitlichem Split und PR-AUC.",

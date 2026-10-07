@@ -174,7 +174,7 @@ Stand 07.10.2026:
 ## Offene Entscheidungen
 
 1. **Nutzungsbedingungen**: Wortlaut von `/nutzungsbedingungen` (8 Abschnitte, nach K1) vor dem Merge freigeben.
-2. **Kicker „Projekt K1/K2/K3“** auf Start- und Projektseite (`PROJECTS.kicker`) durch sprechende Bezeichnungen ersetzen; danach eine reine Datenänderung in allen drei Repos.
+2. ~~**Kicker „Projekt K1/K2/K3“**~~ Entschieden am 08.10.2026: „Projekt 01/02/03“ wie auf den Projektkarten, in allen drei Repos umgesetzt (`PROJECTS.kicker`).
 3. **Impressum**: ob nach § 5 DDG eine ladungsfähige Anschrift nötig ist; derzeit wie K1/K3 nur Name, Ort und E-Mail.
 4. **COICOP-Zuordnung**: Online-Handel, Sonstiges, Gebühren & Zinsen und Versicherungen laufen über Abteilung 12, Reisen über 11. Die Zuordnung steht in `CATEGORY_TO_COICOP` und als Tabelle in Oberfläche und README.
 5. **Test- und Beispielset entflechten**: 113 der 198 Händlerschlüssel des Testsets stehen wörtlich oder als Präfix im Beispielset. Mit `--api` eingebettet würden derzeit nur 4 Texte (ohne Regeltreffer und von `isApiEligible` zugelassen), davon steht 1 im Beispielset (DEUTSCHES ROTES KREUZ); `pnpm --filter web accuracy` gibt beide Zahlen aus. Optionen: (a) Sperre streng lassen (derzeit so) und die Sets entflechten, (b) Sperre nur auf die eingebetteten Texte beziehen, dann reicht es, diesen einen Eintrag zu entfernen; mit 4 Texten sagt die Messung aber wenig über die Embedding-Stufe. Empfehlung: (a), mit einem eigenen, disjunkten Testset für die API-Stufe.

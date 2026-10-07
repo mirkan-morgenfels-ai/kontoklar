@@ -60,7 +60,7 @@ export default async function KontoKlarPage() {
   return (
     <>
       <ProjectHero
-        eyebrow={`${project?.kicker ?? "Projekt K2"} · ${project?.topic ?? "Maschinelles Lernen"}`}
+        eyebrow={`${project?.kicker ?? "Projekt 02"} · ${project?.topic ?? "Maschinelles Lernen"}`}
         title={
           <>
             Konto<em className="text-gold-light">Klar</em>

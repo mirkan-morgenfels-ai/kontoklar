@@ -8,7 +8,8 @@ const ACCURACY = JSON.parse(readFileSync(path.resolve(__dirname, "..", "..", "..
   stages: Record<string, { count: number; correct: number }>;
   accuracyAssigned: number;
 };
-const INK = "rgb(17, 17, 17)";
+const INK = "rgb(15, 27, 45)";
+const SLATE = "rgb(91, 100, 116)";
 const MOSS = "rgb(47, 107, 58)";
 const MOSS_SOFT = "rgb(223, 234, 223)";
 
@@ -52,7 +53,7 @@ async function upload(page: Page, name: string) {
 }
 
 function stat(page: Page, label: string) {
-  return page.locator("div.rounded-lg").filter({ has: page.getByText(label, { exact: true }) });
+  return page.getByTestId("stat-tile").filter({ has: page.getByText(label, { exact: true }) });
 }
 
 test("Happy Path: DKB-CSV hochladen, Regel-Engine kategorisiert, Dashboard erscheint", async ({ page }) => {
@@ -70,8 +71,8 @@ test("Happy Path: DKB-CSV hochladen, Regel-Engine kategorisiert, Dashboard ersch
   await page.getByRole("button", { name: "Kategorisieren" }).click();
   await expect(page.getByText("Ergebnis für dkb.csv")).toBeVisible();
   await expect(page.getByText("API-Schritt ausgeschaltet")).toBeVisible();
-  await expect(page.getByText("3. Dashboard")).toBeVisible();
-  await expect(page.getByText("Wiederkehrende Zahlungen")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Dashboard", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Wiederkehrende Zahlungen", exact: true })).toBeVisible();
   expect(requests).toHaveLength(0);
 });
 
@@ -83,8 +84,11 @@ test("inflation card marks sample values and never says official", async ({ page
   await expect(page.getByText("Quelle: Beispielwerte, nicht Destatis.")).toBeVisible();
   await expect(page.getByText("Teilindizes nach COICOP-Abteilung (Beispielwerte)")).toBeVisible();
   await expect(page.getByRole("main")).not.toContainText("Amtliche");
-  const personal = stat(page, "Persönliche Rate (Beispielrechnung)").locator("p.tabular-nums");
-  await expect(personal).toHaveCSS("color", "rgb(107, 107, 102)");
+  await expect(stat(page, "Persönliche Rate (Beispielrechnung)")).toHaveCount(1);
+  const personal = stat(page, "Persönliche Rate (Beispielrechnung)").getByTestId("stat-value");
+  await expect(personal).toHaveCSS("color", INK);
+  await expect(stat(page, "Persönliche Rate (Beispielrechnung)")).toContainText(/\d{2}\/\d{4} → \d{2}\/\d{4}/);
+  await expect(stat(page, "Gesamtrate (Beispielwert)").getByTestId("stat-value")).toHaveCSS("color", SLATE);
   await expect(page.getByTestId("inflation-readme-link")).toHaveAttribute("href", "https://github.com/mirkan-morgenfels-ai/kontoklar#readme");
   await expect(page.getByTestId("inflation-covered")).toContainText("Abgedeckt:");
   const table = page.getByTestId("inflation-table");
@@ -108,18 +112,47 @@ test("chart legend uses ink text and income keeps moss for itself", async ({ pag
     expect(count).toBeGreaterThan(1);
     for (let i = 0; i < count; i++) await expect(items.nth(i)).toHaveCSS("color", INK);
     const swatches = await legend.locator("li > span").evaluateAll((spans) =>
-      spans.map((span) => ({
-        label: span.parentElement?.textContent?.trim() ?? "",
-        fill: getComputedStyle(span).backgroundColor,
-        stroke: getComputedStyle(span).borderTopColor,
-      })),
+      spans.map((span) => {
+        const dot = span.querySelector<HTMLElement>("[data-marker-dot]");
+        const marker = dot ?? span;
+        return {
+          label: span.parentElement?.textContent?.trim() ?? "",
+          line: span.getAttribute("data-marker") === "line",
+          fill: getComputedStyle(marker).backgroundColor,
+          stroke: getComputedStyle(marker).borderTopColor,
+        };
+      }),
     );
     const income = swatches.find((s) => s.label === "Einnahmen");
-    expect(income).toEqual({ label: "Einnahmen", fill: MOSS_SOFT, stroke: MOSS });
+    expect(income).toEqual({ label: "Einnahmen", line: true, fill: MOSS_SOFT, stroke: MOSS });
     for (const s of swatches.filter((x) => x.label !== "Einnahmen")) {
+      expect(s.line, s.label).toBe(false);
       expect([MOSS, MOSS_SOFT], s.label).not.toContain(s.fill);
     }
+    const labels = await page.getByTestId("monthly-chart").locator(".recharts-cartesian-axis-tick-value").allTextContents();
+    const ticks = labels.filter((label) => label.includes("€"));
+    expect(ticks.length).toBeGreaterThan(1);
+    if (name === "dkb.csv") expect(ticks).toEqual(["0 €", "1.000 €", "2.000 €", "3.000 €"]);
+    for (const tick of ticks) expect(tick).toMatch(/^\d{1,3}(\.\d{3})*\s€$/);
   }
+});
+
+test("chart tooltip lists the stack from top to bottom with colour marks, income last", async ({ page }) => {
+  await openProject(page);
+  await page.getByRole("button", { name: "Mit Beispieldaten ausprobieren" }).click();
+  const chart = page.getByTestId("monthly-chart");
+  await chart.scrollIntoViewIfNeeded();
+  const box = await chart.boundingBox();
+  expect(box).not.toBeNull();
+  await page.mouse.move((box?.x ?? 0) + (box?.width ?? 0) * 0.55, (box?.y ?? 0) + (box?.height ?? 0) * 0.5);
+  const rows = page.locator(".recharts-tooltip-wrapper li");
+  await expect(rows.last()).toContainText("Einnahmen: ");
+  const texts = (await rows.allTextContents()).map((text) => text.split(":")[0]?.trim() ?? "");
+  const legend = (await page.getByTestId("chart-legend").locator("li").allTextContents()).map((text) => text.trim());
+  const stack = legend.filter((label) => label !== "Einnahmen");
+  const expected = [...stack].reverse().filter((label) => texts.includes(label));
+  expect(texts.slice(0, -1)).toEqual(expected);
+  expect(await rows.locator("[aria-hidden='true']").count()).toBeGreaterThanOrEqual(texts.length);
 });
 
 test("VR-Bank-CSV wird automatisch erkannt und kategorisiert", async ({ page }) => {
@@ -131,13 +164,13 @@ test("VR-Bank-CSV wird automatisch erkannt und kategorisiert", async ({ page }) 
   await expect(page.getByText("Ergebnis für vrbank.csv")).toBeVisible();
   await expect(stat(page, "Buchungen")).toContainText("VR-Bank / Volksbank / Raiffeisenbank");
   await expect(page.getByText("VRBANK", { exact: true })).toHaveCount(0);
-  await expect(page.getByText("3. Dashboard")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Dashboard", exact: true })).toBeVisible();
 });
 
 test("ING upload causes no console warning (duplicate currency column)", async ({ page }) => {
   const messages = watchConsole(page);
   await upload(page, "ing.csv");
-  await expect(page.getByText("3. Dashboard")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Dashboard", exact: true })).toBeVisible();
   expect(messages).toEqual([]);
 });
 
@@ -147,14 +180,16 @@ test("sample data: one click shows dashboard, recurring payments and review list
   await openProject(page);
   await expect(page.getByText("Synthetische Beispieldaten, keine echten Kontodaten.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Mit Beispieldaten ausprobieren" }).click();
-  await expect(page.getByText("Ergebnis für Beispieldaten (synthetisch)")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Ergebnis für Beispieldaten", exact: true })).toBeVisible();
   await expect(page.getByText("Synthetische Beispieldaten, keine echten Kontodaten. Personen und Konten sind erfunden.")).toBeVisible();
   await expect(stat(page, "Buchungen")).toContainText("147");
+  const valueFont = await stat(page, "Buchungen").getByTestId("stat-value").evaluate((element) => getComputedStyle(element).fontFamily);
+  expect(valueFont).toContain("Cormorant Garamond");
   await expect(page.getByTestId("monthly-chart")).toHaveAttribute("data-months", "6");
   await expect(page.getByTestId("recurring-table").locator("tr")).toHaveCount(8);
   await expect(page.getByTestId("recurring-table")).toContainText("vierteljährlich");
   await expect(page.getByTestId("recurring-table")).toContainText("18,36 € je Monat");
-  await expect(stat(page, "Zur Prüfung").locator("p").nth(1)).toHaveText("4");
+  await expect(stat(page, "Zur Prüfung").getByTestId("stat-value")).toHaveText("4");
   expect(violations).toEqual([]);
   expect(messages).toEqual([]);
 });
@@ -264,4 +299,17 @@ test("PDF-Kontoauszug wird mit Hinweis auf den CSV-Export abgewiesen", async ({ 
   });
   await expect(page.getByRole("alert").filter({ hasText: "PDF" })).toContainText("PDF-Kontoauszüge kann KontoKlar nicht lesen");
   await expect(page.getByRole("button", { name: "Kategorisieren" })).toHaveCount(0);
+  await expect(page.getByText("Geladen: Kontoauszug.pdf")).toHaveCount(0);
+  await expect(page.getByText("Nicht gelesen: Kontoauszug.pdf")).toBeVisible();
+});
+
+test("a clean upload opens the review list on all bookings and keeps zero counts quiet", async ({ page }) => {
+  await upload(page, "dkb.csv");
+  await expect(stat(page, "Zur Prüfung").getByTestId("stat-value")).toHaveText("0");
+  await expect(page.getByRole("button", { name: /^Alle \(/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("region", { name: "Buchungen zur Prüfung" }).getByRole("combobox")).toHaveCount(5);
+  for (const label of ["Zur Prüfung", "Per API"]) {
+    await expect(stat(page, label).getByTestId("stat-value")).toHaveCSS("color", SLATE);
+  }
+  await expect(page.getByRole("status").filter({ hasText: "API-Schritt ausgeschaltet" })).toHaveCSS("color", MOSS);
 });

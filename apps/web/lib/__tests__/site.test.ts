@@ -1,12 +1,26 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { OG_IMAGE_ALT, OG_IMAGE_PATH, pageMetadata, withSiteName } from "../metadata";
-import { DEFAULT_SITE_URL, LEGAL_LINKS, NAV_LINKS, PROJECTS, REPO_URL, repoFileUrl, siteUrl } from "../site";
+import {
+  DEFAULT_SITE_URL,
+  GITHUB_PROFILE_URL,
+  HOME_DESCRIPTION,
+  LEGAL_LINKS,
+  NAV_LINKS,
+  OWNER_NAME,
+  PROJECTS,
+  REPO_URL,
+  repoFileUrl,
+  siteUrl,
+} from "../site";
 
 describe("PROJECTS", () => {
   it("lists exactly the three portfolio projects in order", () => {
     expect(PROJECTS.map((project) => project.slug)).toEqual(["depotdoktor", "kontoklar", "netzradar"]);
     expect(PROJECTS.map((project) => project.code)).toEqual(["K1", "K2", "K3"]);
     expect(PROJECTS.map((project) => project.kicker)).toEqual(["Projekt K1", "Projekt K2", "Projekt K3"]);
+    expect(PROJECTS.map((project) => project.number)).toEqual(["01", "02", "03"]);
+    expect(PROJECTS.map((project) => project.topic)).toEqual(["Finanzdaten", "Maschinelles Lernen", "Graph-ML"]);
+    expect(OWNER_NAME).toBe("Mirkan Deniz Günkaya");
   });
 
   it("links KontoKlar internally and the other two projects externally over https", () => {
@@ -33,16 +47,27 @@ describe("PROJECTS", () => {
       "Anomalie-Erkennung in Transaktionsnetzwerken: klassische Baseline gegen Graph Neural Networks, mit zeitlichem Split und PR-AUC.",
     ]);
   });
+
+  it("uses the same start page description as the sibling sites", () => {
+    expect(HOME_DESCRIPTION).toBe(
+      "Drei Portfolio-Projekte zu Finanzdaten, maschinellem Lernen und Graph-ML: DepotDoktor, KontoKlar und NetzRadar, jeweils mit öffentlichem Quellcode auf GitHub.",
+    );
+    for (const project of PROJECTS) expect(HOME_DESCRIPTION).toContain(project.title);
+  });
 });
 
 describe("navigation", () => {
-  it("offers start plus the three projects, only KontoKlar internal", () => {
-    expect(NAV_LINKS.map((link) => link.label)).toEqual(["Start", "DepotDoktor", "KontoKlar", "NetzRadar"]);
+  it("offers start, the three projects and the GitHub profile, only KontoKlar internal", () => {
+    expect(NAV_LINKS.map((link) => link.label)).toEqual(["Start", "DepotDoktor", "KontoKlar", "NetzRadar", "GitHub"]);
+    expect(NAV_LINKS.map((link) => link.external)).toEqual([false, true, false, true, true]);
     expect(NAV_LINKS.filter((link) => !link.external).map((link) => link.href)).toEqual(["/", "/projects/kontoklar"]);
+    expect(NAV_LINKS.at(-1)?.href).toBe(GITHUB_PROFILE_URL);
+    expect(GITHUB_PROFILE_URL).toBe("https://github.com/mirkan-morgenfels-ai");
   });
 
-  it("offers the three legal pages", () => {
+  it("offers the three legal pages as internal links", () => {
     expect(LEGAL_LINKS.map((link) => link.href)).toEqual(["/impressum", "/datenschutz", "/nutzungsbedingungen"]);
+    expect(LEGAL_LINKS.every((link) => !link.external)).toBe(true);
   });
 });
 

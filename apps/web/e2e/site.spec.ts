@@ -26,6 +26,8 @@ const REPO_BASE = "https://github.com/mirkan-morgenfels-ai";
 const KONTOKLAR_REPO = `${REPO_BASE}/kontoklar`;
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://kontoklar-eight.vercel.app").replace(/\/+$/, "");
 const HOME_TITLE = "Projekte · Mirkan Deniz Günkaya";
+const HOME_DESCRIPTION =
+  "Drei Portfolio-Projekte zu Finanzdaten, maschinellem Lernen und Graph-ML: DepotDoktor, KontoKlar und NetzRadar, jeweils mit öffentlichem Quellcode auf GitHub.";
 const PROJECT_TITLE = "KontoKlar – Bankumsätze kategorisieren";
 const NOT_FOUND = "/gibt-es-nicht";
 const PUBLIC_PATHS = ["/", "/projects/kontoklar", ...LEGAL_PAGES.map((legal) => legal.path)];
@@ -34,6 +36,7 @@ const AXE_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "best-
 const AXE_WIDTHS = [390, 768, 1280];
 const FIXTURES = path.resolve(__dirname, "..", "..", "..", "packages", "csv", "fixtures");
 const GOLD_DEEP = "rgb(125, 95, 23)";
+const GOLD_LIGHT = "rgb(216, 189, 114)";
 
 test.describe.configure({ timeout: 180_000 });
 
@@ -89,19 +92,26 @@ test.beforeEach(async ({ page }) => {
 
 test("start page lists the three projects with project and source links", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1, name: "Projekte" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Drei Projekte zu Finanzdaten, maschinellem Lernen und Graph-ML" }),
+  ).toBeVisible();
+  await expect(page.getByRole("main").getByRole("heading", { level: 2, name: "Projekte", exact: true })).toBeVisible();
+  const headingFont = await page.getByRole("heading", { level: 1 }).evaluate((element) => getComputedStyle(element).fontFamily);
+  expect(headingFont).toContain("Cormorant Garamond");
+  const bodyFont = await page.locator("body").evaluate((element) => getComputedStyle(element).fontFamily);
+  expect(bodyFont).toContain("Inter");
   await expect(page.getByTestId(/^project-/)).toHaveCount(3);
   await expect(page.getByRole("main")).not.toContainText("In Arbeit");
 
   for (const slug of ["depotdoktor", "netzradar"]) {
-    const link = page.getByTestId(`project-${slug}`).getByRole("link", { name: /^Zum Projekt/ });
+    const link = page.getByTestId(`project-${slug}`).getByRole("link", { name: /^Live ansehen/ });
     await expect(link).toHaveAttribute("href", new RegExp(`^https://${slug}\\.vercel\\.app/projects/${slug}$`));
     await expect(link).toHaveAttribute("rel", "noopener noreferrer");
     await expect(link).not.toHaveAttribute("target", /.+/);
     await expect(link).toContainText("(externe Seite)");
   }
 
-  await expect(page.getByTestId("project-kontoklar").getByRole("link", { name: /^Zum Projekt/ })).toHaveAttribute(
+  await expect(page.getByTestId("project-kontoklar").getByRole("link", { name: /^Live ansehen/ })).toHaveAttribute(
     "href",
     "/projects/kontoklar",
   );
@@ -118,12 +128,14 @@ test("main navigation, skip link and aria-current", async ({ page }) => {
   await openProject(page);
   const nav = page.getByRole("navigation", { name: "Hauptnavigation" });
   const links = nav.getByRole("list").getByRole("link");
-  await expect(links).toHaveCount(4);
+  await expect(links).toHaveCount(5);
   await expect(links.nth(0)).toHaveText("Start");
   await expect(links.nth(1)).toHaveAccessibleName("DepotDoktor (externe Seite)");
   await expect(links.nth(2)).toHaveText("KontoKlar");
   await expect(links.nth(3)).toHaveAccessibleName("NetzRadar (externe Seite)");
-  for (const index of [1, 3]) {
+  await expect(links.nth(4)).toHaveAccessibleName("GitHub (externe Seite)");
+  await expect(links.nth(4)).toHaveAttribute("href", REPO_BASE);
+  for (const index of [1, 3, 4]) {
     await expect(links.nth(index)).toHaveAttribute("href", /^https:\/\//);
     await expect(links.nth(index)).toHaveAttribute("rel", "noopener noreferrer");
     await expect(links.nth(index)).not.toHaveAttribute("target", /.+/);
@@ -137,6 +149,18 @@ test("main navigation, skip link and aria-current", async ({ page }) => {
   await expect(nav.getByRole("link", { name: "KontoKlar", exact: true })).not.toHaveAttribute("aria-current", /.+/);
 });
 
+test("the header sticks from 640 px on and scrolls away on phones", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openProject(page);
+  const header = page.locator("body > header");
+  await expect(header).not.toHaveCSS("position", "sticky");
+  const height = await header.evaluate((element) => element.getBoundingClientRect().height);
+  expect(height).toBeLessThanOrEqual(100);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(header).toHaveCSS("position", "sticky");
+  await expect(header.getByRole("navigation", { name: "Hauptnavigation" }).locator("svg")).toHaveCount(3);
+});
+
 test("every route has skip link, header, main and a footer with three legal links", async ({ page }) => {
   for (const target of [...PUBLIC_PATHS, NOT_FOUND]) {
     await page.goto(target);
@@ -148,17 +172,19 @@ test("every route has skip link, header, main and a footer with three legal link
   }
 });
 
-test("keyboard focus shows a gold-deep outline", async ({ page }) => {
+test("keyboard focus shows a 2 px outline: gold-light on navy, gold-deep on light surfaces", async ({ page }) => {
   await page.goto("/");
   await page.keyboard.press("Tab");
   const skip = page.locator("a.skip-link");
   await expect(skip).toBeFocused();
-  await expect(skip).toHaveCSS("outline-color", GOLD_DEEP);
+  await expect(skip).toHaveCSS("outline-color", GOLD_LIGHT);
   await expect(skip).toHaveCSS("outline-style", "solid");
   await expect(skip).toHaveCSS("outline-width", "2px");
   await page.keyboard.press("Tab");
-  await expect(page.getByRole("link", { name: "Mirkan Deniz Günkaya" })).toBeFocused();
-  await expect(page.getByRole("link", { name: "Mirkan Deniz Günkaya" })).toHaveCSS("outline-color", GOLD_DEEP);
+  const brand = page.locator("header").getByRole("link", { name: /^Mirkan Deniz Günkaya/ });
+  await expect(brand).toBeFocused();
+  await expect(brand).toHaveCSS("outline-color", GOLD_LIGHT);
+  await expect(brand).toHaveCSS("outline-width", "2px");
 
   await openProject(page);
   const dropZone = page.getByRole("button", { name: /^CSV hierher ziehen oder klicken/ });
@@ -167,10 +193,13 @@ test("keyboard focus shows a gold-deep outline", async ({ page }) => {
   await page.keyboard.press("Tab");
   await expect(dropZone).toBeFocused();
   await expect(dropZone).toHaveCSS("outline-color", GOLD_DEEP);
+  await expect(dropZone).toHaveCSS("outline-style", "solid");
+  await expect(dropZone).toHaveCSS("outline-width", "2px");
   await page.keyboard.press("Tab");
   const sample = page.getByRole("button", { name: "Mit Beispieldaten ausprobieren" });
   await expect(sample).toBeFocused();
-  await expect(sample).toHaveCSS("outline-color", GOLD_DEEP);
+  await expect(sample).toHaveCSS("outline-color", GOLD_LIGHT);
+  await expect(sample).toHaveCSS("outline-width", "2px");
 });
 
 test("footer and project page link the public repository", async ({ page }) => {
@@ -226,7 +255,7 @@ test("operator details on imprint and privacy page", async ({ page }) => {
   );
 
   await page.goto("/impressum");
-  await page.getByRole("main").getByRole("link", { name: "Nutzungsbedingungen" }).click();
+  await page.getByRole("main").locator("article").getByRole("link", { name: "Nutzungsbedingungen" }).click();
   await expect(page).toHaveURL(/\/nutzungsbedingungen$/);
 });
 
@@ -271,6 +300,9 @@ test("pages carry canonical links, link previews and distinct titles", async ({ 
     expect(local.status(), target).toBe(200);
     expect(local.headers()["content-type"], target).toContain("image/png");
   }
+  await page.goto("/");
+  expect(await metaContent(page, 'meta[name="description"]')).toBe(HOME_DESCRIPTION);
+  expect(await metaContent(page, 'meta[property="og:description"]')).toBe(HOME_DESCRIPTION);
   expect(titles["/"]).toBe(HOME_TITLE);
   expect(titles["/projects/kontoklar"]).toBe(PROJECT_TITLE);
   for (const legal of LEGAL_PAGES) expect(titles[legal.path]).toBe(legal.title);

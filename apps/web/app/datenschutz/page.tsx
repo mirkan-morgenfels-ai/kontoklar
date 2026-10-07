@@ -22,7 +22,7 @@ export default function DatenschutzPage() {
         <p>
           Verantwortlich für die Datenverarbeitung auf dieser Seite im Sinne der Datenschutz-Grundverordnung (DSGVO) ist{" "}
           {OPERATOR.name}, {OPERATOR.city}. Kontakt per E-Mail:{" "}
-          <a href={`mailto:${OPERATOR.email}`} className="text-moss underline">
+          <a href={`mailto:${OPERATOR.email}`} className="link">
             {OPERATOR.email}
           </a>
           .
@@ -114,7 +114,7 @@ export default function DatenschutzPage() {
           Seite. Vercel verarbeitet diese Daten als Auftragsverarbeiter; die Übermittlung in die USA stützt sich auf die
           Standardvertragsklauseln der EU-Kommission und die Zertifizierung von Vercel unter dem EU-US Data Privacy Framework.
           Einzelheiten stehen in der{" "}
-          <a href="https://vercel.com/legal/privacy-notice" rel="noopener noreferrer" className="text-moss underline">
+          <a href="https://vercel.com/legal/privacy-notice" rel="noopener noreferrer" className="link">
             Datenschutzerklärung von Vercel<span className="sr-only"> (externe Seite)</span>
           </a>
           .

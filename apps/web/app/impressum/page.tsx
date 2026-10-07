@@ -22,11 +22,11 @@ export default function ImpressumPage() {
         </p>
         <p>
           Kontakt:{" "}
-          <a href={`mailto:${OPERATOR.email}`} className="text-moss underline">
+          <a href={`mailto:${OPERATOR.email}`} className="link">
             {OPERATOR.email}
           </a>
         </p>
-        <p className="text-stone">
+        <p className="text-slate">
           Diese Seite ist ein privates, nicht-kommerzielles Portfolio- und Lernprojekt. Es werden keine Waren oder
           Dienstleistungen angeboten, es gibt keine Werbung und keine Bezahlfunktion. Kontaktaufnahme bitte per E-Mail.
         </p>
@@ -38,7 +38,7 @@ export default function ImpressumPage() {
           Gewähr übernommen. KontoKlar ist ein Werkzeug zur Auswertung eigener Kontoumsätze. Kategorien, wiederkehrende
           Zahlungen und die persönliche Inflationsrate sind automatische Näherungen. Sie stellen keine Finanz-, Steuer- oder
           Rechtsberatung dar. Näheres regeln die{" "}
-          <Link href="/nutzungsbedingungen" className="text-moss underline">
+          <Link href="/nutzungsbedingungen" className="link">
             Nutzungsbedingungen
           </Link>
           .
@@ -56,7 +56,7 @@ export default function ImpressumPage() {
       <LegalSection title="Urheberrecht und Lizenz">
         <p>
           Der Quellcode des Projekts steht unter der{" "}
-          <a href={repoFileUrl("LICENSE")} rel="noopener noreferrer" className="text-moss underline">
+          <a href={repoFileUrl("LICENSE")} rel="noopener noreferrer" className="link">
             MIT-Lizenz<span className="sr-only"> (externe Seite)</span>
           </a>
           . Texte und Gestaltung dieser Seite unterliegen dem deutschen

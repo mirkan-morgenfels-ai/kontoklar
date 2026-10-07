@@ -137,7 +137,7 @@ export default function OpenGraphImage() {
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", alignItems: "center", fontSize: 15, letterSpacing: 3.6, textTransform: "uppercase", color: GOLD_LIGHT }}>
               <div style={{ width: 40, height: 1, backgroundColor: GOLD, marginRight: 16 }} />
-              Projekt K2 · Maschinelles Lernen
+              Projekt 02 · Maschinelles Lernen
             </div>
             <div style={{ display: "flex", marginTop: 26 }}>
               <Glyphs id="title" height={150} top={-760} bottom={250} colors={[IVORY, GOLD_LIGHT]} />

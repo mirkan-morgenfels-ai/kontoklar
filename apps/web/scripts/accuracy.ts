@@ -1,29 +1,29 @@
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { CATEGORIES, isCategory, type Category } from "../lib/kontoklar/categories";
-import { applyRules, collectApiTexts, mergeApiResults } from "../lib/kontoklar/categorize";
-import { categorizeTexts } from "../lib/kontoklar/server";
-import { createOpenAiEmbed, createOpenAiFallback, loadLabeledVectors, openAiClient } from "../lib/kontoklar/providers";
 import type { Transaction } from "@portfolio/csv";
-
-interface TestCase {
-  counterparty: string;
-  purpose: string;
-  type: string;
-  amount: number;
-  label: Category;
-}
+import { evaluateAccuracy, overlapReport, UNASSIGNED_STAGE, type LabeledCase } from "../lib/kontoklar/accuracy";
+import { isCategory } from "../lib/kontoklar/categories";
+import { applyRules, collectApiTexts, mergeApiResults } from "../lib/kontoklar/categorize";
+import { normalizeMerchant } from "../lib/kontoklar/merchant";
+import { createOpenAiEmbed, createOpenAiFallback, loadLabeledVectors, openAiClient } from "../lib/kontoklar/providers";
+import { categorizeTexts } from "../lib/kontoklar/server";
 
 const root = path.resolve(__dirname, "..", "..", "..");
 const testsetPath = path.join(root, "data", "k2", "testset.json");
+const examplesPath = path.join(root, "data", "k2", "labeled-examples.json");
 const outPath = path.join(root, "docs", "genauigkeit.json");
 
-function loadTestset(): TestCase[] {
-  const raw = JSON.parse(readFileSync(testsetPath, "utf-8")) as { cases: TestCase[] };
+function loadTestset(): LabeledCase[] {
+  const raw = JSON.parse(readFileSync(testsetPath, "utf-8")) as { cases: LabeledCase[] };
   return raw.cases.filter((c) => isCategory(c.label));
 }
 
-function toTransaction(c: TestCase, i: number): Transaction {
+function loadExampleTexts(): string[] {
+  const raw = JSON.parse(readFileSync(examplesPath, "utf-8")) as { examples: { text: string }[] };
+  return raw.examples.map((e) => normalizeMerchant(e.text));
+}
+
+function toTransaction(c: LabeledCase, i: number): Transaction {
   return {
     id: String(i),
     bookingDate: "2026-01-01",
@@ -37,20 +37,25 @@ function toTransaction(c: TestCase, i: number): Transaction {
   };
 }
 
-interface StageStats {
-  count: number;
-  correct: number;
-}
-
 function pct(n: number, d: number): string {
   return d === 0 ? "–" : `${((100 * n) / d).toFixed(1)} %`;
 }
 
 async function main() {
   const withApi = process.argv.includes("--api");
+  const write = process.argv.includes("--write");
   const cases = loadTestset();
-  const txs = cases.map(toTransaction);
-  let items = applyRules(txs);
+  let items = applyRules(cases.map(toTransaction));
+
+  const overlap = overlapReport(items, loadExampleTexts());
+  const apiShare = `davon unter den ${overlap.apiTexts.length} Texten, die mit --api eingebettet würden: ${overlap.apiOverlapping.length}`;
+  if (withApi && overlap.overlapping.length > 0) {
+    console.error(
+      `Abbruch: ${overlap.overlapping.length} von ${overlap.keys} Händlerschlüsseln des Testsets stehen wörtlich oder als Präfix im Beispielset (data/k2/labeled-examples.json), ${apiShare}. Die Sperre gilt bewusst für das ganze Testset: Vor einer Messung mit --api müssen Test- und Beispielset disjunkt sein.`,
+    );
+    process.exit(1);
+  }
+  console.log(`Überschneidung Testset/Beispielset: ${overlap.overlapping.length} von ${overlap.keys} Händlerschlüsseln (wörtlich oder als Präfix), ${apiShare}.`);
 
   if (withApi) {
     const client = openAiClient();
@@ -67,66 +72,40 @@ async function main() {
     items = mergeApiResults(items, res.results);
   }
 
-  const stages: Record<string, StageStats> = {};
-  const confusion = new Map<string, number>();
-  const perCategory: Record<string, { tp: number; fp: number; fn: number }> = {};
-  for (const c of CATEGORIES) perCategory[c] = { tp: 0, fp: 0, fn: 0 };
-
-  items.forEach((it, i) => {
-    const truth = cases[i]!.label;
-    const source = it.categorization.source;
-    const predicted = it.categorization.category;
-    const stage = source === "none" ? "unzugeordnet" : source;
-    const s = (stages[stage] ??= { count: 0, correct: 0 });
-    s.count++;
-    const correct = predicted === truth && source !== "none";
-    if (correct) s.correct++;
-    if (correct) perCategory[truth]!.tp++;
-    else {
-      perCategory[truth]!.fn++;
-      if (source !== "none") perCategory[predicted]!.fp++;
-      confusion.set(`${truth} -> ${source === "none" ? "(offen)" : predicted}`, (confusion.get(`${truth} -> ${source === "none" ? "(offen)" : predicted}`) ?? 0) + 1);
-    }
+  const report = evaluateAccuracy(cases, items, {
+    date: new Date().toISOString().slice(0, 10),
+    mode: withApi ? "rule+knn+fallback" : "rule-only",
   });
-
-  const total = items.length;
-  const correctTotal = Object.values(stages).reduce((s, x) => s + x.correct, 0);
-  const assigned = total - (stages["unzugeordnet"]?.count ?? 0);
+  const { total, stages } = report;
+  const assigned = total - (stages[UNASSIGNED_STAGE]?.count ?? 0);
 
   console.log(`\nTestset: ${total} Buchungen (${testsetPath})`);
   console.log(`Modus: ${withApi ? "Regel + Embedding-kNN + Fallback" : "nur Regel-Engine"}\n`);
   console.log("Stufe             Anteil     Accuracy (innerhalb Stufe)");
   for (const [name, s] of Object.entries(stages)) {
-    console.log(`${name.padEnd(17)} ${pct(s.count, total).padStart(8)}   ${name === "unzugeordnet" ? "–" : pct(s.correct, s.count)}`);
+    console.log(`${name.padEnd(17)} ${pct(s.count, total).padStart(8)}   ${name === UNASSIGNED_STAGE ? "–" : pct(s.correct, s.count)}`);
   }
-  console.log(`\nAccuracy gesamt (offene zählen als falsch): ${pct(correctTotal, total)}`);
-  console.log(`Accuracy auf zugeordneten Buchungen:           ${pct(correctTotal, assigned)}`);
+  console.log(`\nAccuracy gesamt (offene zählen als falsch): ${(100 * report.accuracyTotal).toFixed(1)} %`);
+  console.log(`Accuracy auf zugeordneten Buchungen:           ${assigned === 0 ? "–" : `${(100 * report.accuracyAssigned).toFixed(1)} %`}`);
 
   console.log("\nPrecision / Recall je Kategorie (nur Kategorien im Testset):");
-  const rows = Object.entries(perCategory)
-    .filter(([, v]) => v.tp + v.fn > 0)
-    .map(([cat, v]) => ({ cat, support: v.tp + v.fn, precision: v.tp + v.fp === 0 ? null : v.tp / (v.tp + v.fp), recall: v.tp / (v.tp + v.fn) }))
-    .sort((a, b) => b.support - a.support);
-  for (const r of rows) {
-    console.log(`${r.cat.padEnd(22)} n=${String(r.support).padStart(3)}  P=${r.precision === null ? "  –  " : (100 * r.precision).toFixed(0).padStart(3) + " %"}  R=${(100 * r.recall).toFixed(0).padStart(3)} %`);
+  for (const r of report.perCategory) {
+    console.log(
+      `${r.cat.padEnd(22)} n=${String(r.support).padStart(3)}  P=${r.precision === null ? "  –  " : (100 * r.precision).toFixed(0).padStart(3) + " %"}  R=${(100 * r.recall).toFixed(0).padStart(3)} %`,
+    );
   }
-  if (confusion.size > 0) {
-    console.log("\nFehler (Wahrheit -> Vorhersage):");
-    for (const [k, v] of [...confusion.entries()].sort((a, b) => b[1] - a[1])) console.log(`  ${v}× ${k}`);
+  if (report.errors.length > 0) {
+    console.log("\nFehler (Wahrheit -> Vorhersage, Händlertext):");
+    for (const e of report.errors) {
+      console.log(`  ${e.truth} -> ${e.predicted ?? "(offen)"}: ${e.counterparty || "(kein Empfänger)"}${e.ruleId ? ` [Regel ${e.ruleId}]` : ""}`);
+    }
   }
 
-  const report = {
-    date: new Date().toISOString().slice(0, 10),
-    mode: withApi ? "rule+knn+fallback" : "rule-only",
-    total,
-    stages,
-    accuracyTotal: total === 0 ? 0 : correctTotal / total,
-    accuracyAssigned: assigned === 0 ? 0 : correctTotal / assigned,
-    perCategory: rows,
-  };
-  if (!withApi || !existsSync(outPath) || process.argv.includes("--write")) {
+  if (write) {
     writeFileSync(outPath, JSON.stringify(report, null, 2) + "\n");
     console.log(`\nBericht geschrieben: ${outPath}`);
+  } else {
+    console.log("\nBericht nicht geschrieben (zum Aktualisieren von docs/genauigkeit.json: --write).");
   }
 
   const minimum = Number(process.env.KONTOKLAR_MIN_RULE_ACCURACY ?? "0");

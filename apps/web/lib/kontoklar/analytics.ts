@@ -1,3 +1,4 @@
+import type { Summary } from "./categorize";
 import type { Category } from "./categories";
 import type { CategorizedTransaction } from "./types";
 
@@ -69,6 +70,11 @@ export function expenseAmountsByCategory(items: CategorizedTransaction[]): Parti
 export function monthsCovered(items: CategorizedTransaction[]): number {
   const months = new Set(items.map((it) => monthKey(it.bookingDate)));
   return months.size;
+}
+
+export function autoAssignedShare(summary: Pick<Summary, "total" | "byRule" | "byCache" | "byKnn" | "byLlm">): number {
+  if (summary.total === 0) return 0;
+  return (summary.byRule + summary.byCache + summary.byKnn + summary.byLlm) / summary.total;
 }
 
 export function round2(n: number): number {

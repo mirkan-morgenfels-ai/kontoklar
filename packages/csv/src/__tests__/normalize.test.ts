@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { parseAmount, parseDate, cleanText, makeTransactionId } from "../normalize";
 import { decodeCsvBytes } from "../decode";
-import { splitBuchungstext } from "../parsers/comdirect";
+import { splitBookingText } from "../parsers/comdirect";
 
 describe("parseAmount", () => {
   test("Dezimalkomma mit Tausenderpunkt", () => {
@@ -73,14 +73,14 @@ describe("decodeCsvBytes", () => {
   });
 });
 
-describe("splitBuchungstext (comdirect)", () => {
+describe("splitBookingText (comdirect)", () => {
   test("Auftraggeber und Buchungstext werden getrennt", () => {
-    const r = splitBuchungstext("Auftraggeber: LIDL SAGT DANKE Buchungstext: 2026-02-11T18:22 Debitk.5 Ref. Q1/2");
+    const r = splitBookingText("Auftraggeber: LIDL SAGT DANKE Buchungstext: 2026-02-11T18:22 Debitk.5 Ref. Q1/2");
     expect(r.counterparty).toBe("LIDL SAGT DANKE");
     expect(r.purpose).toBe("2026-02-11T18:22 Debitk.5 Q1/2");
   });
   test("Empfänger mit IBAN", () => {
-    const r = splitBuchungstext(
+    const r = splitBookingText(
       "Empfänger: Hausverwaltung Meier Kto/IBAN: DE02120300000000202051 BLZ/BIC: BYLADEM1001 Buchungstext: Miete Februar Ref. XYZ",
     );
     expect(r.counterparty).toBe("Hausverwaltung Meier");
@@ -88,7 +88,7 @@ describe("splitBuchungstext (comdirect)", () => {
     expect(r.purpose).not.toContain("DE02");
   });
   test("ohne Labels bleibt alles im Zweck", () => {
-    const r = splitBuchungstext("Kontoführungsentgelt");
+    const r = splitBookingText("Kontoführungsentgelt");
     expect(r.counterparty).toBe("");
     expect(r.purpose).toBe("Kontoführungsentgelt");
   });

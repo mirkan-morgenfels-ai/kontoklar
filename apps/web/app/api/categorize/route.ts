@@ -24,7 +24,7 @@ const LABELED_MISSING = "Das Beispielset mit Vektoren (data/k2/labeled-embedding
 const NO_STORE = { "cache-control": "no-store" };
 
 function disabled(reason: string) {
-  const body: ApiDisabledResponse = { disabled: true, reason: `API-Schritt deaktiviert. ${reason} Die Regel-Engine arbeitet weiter.` };
+  const body: ApiDisabledResponse = { disabled: true, reason: `API-Schritt deaktiviert. ${reason}` };
   return NextResponse.json(body, { status: 503, headers: NO_STORE });
 }
 
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
   if (texts.length === 0) return NextResponse.json({ results: [], stats: { cached: 0, embedded: 0, fallback: 0 } });
 
   const ip = clientIpFromHeaders(request.headers);
-  if (!ip) return NextResponse.json({ error: "Client-Adresse nicht ermittelbar, das Rate-Limit ist nicht anwendbar. Die Regel-Engine bleibt aktiv." }, { status: 503 });
+  if (!ip) return NextResponse.json({ error: "Client-Adresse nicht ermittelbar, das Rate-Limit ist nicht anwendbar." }, { status: 503 });
   try {
     await verifyTurnstile(typeof payload.turnstileToken === "string" ? payload.turnstileToken : undefined, ip, { secret: config.turnstileSecret });
   } catch (e) {
@@ -88,10 +88,10 @@ export async function POST(request: Request) {
   } catch (e) {
     if (e instanceof RateLimitError || (e as { status?: number }).status === 429) {
       const reset = (e as { reset?: number }).reset ?? Date.now() + 60_000;
-      return NextResponse.json({ error: "Tageslimit erreicht. Die Regel-Engine bleibt aktiv." }, { status: 429, headers: { "retry-after": String(Math.max(1, Math.ceil((reset - Date.now()) / 1000))) } });
+      return NextResponse.json({ error: "Tageslimit erreicht." }, { status: 429, headers: { "retry-after": String(Math.max(1, Math.ceil((reset - Date.now()) / 1000))) } });
     }
     console.error("ratelimit unavailable", (e as Error).name);
-    return NextResponse.json({ error: "Rate-Limit nicht erreichbar. Die Regel-Engine bleibt aktiv." }, { status: 503 });
+    return NextResponse.json({ error: "Rate-Limit nicht erreichbar." }, { status: 503 });
   }
 
   const deps: CategorizeDeps = {
@@ -106,6 +106,6 @@ export async function POST(request: Request) {
     return NextResponse.json(response, { headers: NO_STORE });
   } catch (e) {
     console.error("categorize failed", (e as Error).name, (e as { status?: number }).status ?? "");
-    return NextResponse.json({ error: "Kategorisierung derzeit nicht verfügbar. Die Regel-Engine bleibt aktiv." }, { status: 502 });
+    return NextResponse.json({ error: "Kategorisierung derzeit nicht verfügbar." }, { status: 502 });
   }
 }

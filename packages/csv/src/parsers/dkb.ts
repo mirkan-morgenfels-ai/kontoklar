@@ -32,7 +32,7 @@ export function parseDkb(text: string): ParseResult {
     const payer = cleanText(row["Zahlungspflichtige*r"] ?? row["Zahlungspflichtige/r"]);
     const payee = cleanText(row["Zahlungsempfänger*in"] ?? row["Zahlungsempfänger/in"]);
     const oldParty = cleanText(row["Auftraggeber / Begünstigter"]);
-    const counterparty = isNew ? (amount < 0 ? payee || payer : payer || payee) : oldParty;
+    const counterparty = isNew ? (amount < 0 ? payee : payer) : oldParty;
     const purpose = cleanText(row["Verwendungszweck"]);
     const type = cleanText(isNew ? row["Umsatztyp"] : row["Buchungstext"]);
     const valueDate = parseDate(row["Wertstellung"] ?? "");

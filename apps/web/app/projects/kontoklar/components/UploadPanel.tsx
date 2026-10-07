@@ -11,6 +11,7 @@ import { Turnstile } from "./Turnstile";
 export interface UploadOptions {
   useApi: boolean;
   turnstileToken: string | null;
+  sample?: boolean;
 }
 
 interface Props {
@@ -99,6 +100,16 @@ export function UploadPanel({ turnstileSiteKey, busy, onParsed }: Props) {
 
   const onToken = useCallback((token: string | null) => setTurnstileToken(token), []);
 
+  const loadSample = async () => {
+    setError(null);
+    try {
+      const { SAMPLE_CSV_DEMO, SAMPLE_CSV_DEMO_NAME } = await import("@/lib/kontoklar/sample");
+      onParsed(parseBankCsv(SAMPLE_CSV_DEMO, "dkb"), SAMPLE_CSV_DEMO_NAME, { useApi: false, turnstileToken: null, sample: true });
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  };
+
   const start = () => {
     if (!text) return;
     setError(null);
@@ -137,8 +148,9 @@ export function UploadPanel({ turnstileSiteKey, busy, onParsed }: Props) {
         }}
         role="button"
         tabIndex={0}
-        aria-label="CSV-Datei auswählen"
-        className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-10 text-center transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold ${
+        data-testid="upload-zone"
+        data-ready={apiStatus === null ? "false" : "true"}
+        className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-10 text-center transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-deep ${
           dragOver ? "border-gold bg-gold-soft" : "border-line bg-paper hover:border-gold"
         }`}
       >
@@ -148,11 +160,18 @@ export function UploadPanel({ turnstileSiteKey, busy, onParsed }: Props) {
         {fileName && <p className="mt-3 text-xs text-moss">Geladen: {fileName}</p>}
       </div>
 
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <Button variant="secondary" onClick={() => void loadSample()} disabled={busy}>
+          Mit Beispieldaten ausprobieren
+        </Button>
+        <span className="text-xs text-stone">Synthetische Beispieldaten, keine echten Kontodaten.</span>
+      </div>
+
       {text && (
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <label className="text-sm">
             <span className="mb-1 block text-xs uppercase tracking-wide text-stone">Bank</span>
-            <select value={bank} onChange={(e) => setBank(e.target.value as Bank | "auto")} className="w-full rounded-md border border-line bg-white px-2 py-1.5">
+            <select value={bank} onChange={(e) => setBank(e.target.value as Bank | "auto")} className="w-full rounded-md border border-line bg-surface px-2 py-1.5">
               <option value="auto">Automatisch{detected ? ` (${detected === "unknown" ? "nicht erkannt" : SUPPORTED_BANKS.find((b) => b.id === detected)?.label})` : ""}</option>
               {SUPPORTED_BANKS.map((b) => (
                 <option key={b.id} value={b.id}>
@@ -177,7 +196,7 @@ export function UploadPanel({ turnstileSiteKey, busy, onParsed }: Props) {
                     : "Aus: nur die Regel-Engine, nichts verlässt den Browser. Mit Haken gehen Händlernamen ohne Regeltreffer an den Server und von dort an OpenAI."}{" "}
                   Der Server speichert die Zuordnungen und einen Zähler zu Ihrer pseudonymisierten IP-Adresse bei Upstash; die
                   Bot-Prüfung lädt Cloudflare Turnstile. Einzelheiten:{" "}
-                  <Link href="/datenschutz" className="underline decoration-gold underline-offset-2 hover:text-ink">
+                  <Link href="/datenschutz" className="underline decoration-gold underline-offset-2 hover:text-gold-deep">
                     Datenschutzerklärung
                   </Link>
                   .
@@ -212,7 +231,7 @@ export function UploadPanel({ turnstileSiteKey, busy, onParsed }: Props) {
                 <select
                   value={(mapping[key] as string | undefined) ?? ""}
                   onChange={(e) => setMapping({ ...mapping, [key]: e.target.value })}
-                  className="w-full rounded-md border border-line bg-white px-2 py-1.5"
+                  className="w-full rounded-md border border-line bg-surface px-2 py-1.5"
                 >
                   <option value="">–</option>
                   {preview.columns.map((c) => (

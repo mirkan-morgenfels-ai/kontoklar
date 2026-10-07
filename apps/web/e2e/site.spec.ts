@@ -50,6 +50,9 @@ async function metaContent(page: Page, selector: string): Promise<string | null>
 }
 
 async function runAxe(page: Page, runOnly: { type: "tag" | "rule"; values: string[] }): Promise<string[]> {
+  await page.waitForFunction(() =>
+    document.getAnimations().every((animation) => !(animation instanceof CSSTransition) || animation.playState !== "running"),
+  );
   await page.addScriptTag({ content: AXE_SOURCE });
   return page.evaluate(async (options) => {
     const result = await (window as unknown as AxeWindow).axe.run(document, { runOnly: options });

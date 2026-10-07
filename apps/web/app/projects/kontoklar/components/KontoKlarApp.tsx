@@ -10,7 +10,8 @@ import { autoAssignedShare, formatPercent } from "@/lib/kontoklar/analytics";
 import { Dashboard } from "./Dashboard";
 import { ReviewTable } from "./ReviewTable";
 import { UploadPanel, type UploadOptions } from "./UploadPanel";
-import { Button, Card, Notice, Stat } from "./ui";
+import { StatTile } from "@/components/site/StatTile";
+import { Button, Notice, Panel } from "./ui";
 
 interface ApiInfo {
   status: "skipped" | "disabled" | "ok" | "error";
@@ -89,24 +90,39 @@ export function KontoKlarApp({ turnstileSiteKey, cacheDays }: { turnstileSiteKey
 
   if (!items) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 sm:space-y-8">
         <UploadPanel turnstileSiteKey={turnstileSiteKey} busy={busy} onParsed={onParsed} />
-        <Card title="Was den Browser verlässt">
-          <p className="text-sm text-stone" data-testid="privacy-summary">
-            Ohne eingeschalteten API-Schritt verlässt nichts den Browser. Nur wenn Sie ihn einschalten, gehen Händlernamen,
-            die die Regel-Engine nicht kennt, an den Server, zum Beispiel <code className="rounded bg-paper px-1">REWE SAGT DANKE</code>.
-            Gesendet werden höchstens bereinigte Händlernamen von Kartenzahlungen und Lastschriften sowie von Überweisungen
-            und sonstigen Abbuchungen an Empfänger mit Firmenkennzeichen (etwa GmbH, AG, Versicherung), bei PayPal der
-            Händlername aus „Ihr Einkauf bei …“, wenn er ein Firmenkennzeichen trägt. Gutschriften, Überweisungen an
-            Empfänger ohne Firmenkennzeichen, PayPal-Einkäufe bei Verkäufern ohne Firmenkennzeichen (etwa Privatpersonen),
-            Buchungen ohne lesbaren Empfängernamen und Verwendungszwecke werden nicht gesendet, ebenso keine IBANs, Beträge
-            oder Buchungsdaten. Die Erkennung ist regelbasiert; die Liste
-            der gesendeten Texte zeigt nach jedem Upload, was den Browser verlassen hat. Nur bei eingeschaltetem API-Schritt
-            speichert der Server einen Cache von Händlername zu Kategorie für {cacheDays} Tage und für das Aufruflimit einen
-            Zähler unter einem HMAC-Wert Ihrer IP-Adresse, nicht die IP-Adresse selbst; Einzelheiten stehen in der
-            Datenschutzerklärung.
-          </p>
-        </Card>
+        <section
+          aria-labelledby="privacy-title"
+          className="grid gap-6 rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-12"
+        >
+          <div>
+            <p className="eyebrow">Datenschutz</p>
+            <h2 id="privacy-title" className="display mt-2 text-[1.625rem] leading-tight text-ink sm:text-[1.75rem]">
+              Was den Browser verlässt
+            </h2>
+            <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-moss/30 bg-moss-soft/60 px-3 py-1 text-xs font-medium text-moss">
+              <span aria-hidden="true" className="h-1.5 w-1.5 rotate-45 bg-moss" />
+              API-Schritt standardmäßig aus
+            </p>
+          </div>
+          <div className="min-w-0 lg:border-l lg:border-line lg:pl-10" data-testid="privacy-summary">
+            <p className="mb-3 text-base font-medium text-ink">Ohne eingeschalteten API-Schritt verlässt nichts den Browser.</p>{" "}
+            <p className="max-w-[68ch] text-[15px] leading-[1.7] text-slate">
+              Nur wenn Sie ihn einschalten, gehen Händlernamen, die die Regel-Engine nicht kennt, an den Server, zum Beispiel{" "}
+              <code className="rounded-md border border-line bg-ivory px-1.5 py-0.5 font-mono text-[0.85em] whitespace-nowrap text-ink">REWE SAGT DANKE</code>.
+              Gesendet werden höchstens bereinigte Händlernamen von Kartenzahlungen und Lastschriften sowie von Überweisungen
+              und sonstigen Abbuchungen an Empfänger mit Firmenkennzeichen (etwa GmbH, AG, Versicherung), bei PayPal der
+              Händlername aus „Ihr Einkauf bei …“, wenn er ein Firmenkennzeichen trägt. Gutschriften, Überweisungen an
+              Empfänger ohne Firmenkennzeichen, PayPal-Einkäufe bei Verkäufern ohne Firmenkennzeichen (etwa Privatpersonen),
+              Buchungen ohne lesbaren Empfängernamen und Verwendungszwecke werden nicht gesendet, ebenso keine IBANs, Beträge
+              oder Buchungsdaten. Die Erkennung ist regelbasiert; die Liste der gesendeten Texte zeigt nach jedem Upload, was
+              den Browser verlassen hat. Nur bei eingeschaltetem API-Schritt speichert der Server einen Cache von Händlername
+              zu Kategorie für {cacheDays} Tage und für das Aufruflimit einen Zähler unter einem HMAC-Wert Ihrer IP-Adresse,
+              nicht die IP-Adresse selbst; Einzelheiten stehen in der Datenschutzerklärung.
+            </p>
+          </div>
+        </section>
       </div>
     );
   }
@@ -115,33 +131,50 @@ export function KontoKlarApp({ turnstileSiteKey, cacheDays }: { turnstileSiteKey
   const autoShare = autoAssignedShare(summary);
   const bankHint = parseInfo ? `${bankLabel(parseInfo.bank)}${parseInfo.skipped ? `, ${parseInfo.skipped} übersprungen` : ""}` : undefined;
   const postedTexts = apiInfo !== null && apiInfo.status !== "skipped" && apiInfo.sentTexts.length > 0;
+  const apiCount = summary.byCache + summary.byKnn + summary.byLlm;
 
   return (
-    <div className="space-y-6">
-      <Card
-        title={isSample ? "Ergebnis für Beispieldaten (synthetisch)" : `Ergebnis für ${fileName}`}
+    <div className="space-y-6 sm:space-y-8">
+      <Panel
+        eyebrow="Ergebnis"
+        title={isSample ? "Ergebnis für Beispieldaten" : `Ergebnis für ${fileName}`}
         aside={
           <Button variant="secondary" onClick={reset}>
             Neue Datei
           </Button>
         }
+        testId="result-panel"
       >
-        {isSample && (
-          <div className="mb-4">
-            <Notice tone="info">Synthetische Beispieldaten, keine echten Kontodaten. Personen und Konten sind erfunden.</Notice>
-          </div>
-        )}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          <Stat label="Buchungen" value={String(summary.total)} hint={bankHint} />
-          <Stat label="Per Regel" value={formatPercent(summary.total ? summary.byRule / summary.total : 0, 0)} hint={`${summary.byRule} Buchungen`} tone="moss" />
-          <Stat label="Per API" value={String(summary.byCache + summary.byKnn + summary.byLlm)} hint={`${summary.byCache} Cache · ${summary.byKnn} Embedding · ${summary.byLlm} Sprachmodell`} tone="gold" />
-          <Stat label="Zur Prüfung" value={String(summary.needsReview)} hint={`${summary.uncategorized} ohne Zuordnung`} tone="wine" />
-          <Stat label="Automatisch zugeordnet" value={formatPercent(autoShare, 0)} hint={summary.manual > 0 ? `${summary.manual} manuell korrigiert` : undefined} />
+        <div className="grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-5">
+          <StatTile variant="ledger" label="Buchungen" value={String(summary.total)} hint={bankHint} />
+          <StatTile variant="ledger" label="Per Regel" value={formatPercent(summary.total ? summary.byRule / summary.total : 0, 0)} hint={`${summary.byRule} Buchungen`} tone="positive" />
+          <StatTile
+            variant="ledger"
+            label="Per API"
+            value={String(apiCount)}
+            hint={`${summary.byCache} Cache · ${summary.byKnn} Embedding · ${summary.byLlm} Sprachmodell`}
+            tone={apiCount > 0 ? "accent" : "muted"}
+          />
+          <StatTile
+            variant="ledger"
+            label="Zur Prüfung"
+            value={String(summary.needsReview)}
+            hint={`${summary.uncategorized} ohne Zuordnung`}
+            tone={summary.needsReview > 0 ? "negative" : "muted"}
+          />
+          <StatTile
+            variant="ledger"
+            label="Automatisch zugeordnet"
+            value={formatPercent(autoShare, 0)}
+            hint={summary.manual > 0 ? `${summary.manual} manuell korrigiert` : undefined}
+            className="sm:col-span-2 lg:col-span-1"
+          />
         </div>
 
-        <div className="mt-4 space-y-2">
+        <div className="mt-5 space-y-2">
+          {isSample && <Notice tone="info">Synthetische Beispieldaten, keine echten Kontodaten. Personen und Konten sind erfunden.</Notice>}
           {busy && <Notice tone="info">Unbekannte Händler werden über die API geklärt …</Notice>}
-          {apiInfo?.status === "skipped" && <Notice tone="info">API-Schritt ausgeschaltet. Nur die Regel-Engine hat gearbeitet; nichts hat den Browser verlassen.</Notice>}
+          {apiInfo?.status === "skipped" && <Notice tone="ok">API-Schritt ausgeschaltet. Nur die Regel-Engine hat gearbeitet; nichts hat den Browser verlassen.</Notice>}
           {apiInfo?.status === "disabled" && (
             <Notice tone="info">
               API-Schritt derzeit nicht verfügbar, nur die Regel-Engine hat gearbeitet. Der Server hat die Händlertexte nicht verarbeitet und nichts gespeichert.
@@ -156,7 +189,7 @@ export function KontoKlarApp({ turnstileSiteKey, cacheDays }: { turnstileSiteKey
           {apiInfo?.status === "ok" && apiInfo.sentTexts.length === 0 && <Notice tone="ok">Alle Buchungen wurden im Browser zugeordnet. Nichts wurde übertragen.</Notice>}
           {postedTexts && (
             <p className="text-sm">
-              <button type="button" className="underline decoration-dotted underline-offset-2 hover:text-gold-deep" aria-expanded={showSent} onClick={() => setShowSent((s) => !s)}>
+              <button type="button" className="link" aria-expanded={showSent} onClick={() => setShowSent((s) => !s)}>
                 {showSent ? "Liste ausblenden" : "Was genau wurde gesendet?"}
               </button>
             </p>
@@ -167,11 +200,11 @@ export function KontoKlarApp({ turnstileSiteKey, cacheDays }: { turnstileSiteKey
             </Notice>
           ) : null}
           {showSent && postedTexts && apiInfo && (
-            <div className="rounded-md border border-line bg-paper p-3 text-xs">
-              <p className="mb-1 font-medium">Übertragene Händlertexte (pseudonymisiert):</p>
-              <ul className="grid gap-0.5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="rounded-xl border border-line bg-ivory/60 p-4 text-xs">
+              <p className="mb-2 font-medium text-ink">Übertragene Händlertexte (pseudonymisiert):</p>
+              <ul className="grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
                 {apiInfo.sentTexts.map((t) => (
-                  <li key={t} className="truncate font-mono">
+                  <li key={t} className="truncate font-mono text-slate">
                     {t}
                   </li>
                 ))}
@@ -179,7 +212,7 @@ export function KontoKlarApp({ turnstileSiteKey, cacheDays }: { turnstileSiteKey
             </div>
           )}
         </div>
-      </Card>
+      </Panel>
 
       <ReviewTable items={items} onChange={onChange} onApplyToMerchant={onApplyToMerchant} />
       <Dashboard items={items} />

@@ -1,6 +1,8 @@
 export interface Project {
   slug: string;
   code: string;
+  number: string;
+  topic: string;
   kicker: string;
   title: string;
   description: string;
@@ -12,17 +14,26 @@ export interface Project {
 export interface NavLink {
   href: string;
   label: string;
-  external?: boolean;
+  external: boolean;
 }
 
 export const DEFAULT_SITE_URL = "https://kontoklar-eight.vercel.app";
 
+export const OWNER_NAME = "Mirkan Deniz Günkaya";
+
+export const GITHUB_PROFILE_URL = "https://github.com/mirkan-morgenfels-ai";
+
 export const REPO_URL = "https://github.com/mirkan-morgenfels-ai/kontoklar";
+
+export const HOME_DESCRIPTION =
+  "Drei Portfolio-Projekte zu Finanzdaten, maschinellem Lernen und Graph-ML: DepotDoktor, KontoKlar und NetzRadar, jeweils mit öffentlichem Quellcode auf GitHub.";
 
 export const PROJECTS: readonly Project[] = [
   {
     slug: "depotdoktor",
     code: "K1",
+    number: "01",
+    topic: "Finanzdaten",
     kicker: "Projekt K1",
     title: "DepotDoktor",
     description:
@@ -34,6 +45,8 @@ export const PROJECTS: readonly Project[] = [
   {
     slug: "kontoklar",
     code: "K2",
+    number: "02",
+    topic: "Maschinelles Lernen",
     kicker: "Projekt K2",
     title: "KontoKlar",
     description: "Kategorisiert Bankumsätze aus CSV-Exporten und zeigt, wohin das Geld geht.",
@@ -44,6 +57,8 @@ export const PROJECTS: readonly Project[] = [
   {
     slug: "netzradar",
     code: "K3",
+    number: "03",
+    topic: "Graph-ML",
     kicker: "Projekt K3",
     title: "NetzRadar",
     description:
@@ -55,14 +70,15 @@ export const PROJECTS: readonly Project[] = [
 ];
 
 export const NAV_LINKS: readonly NavLink[] = [
-  { href: "/", label: "Start" },
+  { href: "/", label: "Start", external: false },
   ...PROJECTS.map((project) => ({ href: project.href, label: project.title, external: project.external })),
+  { href: GITHUB_PROFILE_URL, label: "GitHub", external: true },
 ];
 
 export const LEGAL_LINKS: readonly NavLink[] = [
-  { href: "/impressum", label: "Impressum" },
-  { href: "/datenschutz", label: "Datenschutz" },
-  { href: "/nutzungsbedingungen", label: "Nutzungsbedingungen" },
+  { href: "/impressum", label: "Impressum", external: false },
+  { href: "/datenschutz", label: "Datenschutz", external: false },
+  { href: "/nutzungsbedingungen", label: "Nutzungsbedingungen", external: false },
 ];
 
 export function repoFileUrl(path: string): string {

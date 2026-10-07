@@ -25,7 +25,7 @@ export function ScrollRegion({ label, hintTestId, testId, children }: { label: s
   return (
     <>
       {overflowing && (
-        <p className="mb-2 text-xs text-stone sm:hidden" data-testid={hintTestId}>
+        <p className="mb-2 text-xs text-slate sm:hidden" data-testid={hintTestId}>
           Tabelle seitlich wischen
         </p>
       )}

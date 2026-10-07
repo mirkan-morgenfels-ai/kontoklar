@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="KontoKlar">
-  <rect width="64" height="64" rx="14" fill="#111111"/>
-  <path d="M20 16h8v14l12-14h10L36 32l15 16H40L28 34v14h-8z" fill="#b8912f"/>
+  <rect width="64" height="64" rx="14" fill="#0b1626"/>
+  <path d="M32 7 57 32 32 57 7 32Z" fill="none" stroke="#c9a548" stroke-width="2.6"/>
+  <path d="M23.1 39.2V32.9M29 39.2V27.5M34.9 39.2V30.2M40.8 39.2V24.8" fill="none" stroke="#d8bd72" stroke-width="3.8" stroke-linecap="round"/>
 </svg>

@@ -5,7 +5,7 @@ import { CATEGORIES, type Category } from "@/lib/kontoklar/categories";
 import type { CategorizedTransaction, CategorySource } from "@/lib/kontoklar/types";
 import { formatEur } from "@/lib/kontoklar/analytics";
 import { ScrollRegion } from "./ScrollRegion";
-import { Badge, Button, Card } from "./ui";
+import { Badge, Button, Panel, Signed } from "./ui";
 
 interface Props {
   items: CategorizedTransaction[];
@@ -45,7 +45,7 @@ function selectLabels(rows: readonly CategorizedTransaction[]): Map<string, stri
 }
 
 export function ReviewTable({ items, onChange, onApplyToMerchant }: Props) {
-  const [filter, setFilter] = useState<"review" | "all">("review");
+  const [filter, setFilter] = useState<"review" | "all">(() => (items.some((it) => it.categorization.needsReview) ? "review" : "all"));
   const [query, setQuery] = useState("");
   const [limit, setLimit] = useState(100);
 
@@ -63,51 +63,67 @@ export function ReviewTable({ items, onChange, onApplyToMerchant }: Props) {
   const reviewCount = items.filter((it) => it.categorization.needsReview).length;
 
   return (
-    <Card
-      title="2. Prüfen und korrigieren"
+    <Panel
+      eyebrow="Prüfung"
+      title="Prüfen und korrigieren"
       aside={
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <button type="button" aria-pressed={filter === "review"} onClick={() => setFilter("review")} className={`rounded-md px-2 py-1 ${filter === "review" ? "bg-ink text-paper" : "text-stone hover:text-ink"}`}>
-            Zur Prüfung ({reviewCount})
-          </button>
-          <button type="button" aria-pressed={filter === "all"} onClick={() => setFilter("all")} className={`rounded-md px-2 py-1 ${filter === "all" ? "bg-ink text-paper" : "text-stone hover:text-ink"}`}>
-            Alle ({items.length})
-          </button>
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Suchen …" aria-label="Buchungen durchsuchen" className="rounded-md border border-line bg-surface px-2 py-1 text-sm" />
+        <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+          <div role="group" aria-label="Filter" className="inline-flex rounded-full border border-line bg-surface p-1 shadow-[0_1px_2px_rgb(11_22_38/0.04)]">
+            <button type="button" aria-pressed={filter === "review"} onClick={() => setFilter("review")} className={segmentClass(filter === "review")}>
+              Zur Prüfung ({reviewCount})
+            </button>
+            <button type="button" aria-pressed={filter === "all"} onClick={() => setFilter("all")} className={segmentClass(filter === "all")}>
+              Alle ({items.length})
+            </button>
+          </div>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Suchen …"
+            aria-label="Buchungen durchsuchen"
+            className="field mt-0 w-full rounded-full px-4 py-2 sm:w-56"
+          />
         </div>
       }
     >
       {filtered.length === 0 ? (
-        <p className="text-sm text-stone">{filter === "review" ? "Keine Buchung ist zur Prüfung markiert." : "Keine Treffer."}</p>
+        <p className="rounded-xl border border-dashed border-line px-5 py-8 text-center text-sm text-slate">
+          {filter === "review" ? "Keine Buchung ist zur Prüfung markiert." : "Keine Treffer."}
+        </p>
       ) : (
         <>
           <ScrollRegion label="Buchungen zur Prüfung" hintTestId="scroll-hint">
-            <table className="w-full text-xs sm:min-w-[720px] sm:text-sm">
+            <table className="data-table text-xs sm:text-sm [&_td]:align-top">
               <thead>
-                <tr className="border-b border-line text-left text-xs uppercase tracking-wide text-stone">
-                  <th className="hidden py-2 pr-3 sm:table-cell">Datum</th>
-                  <th className="py-2 pr-2 sm:pr-3">Händler</th>
-                  <th className="py-2 pr-2 text-right sm:pr-3">Betrag</th>
-                  <th className="py-2 pr-2 sm:pr-3">Kategorie</th>
-                  <th className="py-2 pr-2 sm:pr-3">Quelle</th>
-                  <th className="py-2 pr-2 sm:pr-3">Konfidenz</th>
-                  <th className="py-2">Verwendungszweck</th>
+                <tr>
+                  <th className="hidden pr-4 sm:table-cell sm:pl-3">Datum</th>
+                  <th className="pr-2.5 sm:pr-4">Händler</th>
+                  <th className="pr-2.5 text-right sm:pr-4">Betrag</th>
+                  <th className="sm:pr-4">Kategorie</th>
+                  <th className="hidden pr-4 lg:table-cell">Quelle</th>
+                  <th className="hidden pr-4 sm:table-cell">Konfidenz</th>
+                  <th className="hidden pr-3 lg:table-cell">Verwendungszweck</th>
                 </tr>
               </thead>
               <tbody>
                 {visible.map((it) => (
-                  <tr key={it.id} className={`border-b border-line/70 align-top ${it.categorization.needsReview ? "bg-gold-soft/40" : ""}`}>
-                    <td className="hidden whitespace-nowrap py-2 pr-3 tabular-nums text-stone sm:table-cell">{formatDate(it.bookingDate)}</td>
-                    <td className="py-2 pr-2 sm:pr-3">
-                      <div className="font-medium break-words hyphens-auto">{it.counterparty || <span className="text-stone">–</span>}</div>
-                      <div className="tabular-nums text-stone sm:hidden">{formatDate(it.bookingDate)}</div>
+                  <tr key={it.id} className={it.categorization.needsReview ? "bg-gold-soft/35" : undefined}>
+                    <td className="num hidden pr-4 whitespace-nowrap text-slate sm:table-cell sm:pl-3">{formatDate(it.bookingDate)}</td>
+                    <td className="min-w-[6.5rem] pr-2.5 sm:min-w-[10rem] sm:pr-4 lg:min-w-[11rem]">
+                      <div className="font-medium break-words text-ink">{it.counterparty || <span className="text-slate">–</span>}</div>
+                      <div className="num text-slate sm:hidden">{formatDate(it.bookingDate)}</div>
+                      <div className="mt-0.5 w-0 min-w-full truncate text-xs text-slate lg:hidden" title={it.purpose || undefined}>
+                        {it.purpose || "–"}
+                      </div>
                     </td>
-                    <td className={`whitespace-nowrap py-2 pr-2 text-right tabular-nums sm:pr-3 ${it.amount < 0 ? "text-ink" : "text-moss"}`}>{formatEur(it.amount)}</td>
-                    <td className="py-2 pr-2 sm:pr-3">
+                    <td className={`pr-2.5 text-right whitespace-nowrap sm:pr-4 ${it.amount < 0 ? "text-ink" : "text-moss"}`}>
+                      <Signed value={formatEur(it.amount)} />
+                    </td>
+                    <td className="sm:pr-4">
                       <select
                         value={it.categorization.category}
                         onChange={(e) => onChange(it.id, e.target.value as Category)}
-                        className="w-full min-w-[7rem] max-w-[200px] rounded-md border border-line bg-surface px-2 py-1"
+                        className="field mt-0 w-full max-w-[200px] min-w-[7rem] py-1.5 pr-7 pl-2.5 text-xs sm:text-[13px]"
                         aria-label={labels.get(it.id)}
                       >
                         {CATEGORIES.map((c) => (
@@ -120,27 +136,30 @@ export function ReviewTable({ items, onChange, onApplyToMerchant }: Props) {
                         <button
                           type="button"
                           onClick={() => onApplyToMerchant(it.merchantKey, it.categorization.category)}
-                          className="mt-1 block text-left text-xs text-stone underline decoration-dotted hover:text-ink"
+                          className="mt-1.5 block w-0 min-w-full truncate text-left text-xs text-slate underline decoration-gold decoration-dotted underline-offset-2 hover:text-ink"
                           title={`Für alle Buchungen mit Händler „${it.merchantKey}“ übernehmen`}
                         >
                           für alle „{it.merchantKey.slice(0, 24)}{it.merchantKey.length > 24 ? "…" : ""}“
                         </button>
                       )}
+                      <div className="mt-1.5 lg:hidden">
+                        <Badge tone={sourceTone(it.categorization.source)}>{SOURCE_LABEL[it.categorization.source]}</Badge>
+                      </div>
                     </td>
-                    <td className="py-2 pr-2 sm:pr-3">
+                    <td className="hidden pr-4 lg:table-cell">
                       <Badge tone={sourceTone(it.categorization.source)}>{SOURCE_LABEL[it.categorization.source]}</Badge>
                     </td>
-                    <td className="py-2 pr-2 tabular-nums sm:pr-3">
+                    <td className="hidden pr-4 sm:table-cell">
                       {it.categorization.source === "none" ? (
-                        <span className="text-xs text-stone">
+                        <span className="text-xs text-slate">
                           –<span className="sr-only"> keine automatische Zuordnung</span>
                         </span>
                       ) : (
                         <ConfidenceBar value={it.categorization.confidence} review={it.categorization.needsReview} />
                       )}
                     </td>
-                    <td className="py-2">
-                      <div className="max-w-md truncate text-xs text-stone" title={it.purpose}>
+                    <td className="hidden pr-3 lg:table-cell">
+                      <div className="max-w-[13rem] truncate text-xs text-slate" title={it.purpose}>
                         {it.purpose || "–"}
                       </div>
                     </td>
@@ -150,7 +169,7 @@ export function ReviewTable({ items, onChange, onApplyToMerchant }: Props) {
             </table>
           </ScrollRegion>
           {filtered.length > limit && (
-            <div className="mt-3">
+            <div className="mt-5">
               <Button variant="secondary" onClick={() => setLimit(limit + 100)}>
                 Weitere {Math.min(100, filtered.length - limit)} anzeigen
               </Button>
@@ -158,19 +177,25 @@ export function ReviewTable({ items, onChange, onApplyToMerchant }: Props) {
           )}
         </>
       )}
-    </Card>
+    </Panel>
   );
+}
+
+function segmentClass(active: boolean): string {
+  return active
+    ? "rounded-full bg-navy-950 px-4 py-1.5 text-[0.8125rem] font-medium whitespace-nowrap text-ivory shadow-[0_2px_8px_rgb(11_22_38/0.18)] transition-colors duration-150"
+    : "rounded-full px-4 py-1.5 text-[0.8125rem] whitespace-nowrap text-slate transition-colors duration-150 hover:bg-ivory hover:text-ink";
 }
 
 function ConfidenceBar({ value, review }: { value: number; review: boolean }) {
   const pct = Math.round(value * 100);
   const color = review ? "bg-gold" : "bg-moss";
   return (
-    <div className="flex items-center gap-2" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={review ? `Konfidenz ${pct} Prozent, zur Prüfung` : `Konfidenz ${pct} Prozent`}>
-      <div className="h-1.5 w-16 overflow-hidden rounded bg-line" aria-hidden="true">
-        <div className={`h-full ${color}`} style={{ width: `${pct}%` }} />
+    <div className="flex items-center gap-2 pt-1" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={review ? `Konfidenz ${pct} Prozent, zur Prüfung` : `Konfidenz ${pct} Prozent`}>
+      <div className="h-1 w-14 overflow-hidden rounded-full bg-line" aria-hidden="true">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-xs text-stone">{pct} %</span>
+      <span className="num text-xs text-slate">{pct} %</span>
     </div>
   );
 }

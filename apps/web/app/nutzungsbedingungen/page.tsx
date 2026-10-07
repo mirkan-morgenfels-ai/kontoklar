@@ -18,7 +18,7 @@ export default function NutzungsbedingungenPage() {
         <p>
           Diese Nutzungsbedingungen gelten für die Nutzung von KontoKlar sowie der zugehörigen Texte und Beispiele auf dieser
           Seite. Betreiber ist {OPERATOR.name} (siehe{" "}
-          <Link href="/impressum" className="text-moss underline">
+          <Link href="/impressum" className="link">
             Impressum
           </Link>
           ). Mit der Nutzung erkennen Sie diese Bedingungen an. Die Nutzung ist kostenlos; ein Vertrag über eine
@@ -69,7 +69,7 @@ export default function NutzungsbedingungenPage() {
         <p>
           Die Verarbeitung erfolgt im Browser; ein optionaler API-Schritt sendet nur pseudonymisierte Händlernamen
           (Einzelheiten in der{" "}
-          <Link href="/datenschutz" className="text-moss underline">
+          <Link href="/datenschutz" className="link">
             Datenschutzerklärung
           </Link>
           ). Eine automatisierte oder missbräuchliche Nutzung des API-Schritts ist nicht gestattet. Sie sind selbst dafür
@@ -80,7 +80,7 @@ export default function NutzungsbedingungenPage() {
       <LegalSection title="7. Quellcode und Lizenz">
         <p>
           Der Quellcode steht unter der MIT-Lizenz und ist öffentlich auf{" "}
-          <a href={REPO_URL} rel="noopener noreferrer" className="text-moss underline">
+          <a href={REPO_URL} rel="noopener noreferrer" className="link">
             GitHub<span className="sr-only"> (externe Seite)</span>
           </a>{" "}
           verfügbar. Die Lizenz enthält einen eigenen Haftungs- und Gewährleistungsausschluss, der für die Nutzung des

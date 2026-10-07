@@ -1,9 +1,18 @@
 import type { Metadata } from "next";
 import { LegalPage, LegalSection } from "@/components/LegalPage";
 import { PRIVACY_FACTS } from "@/lib/kontoklar/privacy";
+import { pageMetadata } from "@/lib/metadata";
 import { OPERATOR } from "@/lib/operator";
 
-export const metadata: Metadata = { title: "Datenschutzerklärung" };
+export const metadata: Metadata = pageMetadata({
+  path: "/datenschutz",
+  title: "Datenschutzerklärung",
+  description: "Datenschutzerklärung von KontoKlar: Auswertung im Browser, optionaler API-Schritt nur mit Einwilligung, keine Cookies und kein Tracking.",
+});
+
+function formatDecimal(value: number): string {
+  return value.toLocaleString("de-DE");
+}
 
 export default function DatenschutzPage() {
   const f = PRIVACY_FACTS;
@@ -32,9 +41,10 @@ export default function DatenschutzPage() {
 
       <LegalSection title="3. KontoKlar: Verarbeitung im Browser">
         <p>
-          Hochgeladene CSV-Dateien werden ausschließlich im Browser gelesen und ausgewertet. Umsätze, Namen, IBANs,
-          Verwendungszwecke, Beträge und Buchungsdaten werden nicht an den Server übertragen und nicht gespeichert. Das
-          können Sie in den Entwicklerwerkzeugen Ihres Browsers (Netzwerk-Tab) nachvollziehen.
+          Hochgeladene CSV-Dateien werden ausschließlich im Browser gelesen und ausgewertet. Umsätze, IBANs,
+          Verwendungszwecke, Beträge und Buchungsdaten werden nicht an den Server übertragen und nicht gespeichert; was der
+          optionale API-Schritt sendet, beschreibt Abschnitt 4. Das können Sie in den Entwicklerwerkzeugen Ihres Browsers
+          (Netzwerk-Tab) nachvollziehen.
         </p>
       </LegalSection>
 
@@ -43,12 +53,18 @@ export default function DatenschutzPage() {
           Wenn der API-Schritt eingeschaltet ist, überträgt der Browser für Buchungen, die die Regel-Engine nicht zuordnen
           kann, ausschließlich den normalisierten Händlerteil des Buchungstexts (zum Beispiel „REWE SAGT DANKE“) an die
           Route <code>/api/categorize</code>, höchstens {f.maxTextsPerUpload} Texte je Upload, zusammen mit dem Token der
-          Bot-Prüfung (Abschnitt 5). Überweisungen an Privatpersonen sowie alle Gutschriften werden nie übertragen. Die
-          Oberfläche zeigt nach jedem Upload, welche Texte übertragen wurden.
+          Bot-Prüfung (Abschnitt 5). Gesendet werden höchstens bereinigte Händlernamen von Kartenzahlungen und Lastschriften
+          sowie von Überweisungen und sonstigen Abbuchungen an Empfänger mit Firmenkennzeichen (etwa GmbH, AG, Versicherung).
+          Bei Zahlungen über PayPal ist das der Händlername aus „Ihr Einkauf bei …“, und nur, wenn er ein Firmenkennzeichen
+          trägt. Gutschriften, Überweisungen an Empfänger ohne Firmenkennzeichen, PayPal-Einkäufe bei Verkäufern ohne
+          Firmenkennzeichen (etwa Privatpersonen), Buchungen ohne lesbaren Empfängernamen und Verwendungszwecke werden
+          nicht gesendet. Die Erkennung ist regelbasiert; die Liste der gesendeten Texte zeigt nach jedem Upload, was den Browser
+          verlassen hat.
         </p>
         <p>
-          Der Server berechnet für diese Händlernamen Text-Embeddings und in seltenen Fällen eine Kategorie über ein
-          Sprachmodell bei OpenAI (OpenAI Ireland Ltd.); es gelten die Datenverarbeitungsbedingungen des Anbieters. Das
+          Der Server berechnet für diese Händlernamen Text-Embeddings und nur für Händlernamen, die das Beispielset nicht
+          sicher zuordnet (Konfidenz unter {formatDecimal(f.fallbackBelowConfidence)}), eine Kategorie über ein Sprachmodell
+          bei OpenAI (OpenAI Ireland Ltd.); es gelten die Datenverarbeitungsbedingungen des Anbieters. Das
           Ergebnis wird als Zuordnung von Händlername zu Kategorie und Konfidenz für {f.cacheDays} Tage in einer
           Redis-Datenbank bei Upstash gespeichert, damit derselbe Händlername nicht erneut angefragt werden muss. Dieser
           Eintrag enthält weder Ihre IP-Adresse noch andere Angaben über Sie.
@@ -97,7 +113,11 @@ export default function DatenschutzPage() {
           Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; das berechtigte Interesse liegt im sicheren und stabilen Betrieb der
           Seite. Vercel verarbeitet diese Daten als Auftragsverarbeiter; die Übermittlung in die USA stützt sich auf die
           Standardvertragsklauseln der EU-Kommission und die Zertifizierung von Vercel unter dem EU-US Data Privacy Framework.
-          Einzelheiten stehen in der Datenschutzerklärung von Vercel unter https://vercel.com/legal/privacy-policy.
+          Einzelheiten stehen in der{" "}
+          <a href="https://vercel.com/legal/privacy-notice" rel="noopener noreferrer" className="text-moss underline">
+            Datenschutzerklärung von Vercel<span className="sr-only"> (externe Seite)</span>
+          </a>
+          .
         </p>
         <p>
           Der Betreiber selbst wertet diese Logdaten nicht aus. Vercel Web Analytics und Speed Insights sind nicht aktiviert.
@@ -117,9 +137,10 @@ export default function DatenschutzPage() {
 
       <LegalSection title="8. Externe Links">
         <p>
-          Die Startseite verlinkt auf das Projekt DepotDoktor, das unter einer eigenen Adresse betrieben wird und eine eigene
-          Datenschutzerklärung hat. Beim Anklicken eines externen Links verlassen Sie diese Seite; für die Datenverarbeitung
-          dort gilt die Datenschutzerklärung des jeweiligen Angebots.
+          Diese Seite verlinkt auf die Projekte DepotDoktor und NetzRadar, die unter eigenen Adressen betrieben werden und
+          eigene Datenschutzerklärungen haben, sowie auf die öffentlichen Quellcode-Repositories bei GitHub (GitHub, Inc.,
+          USA). Erst beim Anklicken ruft Ihr Browser die fremde Seite auf; dort gilt die Datenschutzerklärung des jeweiligen
+          Anbieters. Vorher werden keine Daten an diese Anbieter übertragen, und die Links übermitteln keine Herkunftsseite.
         </p>
       </LegalSection>
 
@@ -131,7 +152,7 @@ export default function DatenschutzPage() {
           Wirkung für die Zukunft widerrufen (Art. 7 Abs. 3). Außerdem können Sie sich bei einer Datenschutz-Aufsichtsbehörde
           beschweren, in Bayern beim Bayerischen Landesamt für Datenschutzaufsicht (BayLDA), Promenade 18, 91522 Ansbach. Da
           keine Umsätze gespeichert werden, beschränkt sich eine Auskunft auf die oben genannten Verbindungsdaten und
-          Cache-Einträge.
+          den pseudonymisierten Zähler des Aufruflimits.
         </p>
       </LegalSection>
 

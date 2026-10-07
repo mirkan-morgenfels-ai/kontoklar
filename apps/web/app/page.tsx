@@ -1,54 +1,57 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { pageMetadata } from "@/lib/metadata";
+import { PROJECTS } from "@/lib/site";
+
+export const metadata: Metadata = pageMetadata({
+  path: "/",
+  title: "Projekte · Mirkan Deniz Günkaya",
+  absoluteTitle: true,
+  description:
+    "Drei Projekte zu Finanzdaten, Textklassifikation und Netzwerkanalyse: DepotDoktor, KontoKlar und NetzRadar, jeweils mit öffentlichem Quellcode auf GitHub.",
+});
+
+const LINK_CLASS = "text-sm text-moss underline underline-offset-4 hover:text-gold-deep";
 
 export default function HomePage() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-8 px-6 py-16">
-      <header className="space-y-3">
-        <p className="text-sm uppercase tracking-[0.2em] text-gold-deep">Portfolio</p>
-        <h1 className="text-4xl font-semibold tracking-tight">Mirkan Deniz Günkaya</h1>
-        <p className="text-stone">Data, Finanzen und angewandtes Machine Learning. Drei Projekte mit eigenem Repository.</p>
-      </header>
-      <ul className="grid gap-4">
-        <li className="rounded-xl border border-line bg-white p-5" data-testid="project-depotdoktor">
-          <p className="text-xs uppercase tracking-wide text-stone">K1</p>
-          <h2 className="text-lg font-medium">
-            <a
-              href="https://ai-project-1-web.vercel.app/projects/depotdoktor"
-              rel="noopener noreferrer"
-              className="underline decoration-gold underline-offset-4 hover:text-wine"
-            >
-              DepotDoktor
-            </a>{" "}
-            <span className="text-sm font-normal text-stone">(externe Seite)</span>
-          </h2>
-          <p className="text-sm text-stone">Depot-Steuer- und Performance-Analyzer für Broker-CSV-Exporte. Die Auswertung läuft vollständig im Browser.</p>
-        </li>
-        <li className="rounded-xl border border-gold bg-white p-5" data-testid="project-kontoklar">
-          <p className="text-xs uppercase tracking-wide text-gold-deep">K2</p>
-          <h2 className="text-lg font-medium">
-            <Link href="/projects/kontoklar" className="underline decoration-gold underline-offset-4 hover:text-wine">
-              KontoKlar
-            </Link>
-          </h2>
-          <p className="text-sm text-stone">Kategorisiert Bankumsätze aus CSV-Exporten und zeigt, wohin das Geld geht.</p>
-        </li>
-        <li className="rounded-xl border border-line bg-white p-5" data-testid="project-netzradar">
-          <p className="text-xs uppercase tracking-wide text-stone">K3</p>
-          <h2 className="text-lg font-medium">NetzRadar</h2>
-          <p className="text-sm text-stone">Graph-basierte Anomalie-Erkennung in Transaktionsnetzwerken. In Arbeit.</p>
-        </li>
+    <div className="space-y-10">
+      <section className="max-w-3xl">
+        <p className="text-xs uppercase tracking-widest text-gold-deep">Portfolio</p>
+        <h1 className="mt-2 font-serif text-4xl">Projekte</h1>
+        <p className="mt-3 text-stone">
+          Drei Projekte zu Finanzdaten, Textklassifikation und Netzwerkanalyse. Jedes läuft unter eigener Adresse, der
+          Quellcode liegt öffentlich auf GitHub (MIT-Lizenz).
+        </p>
+      </section>
+      <ul className="grid gap-6 md:grid-cols-3">
+        {PROJECTS.map((project) => (
+          <li key={project.slug} className="flex" data-testid={`project-${project.slug}`}>
+            <article className="flex w-full flex-col rounded-xl border border-line bg-surface p-5">
+              <p className="text-xs uppercase tracking-widest text-gold-deep">{project.kicker}</p>
+              <h2 className="mt-1 font-serif text-xl">{project.title}</h2>
+              <p className="mt-2 flex-1 text-sm text-stone">{project.description}</p>
+              <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
+                {project.external ? (
+                  <a href={project.href} rel="noopener noreferrer" className={LINK_CLASS}>
+                    Zum Projekt <span className="text-stone">(externe Seite)</span>
+                    <span className="sr-only"> {project.title}</span>
+                  </a>
+                ) : (
+                  <Link href={project.href} className={LINK_CLASS}>
+                    Zum Projekt
+                    <span className="sr-only"> {project.title}</span>
+                  </Link>
+                )}
+                <a href={project.repo} rel="noopener noreferrer" className={LINK_CLASS}>
+                  Quellcode <span className="text-stone">(externe Seite)</span>
+                  <span className="sr-only"> von {project.title} auf GitHub</span>
+                </a>
+              </div>
+            </article>
+          </li>
+        ))}
       </ul>
-      <footer className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-stone">
-        <span>© 2026 Mirkan Deniz Günkaya · Privates, nicht-kommerzielles Projekt · Quellcode unter MIT-Lizenz</span>
-        <nav aria-label="Rechtliches" className="flex gap-4">
-          <Link href="/impressum" className="hover:text-ink">
-            Impressum
-          </Link>
-          <Link href="/datenschutz" className="hover:text-ink">
-            Datenschutz
-          </Link>
-        </nav>
-      </footer>
-    </main>
+    </div>
   );
 }

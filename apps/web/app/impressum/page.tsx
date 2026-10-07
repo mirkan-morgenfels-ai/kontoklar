@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { LegalPage, LegalSection } from "@/components/LegalPage";
+import { pageMetadata } from "@/lib/metadata";
 import { OPERATOR } from "@/lib/operator";
+import { repoFileUrl } from "@/lib/site";
 
-export const metadata: Metadata = { title: "Impressum" };
+export const metadata: Metadata = pageMetadata({
+  path: "/impressum",
+  title: "Impressum",
+  description: "Impressum von KontoKlar, einem privaten, nicht-kommerziellen Portfolio-Projekt von Mirkan Deniz Günkaya.",
+});
 
 export default function ImpressumPage() {
   return (
@@ -30,7 +37,11 @@ export default function ImpressumPage() {
           Die Inhalte dieser Seite wurden mit Sorgfalt erstellt. Für Richtigkeit, Vollständigkeit und Aktualität wird keine
           Gewähr übernommen. KontoKlar ist ein Werkzeug zur Auswertung eigener Kontoumsätze. Kategorien, wiederkehrende
           Zahlungen und die persönliche Inflationsrate sind automatische Näherungen. Sie stellen keine Finanz-, Steuer- oder
-          Rechtsberatung dar.
+          Rechtsberatung dar. Näheres regeln die{" "}
+          <Link href="/nutzungsbedingungen" className="text-moss underline">
+            Nutzungsbedingungen
+          </Link>
+          .
         </p>
       </LegalSection>
 
@@ -44,7 +55,11 @@ export default function ImpressumPage() {
 
       <LegalSection title="Urheberrecht und Lizenz">
         <p>
-          Der Quellcode des Projekts steht unter der MIT-Lizenz. Texte und Gestaltung dieser Seite unterliegen dem deutschen
+          Der Quellcode des Projekts steht unter der{" "}
+          <a href={repoFileUrl("LICENSE")} rel="noopener noreferrer" className="text-moss underline">
+            MIT-Lizenz<span className="sr-only"> (externe Seite)</span>
+          </a>
+          . Texte und Gestaltung dieser Seite unterliegen dem deutschen
           Urheberrecht. Genannte Banken, Marken und Produktnamen (etwa DKB, ING, comdirect, N26, Volksbanken
           Raiffeisenbanken, Sparkassen) gehören ihren jeweiligen Inhabern; es besteht keine Verbindung zu diesen
           Unternehmen.

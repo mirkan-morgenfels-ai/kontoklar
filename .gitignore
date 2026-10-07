@@ -13,6 +13,5 @@ playwright-report/
 test-results/
 .DS_Store
 Thumbs.db
-/Portfolio-Projekte K1 DepotDoktor, K2 KontoKlar, K3 NetzRadar_ Umsetzungsdokument September 2026 bis Februar 2027.pdf
-/Projektanweisungen_K2_KontoKlar.md
-/README_K2_KontoKlar.md
+next-env.d.ts
+CLAUDE.local.md

@@ -16,7 +16,7 @@ export type { FileKind } from "./decode";
 export { parseAmount, parseDate, cleanText, makeTransactionId } from "./normalize";
 export { parseDkb } from "./parsers/dkb";
 export { parseIng } from "./parsers/ing";
-export { parseComdirect, splitBuchungstext } from "./parsers/comdirect";
+export { parseComdirect, splitBookingText } from "./parsers/comdirect";
 export { parseN26 } from "./parsers/n26";
 export { parseVrBank } from "./parsers/vrbank";
 export { parseSparkasse } from "./parsers/sparkasse";

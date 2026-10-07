@@ -28,7 +28,7 @@ export function parseIng(text: string): ParseResult {
     const counterparty = cleanText(row["Auftraggeber/Empfänger"]);
     const purpose = cleanText(row["Verwendungszweck"]);
     const type = cleanText(row["Buchungstext"]);
-    const currency = cleanText(row["Währung"] || "EUR") || "EUR";
+    const currency = cleanText(row["Währung_2"] || row["Währung"] || "EUR") || "EUR";
     transactions.push({
       id: makeTransactionId(["ing", bookingDate, amount, counterparty, purpose, i]),
       bookingDate,

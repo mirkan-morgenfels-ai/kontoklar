@@ -1,5 +1,6 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { pseudonymizeIp, TURNSTILE_TEST_SECRET_PASS, TURNSTILE_TEST_SITEKEY_PASS } from "@portfolio/ratelimit";
+import { apiErrorText } from "../categorize";
 import { API_REQUIREMENTS, type ApiEnvName } from "../config";
 
 const embeddingsCreate = vi.fn();
@@ -144,6 +145,9 @@ function expectNoExternalCalls() {
 
 describe("/api/categorize", () => {
   const env = { ...process.env };
+  beforeAll(async () => {
+    await import("../../../app/api/categorize/route");
+  }, 60_000);
   beforeEach(() => {
     redisStore.clear();
     redisOptions.length = 0;
@@ -413,6 +417,23 @@ describe("/api/categorize", () => {
       expect(third.status).toBe(429);
       expect(third.headers.get("retry-after")).toBeTruthy();
       expect(embeddingsCreate).toHaveBeenCalledTimes(2);
+    });
+
+    test("server messages leave the rule-engine sentence to the UI, so it never appears twice", async () => {
+      configure();
+      embeddingsCreate.mockResolvedValue({ data: [{ index: 0, embedding: [1, 0, 0] }] });
+      await post({ texts: ["A LADEN"] }, { "x-forwarded-for": "2.2.2.2" });
+      await post({ texts: ["B LADEN"] }, { "x-forwarded-for": "2.2.2.2" });
+      const limited = (await (await post({ texts: ["C LADEN"] }, { "x-forwarded-for": "2.2.2.2" })).json()) as { error: string };
+      expect(limited.error).toBe("Tageslimit erreicht.");
+      expect(apiErrorText(limited.error)).toBe("Tageslimit erreicht. Die Regel-Engine bleibt aktiv.");
+      const noIp = (await (await post({ texts: ["REWE"] }, { "x-forwarded-for": "" })).json()) as { error: string };
+      expect(apiErrorText(noIp.error)).toBe("Client-Adresse nicht ermittelbar, das Rate-Limit ist nicht anwendbar. Die Regel-Engine bleibt aktiv.");
+      configure(["OPENAI_API_KEY"]);
+      const off = (await (await post({ texts: ["REWE"] })).json()) as { reason: string };
+      expect(off.reason).not.toContain("Regel-Engine");
+      expect(apiErrorText("Bot-Prüfung fehlgeschlagen")).toBe("Bot-Prüfung fehlgeschlagen. Die Regel-Engine bleibt aktiv.");
+      expect(apiErrorText("Fehler 500. Die Regel-Engine bleibt aktiv.")).toBe("Fehler 500. Die Regel-Engine bleibt aktiv.");
     });
 
     test("Rate-Limit nicht erreichbar: fail-closed mit 503, kein OpenAI-Aufruf", async () => {

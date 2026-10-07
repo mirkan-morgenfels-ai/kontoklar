@@ -36,6 +36,7 @@ export interface PersonalInflationResult {
   toPeriod: string;
   coveredShare: number;
   weights: DivisionWeight[];
+  coveredWeights: DivisionWeight[];
 }
 
 export function expenseShares(amountsByCategory: Partial<Record<Category, number>>): CategoryShare[] {
@@ -76,6 +77,36 @@ export function personalInflationFromChanges(divisionShares: Map<string, number>
   }
   if (covered === 0) return { rate: 0, covered: 0 };
   return { rate: rate / covered, covered };
+}
+
+export function normalizeToCovered(weights: readonly DivisionWeight[]): DivisionWeight[] {
+  const covered = weights.filter((w) => w.change !== null);
+  const total = covered.reduce((s, w) => s + w.share, 0);
+  if (total === 0) return [];
+  return covered.map((w) => {
+    const share = w.share / total;
+    return { ...w, share, contribution: share * (w.change ?? 0) };
+  });
+}
+
+export const SHARE_STEP = 1e-3;
+export const CONTRIBUTION_STEP = 1e-4;
+
+export function roundToTotal(values: readonly number[], step: number, total: number): number[] {
+  const scaled = values.map((v) => Math.round((v / step) * 1e9) / 1e9);
+  const units = scaled.map((v) => Math.floor(v));
+  const target = Math.round(Math.round((total / step) * 1e9) / 1e9);
+  const missing = Math.min(values.length, Math.max(0, target - units.reduce((s, u) => s + u, 0)));
+  const order = scaled.map((v, i) => ({ i, rest: v - units[i]! })).sort((a, b) => b.rest - a.rest || a.i - b.i);
+  for (const { i } of order.slice(0, missing)) units[i]! += 1;
+  return units.map((u) => u * step);
+}
+
+export function displayWeights(coveredWeights: readonly DivisionWeight[], personalRate: number): DivisionWeight[] {
+  if (coveredWeights.length === 0) return [];
+  const shares = roundToTotal(coveredWeights.map((w) => w.share), SHARE_STEP, 1);
+  const contributions = roundToTotal(coveredWeights.map((w) => w.contribution), CONTRIBUTION_STEP, personalRate);
+  return coveredWeights.map((w, i) => ({ ...w, share: shares[i]!, contribution: contributions[i]! }));
 }
 
 export function latestCommonPeriod(cpi: CpiData): string | null {
@@ -123,5 +154,6 @@ export function computePersonalInflation(cpi: CpiData, amountsByCategory: Partia
     toPeriod: period,
     coveredShare: covered,
     weights,
+    coveredWeights: normalizeToCovered(weights),
   };
 }

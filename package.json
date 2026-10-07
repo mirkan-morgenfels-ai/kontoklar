@@ -3,16 +3,26 @@
   "private": true,
   "packageManager": "pnpm@10.34.5",
   "engines": {
-    "node": ">=20"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
     "dev": "pnpm --filter web dev",
     "build": "pnpm --filter web build",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
-    "test": "pnpm -r test"
+    "test": "pnpm -r test",
+    "accuracy": "pnpm --filter web accuracy",
+    "test:e2e": "pnpm --filter web test:e2e",
+    "ci": "pnpm typecheck && pnpm lint && pnpm test && pnpm accuracy && pnpm build"
   },
   "pnpm": {
+    "overrides": {
+      "postcss": ">=8.5.23",
+      "sharp": ">=0.35.5",
+      "source-map-js": ">=1.2.2",
+      "brace-expansion@<2": "^1.1.21",
+      "brace-expansion@>=4 <6": "^5.0.12"
+    },
     "onlyBuiltDependencies": [
       "esbuild",
       "unrs-resolver"

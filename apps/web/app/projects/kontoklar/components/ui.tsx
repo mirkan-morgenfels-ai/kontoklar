@@ -2,10 +2,10 @@ import type { ReactNode } from "react";
 
 export function Card({ title, children, aside }: { title?: string; children: ReactNode; aside?: ReactNode }) {
   return (
-    <section className="rounded-xl border border-line bg-white p-5 shadow-[0_1px_0_rgba(0,0,0,0.02)]">
+    <section className="min-w-0 rounded-xl border border-line bg-surface p-5 shadow-[0_1px_0_rgba(0,0,0,0.02)]">
       {(title || aside) && (
-        <div className="mb-4 flex items-center justify-between gap-3">
-          {title && <h2 className="text-base font-semibold tracking-tight">{title}</h2>}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          {title && <h2 className="font-serif text-xl">{title}</h2>}
           {aside}
         </div>
       )}
@@ -14,8 +14,18 @@ export function Card({ title, children, aside }: { title?: string; children: Rea
   );
 }
 
-export function Stat({ label, value, hint, tone = "ink" }: { label: string; value: string; hint?: string; tone?: "ink" | "moss" | "wine" | "gold" }) {
-  const color = { ink: "text-ink", moss: "text-moss", wine: "text-wine", gold: "text-gold-deep" }[tone];
+export function Stat({
+  label,
+  value,
+  hint,
+  tone = "ink",
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  tone?: "ink" | "moss" | "wine" | "gold" | "stone";
+}) {
+  const color = { ink: "text-ink", moss: "text-moss", wine: "text-wine", gold: "text-gold-deep", stone: "text-stone" }[tone];
   return (
     <div className="rounded-lg border border-line bg-paper px-4 py-3">
       <p className="text-xs uppercase tracking-wide text-stone">{label}</p>
@@ -49,8 +59,8 @@ export function Button({
   type?: "button" | "submit";
 }) {
   const cls = {
-    primary: "bg-ink text-white hover:bg-wine border-ink hover:border-wine",
-    secondary: "bg-white text-ink hover:bg-gold-soft border-line",
+    primary: "bg-ink text-paper hover:bg-moss border-ink hover:border-moss",
+    secondary: "bg-surface text-ink hover:border-gold border-line",
     ghost: "bg-transparent text-stone hover:text-ink border-transparent",
   }[variant];
   return (
@@ -58,7 +68,7 @@ export function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:cursor-not-allowed disabled:opacity-50 ${cls}`}
+      className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-deep disabled:cursor-not-allowed disabled:opacity-50 ${cls}`}
     >
       {children}
     </button>

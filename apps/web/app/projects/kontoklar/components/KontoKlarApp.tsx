@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { ParseResult } from "@portfolio/csv";
+import { SUPPORTED_BANKS, type Bank, type ParseResult } from "@portfolio/csv";
 import type { Category } from "@/lib/kontoklar/categories";
-import { applyManualToSameMerchant, applyRules, callCategorizeApi, collectApiCandidates, collectApiTexts, mergeApiResults, setManualCategory, summarize } from "@/lib/kontoklar/categorize";
+import { apiErrorText, applyManualToSameMerchant, applyRules, callCategorizeApi, collectApiCandidates, collectApiTexts, mergeApiResults, setManualCategory, summarize } from "@/lib/kontoklar/categorize";
 import { MAX_TEXTS_PER_CALL } from "@/lib/kontoklar/types";
 import type { CategorizedTransaction } from "@/lib/kontoklar/types";
-import { formatPercent } from "@/lib/kontoklar/analytics";
+import { autoAssignedShare, formatPercent } from "@/lib/kontoklar/analytics";
 import { Dashboard } from "./Dashboard";
 import { ReviewTable } from "./ReviewTable";
 import { UploadPanel, type UploadOptions } from "./UploadPanel";
@@ -20,17 +20,24 @@ interface ApiInfo {
   stats?: { cached: number; embedded: number; fallback: number };
 }
 
-export function KontoKlarApp({ turnstileSiteKey }: { turnstileSiteKey: string }) {
+function bankLabel(bank: Bank): string {
+  return SUPPORTED_BANKS.find((b) => b.id === bank)?.label ?? bank;
+}
+
+export function KontoKlarApp({ turnstileSiteKey, cacheDays }: { turnstileSiteKey: string; cacheDays: number }) {
   const [items, setItems] = useState<CategorizedTransaction[] | null>(null);
   const [fileName, setFileName] = useState("");
-  const [parseInfo, setParseInfo] = useState<{ bank: string; skipped: number; warnings: number } | null>(null);
+  const [isSample, setIsSample] = useState(false);
+  const [parseInfo, setParseInfo] = useState<{ bank: Bank; skipped: number; warnings: number } | null>(null);
   const [apiInfo, setApiInfo] = useState<ApiInfo | null>(null);
   const [busy, setBusy] = useState(false);
   const [showSent, setShowSent] = useState(false);
 
   const onParsed = useCallback(async (result: ParseResult, name: string, options: UploadOptions) => {
     setBusy(true);
+    setShowSent(false);
     setFileName(name);
+    setIsSample(options.sample === true);
     setParseInfo({ bank: result.bank, skipped: result.skipped, warnings: result.warnings.length });
     const ruled = applyRules(result.transactions);
     setItems(ruled);
@@ -76,6 +83,8 @@ export function KontoKlarApp({ turnstileSiteKey }: { turnstileSiteKey: string })
     setApiInfo(null);
     setParseInfo(null);
     setFileName("");
+    setIsSample(false);
+    setShowSent(false);
   };
 
   if (!items) {
@@ -83,8 +92,19 @@ export function KontoKlarApp({ turnstileSiteKey }: { turnstileSiteKey: string })
       <div className="space-y-6">
         <UploadPanel turnstileSiteKey={turnstileSiteKey} busy={busy} onParsed={onParsed} />
         <Card title="Was den Browser verlässt">
-          <p className="text-sm text-stone">
-            Nur der normalisierte Händlerteil einer Buchung, den die Regel-Engine nicht kennt, zum Beispiel <code className="rounded bg-paper px-1">REWE SAGT DANKE</code>. Keine Namen, IBANs, Verwendungszwecke, Beträge oder Buchungsdaten. Überweisungen an Privatpersonen werden nie gesendet, und ohne eingeschalteten API-Schritt verlässt gar nichts den Browser. Der Server speichert einen Cache von Händlername zu Kategorie für 30 Tage und für das Aufruflimit einen Zähler unter einem HMAC-Wert Ihrer IP-Adresse, nicht die IP-Adresse selbst; Einzelheiten stehen in der Datenschutzerklärung.
+          <p className="text-sm text-stone" data-testid="privacy-summary">
+            Ohne eingeschalteten API-Schritt verlässt nichts den Browser. Nur wenn Sie ihn einschalten, gehen Händlernamen,
+            die die Regel-Engine nicht kennt, an den Server, zum Beispiel <code className="rounded bg-paper px-1">REWE SAGT DANKE</code>.
+            Gesendet werden höchstens bereinigte Händlernamen von Kartenzahlungen und Lastschriften sowie von Überweisungen
+            und sonstigen Abbuchungen an Empfänger mit Firmenkennzeichen (etwa GmbH, AG, Versicherung), bei PayPal der
+            Händlername aus „Ihr Einkauf bei …“, wenn er ein Firmenkennzeichen trägt. Gutschriften, Überweisungen an
+            Empfänger ohne Firmenkennzeichen, PayPal-Einkäufe bei Verkäufern ohne Firmenkennzeichen (etwa Privatpersonen),
+            Buchungen ohne lesbaren Empfängernamen und Verwendungszwecke werden nicht gesendet, ebenso keine IBANs, Beträge
+            oder Buchungsdaten. Die Erkennung ist regelbasiert; die Liste
+            der gesendeten Texte zeigt nach jedem Upload, was den Browser verlassen hat. Nur bei eingeschaltetem API-Schritt
+            speichert der Server einen Cache von Händlername zu Kategorie für {cacheDays} Tage und für das Aufruflimit einen
+            Zähler unter einem HMAC-Wert Ihrer IP-Adresse, nicht die IP-Adresse selbst; Einzelheiten stehen in der
+            Datenschutzerklärung.
           </p>
         </Card>
       </div>
@@ -92,46 +112,61 @@ export function KontoKlarApp({ turnstileSiteKey }: { turnstileSiteKey: string })
   }
 
   const summary = summarize(items);
-  const autoShare = summary.total === 0 ? 0 : (summary.byRule + summary.byCache + summary.byKnn + summary.byLlm + summary.manual) / summary.total;
+  const autoShare = autoAssignedShare(summary);
+  const bankHint = parseInfo ? `${bankLabel(parseInfo.bank)}${parseInfo.skipped ? `, ${parseInfo.skipped} übersprungen` : ""}` : undefined;
+  const postedTexts = apiInfo !== null && apiInfo.status !== "skipped" && apiInfo.sentTexts.length > 0;
 
   return (
     <div className="space-y-6">
       <Card
-        title={`Ergebnis für ${fileName}`}
+        title={isSample ? "Ergebnis für Beispieldaten (synthetisch)" : `Ergebnis für ${fileName}`}
         aside={
           <Button variant="secondary" onClick={reset}>
             Neue Datei
           </Button>
         }
       >
+        {isSample && (
+          <div className="mb-4">
+            <Notice tone="info">Synthetische Beispieldaten, keine echten Kontodaten. Personen und Konten sind erfunden.</Notice>
+          </div>
+        )}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          <Stat label="Buchungen" value={String(summary.total)} hint={parseInfo ? `${parseInfo.bank.toUpperCase()}${parseInfo.skipped ? `, ${parseInfo.skipped} übersprungen` : ""}` : undefined} />
+          <Stat label="Buchungen" value={String(summary.total)} hint={bankHint} />
           <Stat label="Per Regel" value={formatPercent(summary.total ? summary.byRule / summary.total : 0, 0)} hint={`${summary.byRule} Buchungen`} tone="moss" />
           <Stat label="Per API" value={String(summary.byCache + summary.byKnn + summary.byLlm)} hint={`${summary.byCache} Cache · ${summary.byKnn} Embedding · ${summary.byLlm} Sprachmodell`} tone="gold" />
           <Stat label="Zur Prüfung" value={String(summary.needsReview)} hint={`${summary.uncategorized} ohne Zuordnung`} tone="wine" />
-          <Stat label="Automatisch zugeordnet" value={formatPercent(autoShare, 0)} />
+          <Stat label="Automatisch zugeordnet" value={formatPercent(autoShare, 0)} hint={summary.manual > 0 ? `${summary.manual} manuell korrigiert` : undefined} />
         </div>
 
         <div className="mt-4 space-y-2">
           {busy && <Notice tone="info">Unbekannte Händler werden über die API geklärt …</Notice>}
           {apiInfo?.status === "skipped" && <Notice tone="info">API-Schritt ausgeschaltet. Nur die Regel-Engine hat gearbeitet; nichts hat den Browser verlassen.</Notice>}
-          {apiInfo?.status === "disabled" && <Notice tone="info">API-Schritt derzeit nicht verfügbar, nur die Regel-Engine hat gearbeitet. Der Server hat die Händlertexte nicht verarbeitet und nichts gespeichert.</Notice>}
-          {apiInfo?.status === "error" && <Notice tone="error">API-Fehler: {apiInfo.message}. Die Regel-Engine bleibt aktiv.</Notice>}
+          {apiInfo?.status === "disabled" && (
+            <Notice tone="info">
+              API-Schritt derzeit nicht verfügbar, nur die Regel-Engine hat gearbeitet. Der Server hat die Händlertexte nicht verarbeitet und nichts gespeichert.
+            </Notice>
+          )}
+          {apiInfo?.status === "error" && <Notice tone="error">API-Fehler: {apiErrorText(apiInfo.message)}</Notice>}
           {apiInfo?.status === "ok" && apiInfo.sentTexts.length > 0 && (
             <Notice tone="ok">
-              {apiInfo.sentTexts.length} Händlertexte übertragen · {apiInfo.stats?.cached ?? 0} aus dem Cache · {apiInfo.stats?.embedded ?? 0} neu eingebettet · {apiInfo.stats?.fallback ?? 0} per Sprachmodell.{" "}
-              <button type="button" className="underline decoration-dotted" onClick={() => setShowSent((s) => !s)}>
-                {showSent ? "Liste ausblenden" : "Was genau wurde gesendet?"}
-              </button>
+              {apiInfo.sentTexts.length} Händlertexte übertragen · {apiInfo.stats?.cached ?? 0} aus dem Cache · {apiInfo.stats?.embedded ?? 0} neu eingebettet · {apiInfo.stats?.fallback ?? 0} per Sprachmodell.
             </Notice>
           )}
           {apiInfo?.status === "ok" && apiInfo.sentTexts.length === 0 && <Notice tone="ok">Alle Buchungen wurden im Browser zugeordnet. Nichts wurde übertragen.</Notice>}
+          {postedTexts && (
+            <p className="text-sm">
+              <button type="button" className="underline decoration-dotted underline-offset-2 hover:text-gold-deep" aria-expanded={showSent} onClick={() => setShowSent((s) => !s)}>
+                {showSent ? "Liste ausblenden" : "Was genau wurde gesendet?"}
+              </button>
+            </p>
+          )}
           {apiInfo?.skipped ? (
             <Notice tone="warn">
               {apiInfo.skipped} weitere unbekannte Händler wurden nicht angefragt (höchstens {MAX_TEXTS_PER_CALL} je Upload). Sie bleiben zur Prüfung markiert; ein kleinerer Zeitraum je Datei hilft.
             </Notice>
           ) : null}
-          {showSent && apiInfo && apiInfo.sentTexts.length > 0 && (
+          {showSent && postedTexts && apiInfo && (
             <div className="rounded-md border border-line bg-paper p-3 text-xs">
               <p className="mb-1 font-medium">Übertragene Händlertexte (pseudonymisiert):</p>
               <ul className="grid gap-0.5 sm:grid-cols-2 lg:grid-cols-3">

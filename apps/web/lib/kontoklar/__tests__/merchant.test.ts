@@ -1,8 +1,9 @@
 import { describe, expect, test } from "vitest";
+import { applyRules, collectApiTexts } from "../categorize";
 import { isApiEligible, merchantKeyFor, normalizeMerchant } from "../merchant";
 
 describe("normalizeMerchant", () => {
-  test("Beispiel aus dem Umsetzungsdokument bleibt erhalten", () => {
+  test("Rechenbeispiel: REWE SAGT DANKE bleibt erhalten", () => {
     expect(normalizeMerchant("REWE SAGT DANKE")).toBe("REWE SAGT DANKE");
   });
   test("IBAN, BIC, Datum, Uhrzeit, Nummern werden entfernt", () => {
@@ -51,7 +52,7 @@ describe("isApiEligible", () => {
     expect(isApiEligible({ counterparty: "Fitness Club", purpose: "", type: "Lastschrift", amount: -29.9 })).toBe(true);
     expect(isApiEligible({ counterparty: "Amazon", purpose: "", type: "Presentment", amount: -5 })).toBe(true);
   });
-  test("Überweisungen an Privatpersonen gehen nie an die API", () => {
+  test("Überweisungen an Empfänger ohne Firmenkennzeichen gehen nicht an die API", () => {
     expect(isApiEligible({ counterparty: "Max Mustermann", purpose: "Rückzahlung Abendessen", type: "Überweisung", amount: -20 })).toBe(false);
     expect(isApiEligible({ counterparty: "Erika Musterfrau", purpose: "Geschenk", type: "Credit Transfer", amount: -50 })).toBe(false);
   });
@@ -60,5 +61,59 @@ describe("isApiEligible", () => {
   });
   test("Eingänge gehen nie an die API", () => {
     expect(isApiEligible({ counterparty: "Musterfirma GmbH", purpose: "Gehalt", type: "Eingang", amount: 2850 })).toBe(false);
+  });
+  test("unknown booking type: company markers count only in the counterparty, never in the purpose", () => {
+    expect(isApiEligible({ counterparty: "Anna Schmidt", purpose: "Rueckzahlung Sparkasse Kredit", type: "", amount: -50 })).toBe(false);
+    expect(isApiEligible({ counterparty: "Anna Schmidt", purpose: "Anteil Einkauf Markt", type: "Ausgang", amount: -12 })).toBe(false);
+    expect(isApiEligible({ counterparty: "Hausverwaltung Schmidt GmbH", purpose: "", type: "", amount: -780 })).toBe(true);
+  });
+  test("a counterparty that normalizes to nothing is never sent", () => {
+    expect(normalizeMerchant("HUK24 AG")).toBe("");
+    expect(isApiEligible({ counterparty: "HUK24 AG", purpose: "Kfz Beitrag Max Mustermann Vertrag 4711", type: "Lastschrift", amount: -45 })).toBe(false);
+    expect(isApiEligible({ counterparty: "", purpose: "Kartenzahlung Laden", type: "Kartenzahlung", amount: -5 })).toBe(false);
+  });
+  test("card payment with a readable merchant stays eligible", () => {
+    expect(isApiEligible({ counterparty: "Netflix", purpose: "", type: "Kartenzahlung", amount: -12.99 })).toBe(true);
+  });
+  test("PayPal purchase: the seller from 'Ihr Einkauf bei' needs a company marker, like a transfer recipient", () => {
+    const paypal = "PayPal Europe S.a.r.l. et Cie S.C.A";
+    expect(isApiEligible({ counterparty: paypal, purpose: "PP.5678.PP . Anna Schmidt, Ihr Einkauf bei Anna Schmidt", type: "Lastschrift", amount: -40 })).toBe(false);
+    expect(isApiEligible({ counterparty: paypal, purpose: "PP.5678.PP . Kleinladen GmbH, Ihr Einkauf bei Kleinladen GmbH", type: "Lastschrift", amount: -40 })).toBe(true);
+    expect(isApiEligible({ counterparty: paypal, purpose: "PP.1234.PP . KLEINLADEN, Ihr Einkauf bei KLEINLADEN", type: "Lastschrift", amount: -10 })).toBe(false);
+  });
+});
+
+describe("collectApiTexts with PayPal purchases", () => {
+  const paypal = "PayPal Europe S.a.r.l. et Cie S.C.A";
+  const items = applyRules([
+    { id: "1", bookingDate: "2026-01-02", valueDate: null, counterparty: paypal, purpose: "PP.5678.PP . Anna Schmidt, Ihr Einkauf bei Anna Schmidt", amount: -40, currency: "EUR", type: "Lastschrift", bank: "generic" },
+    { id: "2", bookingDate: "2026-01-03", valueDate: null, counterparty: paypal, purpose: "PP.5679.PP . Kleinladen GmbH, Ihr Einkauf bei Kleinladen GmbH", amount: -25, currency: "EUR", type: "Lastschrift", bank: "generic" },
+  ]);
+  test("a private seller stays in the browser, a seller with a company marker is sent as the cleaned name", () => {
+    expect(items[0]?.merchantKey).toBe("ANNA SCHMIDT");
+    expect(items[0]?.categorization.source).toBe("none");
+    const texts = collectApiTexts(items);
+    expect(texts).toEqual(["KLEINLADEN"]);
+    expect(texts).not.toContain("ANNA SCHMIDT");
+  });
+});
+
+describe("collectApiTexts with private names and purpose fallback", () => {
+  const items = applyRules([
+    { id: "1", bookingDate: "2026-01-02", valueDate: null, counterparty: "Anna Schmidt", purpose: "Rueckzahlung Sparkasse Kredit", amount: -50, currency: "EUR", type: "", bank: "generic" },
+    { id: "2", bookingDate: "2026-01-03", valueDate: null, counterparty: "Anna Schmidt", purpose: "Anteil Einkauf Markt", amount: -12, currency: "EUR", type: "Ausgang", bank: "generic" },
+    { id: "3", bookingDate: "2026-01-04", valueDate: null, counterparty: "HUK24 AG", purpose: "Kfz Beitrag Max Mustermann Vertrag 4711", amount: -45, currency: "EUR", type: "Lastschrift", bank: "generic" },
+    { id: "4", bookingDate: "2026-01-05", valueDate: null, counterparty: "Kleiner Laden Ost", purpose: "", amount: -9, currency: "EUR", type: "Kartenzahlung", bank: "generic" },
+  ]);
+  test("only the readable card merchant is collected", () => {
+    const texts = collectApiTexts(items);
+    expect(texts).toEqual(["KLEINER LADEN OST"]);
+    expect(texts).not.toContain("ANNA SCHMIDT");
+    expect(texts.join(" ")).not.toContain("KFZ BEITRAG MAX MUSTERMANN");
+  });
+  test("HUK24 is assigned by the insurance rule and stays local", () => {
+    expect(items[2]?.merchantKey).toBe("KFZ BEITRAG MAX MUSTERMANN");
+    expect(items[2]?.apiEligible).toBe(false);
+    expect(items[2]?.categorization).toMatchObject({ category: "Versicherungen", source: "rule", ruleId: "insurance" });
   });
 });

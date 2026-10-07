@@ -1,6 +1,6 @@
 import type { Transaction } from "@portfolio/csv";
 import { describe, expect, test, vi } from "vitest";
-import { categoryTotals, monthlyBreakdown } from "../analytics";
+import { autoAssignedShare, categoryTotals, monthlyBreakdown } from "../analytics";
 import { applyManualToSameMerchant, applyRules, callCategorizeApi, collectApiTexts, fetchApiStatus, mergeApiResults, setManualCategory, summarize } from "../categorize";
 
 function tx(partial: Partial<Transaction> & { id: string }): Transaction {
@@ -112,6 +112,31 @@ describe("fetchApiStatus", () => {
   test("übernimmt die Liste fehlender Variablen und verwirft Nicht-Strings", async () => {
     const off = vi.fn(async () => new Response(JSON.stringify({ enabled: false, turnstile: false, reason: "r", missing: ["OPENAI_API_KEY", 7, "IP_HASH_SECRET"] }), { status: 200 }));
     expect(await fetchApiStatus(off as unknown as typeof fetch)).toEqual({ enabled: false, turnstile: false, reason: "r", missing: ["OPENAI_API_KEY", "IP_HASH_SECRET"] });
+  });
+});
+
+describe("autoAssignedShare", () => {
+  const two = applyRules([
+    tx({ id: "r", counterparty: "REWE SAGT DANKE", amount: -20 }),
+    tx({ id: "o", counterparty: "Unbekannter Laden", amount: -5 }),
+  ]);
+  test("one rule hit and one open booking: 1 / 2 = 0.5", () => {
+    const s = summarize(two);
+    expect(s).toMatchObject({ total: 2, byRule: 1, uncategorized: 1, manual: 0 });
+    expect(autoAssignedShare(s)).toBe(0.5);
+  });
+  test("a manual correction does not raise the automatic share", () => {
+    const s = summarize(setManualCategory(two, "o", "Kleidung"));
+    expect(s.manual).toBe(1);
+    expect(s.uncategorized).toBe(0);
+    expect(autoAssignedShare(s)).toBe(0.5);
+  });
+  test("API sources count as automatic: (1 rule + 1 knn) / 2 = 1", () => {
+    const merged = mergeApiResults(two, [{ text: "UNBEKANNTER LADEN", category: "Kleidung", confidence: 0.9, source: "knn" }]);
+    expect(autoAssignedShare(summarize(merged))).toBe(1);
+  });
+  test("no bookings: 0", () => {
+    expect(autoAssignedShare(summarize([]))).toBe(0);
   });
 });
 

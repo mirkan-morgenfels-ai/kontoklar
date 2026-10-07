@@ -1,7 +1,7 @@
 import type { Transaction } from "@portfolio/csv";
 import rulesJson from "../../../../data/k2/rules.json";
 import { isCategory, type Category } from "./categories";
-import { merchantKeyFor } from "./merchant";
+import { merchantKeyFor, merchantRuleSource } from "./merchant";
 
 export type RuleField = "merchant" | "purpose" | "type" | "any";
 export type RuleSign = "debit" | "credit";
@@ -80,6 +80,7 @@ export function createRuleEngine(rules: Rule[] = loadRules()) {
     rules,
     match(tx: Pick<Transaction, "counterparty" | "purpose" | "type" | "amount">, merchantKey?: string): RuleMatch | null {
       const merchant = merchantKey ?? merchantKeyFor(tx);
+      const merchantText = normalizeForRules(merchantRuleSource(tx));
       const purpose = normalizeForRules(tx.purpose);
       const type = normalizeForRules(tx.type ?? "");
       for (const rule of compiled) {
@@ -87,7 +88,13 @@ export function createRuleEngine(rules: Rule[] = loadRules()) {
         if (rule.sign === "credit" && tx.amount <= 0) continue;
         if (rule.where === "bank-or-empty" && merchant !== "" && !BANK_PATTERN.test(merchant)) continue;
         const targets =
-          rule.field === "merchant" ? [merchant] : rule.field === "purpose" ? [purpose] : rule.field === "type" ? [type] : [merchant, purpose, type];
+          rule.field === "merchant"
+            ? [merchant, merchantText]
+            : rule.field === "purpose"
+              ? [purpose]
+              : rule.field === "type"
+                ? [type]
+                : [merchant, merchantText, purpose, type];
         for (const regex of rule.regexes) {
           if (targets.some((t) => t !== "" && regex.test(t))) {
             return { category: rule.category, ruleId: rule.id };
@@ -100,6 +107,10 @@ export function createRuleEngine(rules: Rule[] = loadRules()) {
 }
 
 export type RuleEngine = ReturnType<typeof createRuleEngine>;
+
+export function matchRule(rule: Rule, tx: Pick<Transaction, "counterparty" | "purpose" | "type" | "amount">): boolean {
+  return createRuleEngine([rule]).match(tx) !== null;
+}
 
 let defaultEngine: RuleEngine | null = null;
 

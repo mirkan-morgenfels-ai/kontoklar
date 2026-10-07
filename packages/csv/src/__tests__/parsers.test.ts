@@ -49,6 +49,16 @@ describe("DKB", () => {
     const aldi = result.transactions.find((t) => t.counterparty.startsWith("ALDI"));
     expect(aldi?.purpose).toBe("");
   });
+  test("an empty counterparty column never falls back to the account holder in the other column", () => {
+    const header =
+      '"Buchungsdatum";"Wertstellung";"Status";"Zahlungspflichtige*r";"Zahlungsempfänger*in";"Verwendungszweck";"Umsatztyp";"IBAN";"Betrag (€)";"Gläubiger-ID";"Mandatsreferenz";"Kundenreferenz"';
+    const rows = [
+      '"10.01.2026";"10.01.2026";"Gebucht";"Max Mustermann";"";"Bargeldauszahlung";"Kartenzahlung";"";"-50,00";"";"";""',
+      '"11.01.2026";"11.01.2026";"Gebucht";"";"Max Mustermann";"Zinsen";"Eingang";"";"1,20";"";"";""',
+    ];
+    const parsed = parseBankCsv([header, ...rows].join("\n"), "dkb");
+    expect(parsed.transactions.map((t) => t.counterparty)).toEqual(["", ""]);
+  });
 });
 
 describe("ING", () => {
@@ -197,5 +207,47 @@ describe("Grenzfälle", () => {
     const result = parseBankCsv(header);
     expect(result.bank).toBe("dkb");
     expect(result.transactions).toHaveLength(0);
+  });
+});
+
+describe("CRLF line endings", () => {
+  const crlf = (text: string) => text.replace(/\r?\n/g, "\r\n");
+
+  test.each(["dkb.csv", "vrbank.csv", "vrbank-alt.csv", "ing.csv", "sparkasse.csv"])("%s gives the same bookings with CRLF as with LF", (name) => {
+    const lf = fixture(name);
+    const windows = crlf(lf);
+    expect(windows).toContain("\r\n");
+    const a = parseBankCsv(lf);
+    const b = parseBankCsv(windows);
+    expect(b.bank).toBe(a.bank);
+    expect(b.skipped).toBe(a.skipped);
+    expect(b.transactions).toEqual(a.transactions);
+  });
+
+  test("DKB with CRLF: first booking is read without a trailing carriage return", () => {
+    const result = parseBankCsv(crlf(fixture("dkb.csv")));
+    expect(result.transactions[0]).toMatchObject({ counterparty: "REWE SAGT DANKE", purpose: "NR12345 Einkauf", amount: -133.72, type: "Kartenzahlung" });
+    for (const tx of result.transactions) expect(JSON.stringify(tx)).not.toContain("\\r");
+  });
+
+  test("old VR-Bank format with CRLF inside the quoted field still splits type and purpose", () => {
+    const result = parseBankCsv(crlf(fixture("vrbank-alt.csv")));
+    expect(result.transactions[0]).toMatchObject({ type: "Kartenzahlung", purpose: "EDEKA SAGT DANKE 12345 MUENCHEN", amount: -45.67 });
+  });
+});
+
+describe("duplicate header names", () => {
+  test("ING: the second currency column becomes Währung_2 and Papa Parse stays silent", () => {
+    const warnings: unknown[] = [];
+    const original = console.warn;
+    console.warn = (...args: unknown[]) => warnings.push(args);
+    try {
+      const result = parseBankCsv(fixture("ing.csv"));
+      expect(result.transactions.length).toBeGreaterThan(0);
+      expect(result.transactions.every((tx) => tx.currency === "EUR")).toBe(true);
+    } finally {
+      console.warn = original;
+    }
+    expect(warnings).toEqual([]);
   });
 });

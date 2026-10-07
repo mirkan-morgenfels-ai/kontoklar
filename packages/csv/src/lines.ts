@@ -12,13 +12,23 @@ export function findHeaderLine(lines: string[], predicate: (line: string) => boo
   return -1;
 }
 
+export function uniqueHeaders(): (header: string) => string {
+  const seen = new Map<string, number>();
+  return (header) => {
+    const name = header.trim();
+    const count = (seen.get(name) ?? 0) + 1;
+    seen.set(name, count);
+    return count === 1 ? name : `${name}_${count}`;
+  };
+}
+
 export function parseFromHeader(lines: string[], headerIndex: number, delimiter: string): { rows: Record<string, string>[]; errors: Papa.ParseError[] } {
   const body = lines.slice(headerIndex).join("\n");
   const result = Papa.parse<Record<string, string>>(body, {
     header: true,
     delimiter,
     skipEmptyLines: "greedy",
-    transformHeader: (h) => h.trim(),
+    transformHeader: uniqueHeaders(),
   });
   return { rows: result.data, errors: result.errors };
 }

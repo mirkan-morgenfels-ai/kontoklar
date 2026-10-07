@@ -1,8 +1,9 @@
+import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV === "development";
 
-const csp = [
+const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://challenges.cloudflare.com`,
   "style-src 'self' 'unsafe-inline'",
@@ -18,23 +19,24 @@ const csp = [
   "upgrade-insecure-requests",
 ].join("; ");
 
-const securityHeaders = [
-  { key: "Content-Security-Policy", value: csp },
+const SECURITY_HEADERS = [
+  { key: "Content-Security-Policy", value: CONTENT_SECURITY_POLICY },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
-  { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()" },
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
 ];
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   transpilePackages: ["@portfolio/csv", "@portfolio/ratelimit"],
-  outputFileTracingRoot: new URL("../../", import.meta.url).pathname,
+  outputFileTracingRoot: fileURLToPath(new URL("../../", import.meta.url)),
   async headers() {
     return [
-      { source: "/(.*)", headers: securityHeaders },
+      { source: "/(.*)", headers: SECURITY_HEADERS },
       { source: "/api/(.*)", headers: [{ key: "Cache-Control", value: "no-store" }] },
     ];
   },

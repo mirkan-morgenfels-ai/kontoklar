@@ -13,6 +13,9 @@ describe("Kennzahlen der Datenschutzerklärung", () => {
     expect(PRIVACY_FACTS.rateLimitRetentionHours).toBe(48);
     expect(PRIVACY_FACTS.rateLimitRetentionExtraSeconds).toBe(1);
   });
+  test("language model only below confidence 0.5 (THRESHOLDS.review)", () => {
+    expect(PRIVACY_FACTS.fallbackBelowConfidence).toBe(0.5);
+  });
   test("Schlüssel für die IP-Pseudonymisierung mindestens 32 Zeichen", () => {
     expect(PRIVACY_FACTS.ipHashSecretMinLength).toBe(32);
   });

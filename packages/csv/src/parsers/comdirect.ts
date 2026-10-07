@@ -8,14 +8,14 @@ export function isComdirect(lines: string[]): boolean {
   return findHeaderLine(lines, (l) => HEADER.test(l)) >= 0;
 }
 
-export interface SplitBuchungstext {
+export interface SplitBookingText {
   counterparty: string;
   purpose: string;
 }
 
 const LABEL_PATTERN = /(?:(Auftraggeber|Empfänger|Kto\/IBAN|BLZ\/BIC|Buchungstext|Kartennr\.|Karte):\s*|(Ref\.)\s+)/g;
 
-export function splitBuchungstext(raw: string): SplitBuchungstext {
+export function splitBookingText(raw: string): SplitBookingText {
   const text = cleanText(raw);
   const matches = [...text.matchAll(LABEL_PATTERN)];
   if (matches.length === 0) {
@@ -56,7 +56,7 @@ export function parseComdirect(text: string): ParseResult {
       }
       return;
     }
-    const split = splitBuchungstext(row["Buchungstext"] ?? "");
+    const split = splitBookingText(row["Buchungstext"] ?? "");
     const type = cleanText(row["Vorgang"]);
     transactions.push({
       id: makeTransactionId(["comdirect", bookingDate, amount, split.counterparty, split.purpose, i]),

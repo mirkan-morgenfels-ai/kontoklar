@@ -1,8 +1,28 @@
 import { describe, expect, test } from "vitest";
 import { CATEGORIES } from "../categories";
-import { createRuleEngine, loadRules, normalizeForRules } from "../rules";
+import { createRuleEngine, loadRules, matchRule, normalizeForRules, type Rule } from "../rules";
 
 const engine = createRuleEngine();
+
+function ruleIdFor(counterparty: string, type: string) {
+  return engine.match({ counterparty, purpose: "", type, amount: -10 })?.ruleId ?? null;
+}
+
+function alternatives(pattern: string): string[] {
+  return pattern
+    .replace(/\\b/g, "")
+    .replace(/[()^$]/g, "")
+    .split("|")
+    .map((alt) => alt.trim())
+    .filter((alt) => alt !== "");
+}
+
+function caseFor(rule: Rule, text: string) {
+  const amount = rule.sign === "credit" ? 10 : -10;
+  if (rule.field === "purpose") return { counterparty: rule.where === "bank-or-empty" ? "Sparkasse" : "", purpose: text, type: "", amount };
+  if (rule.field === "type") return { counterparty: "", purpose: "", type: text, amount };
+  return { counterparty: text, purpose: "", type: "", amount };
+}
 
 function match(counterparty: string, purpose = "", type = "Kartenzahlung", amount = -10) {
   return engine.match({ counterparty, purpose, type, amount })?.category ?? null;
@@ -77,4 +97,55 @@ describe("Regel-Engine: Beispiele", () => {
   test("Rechtsform allein löst keine Regel aus", () => {
     expect(match("Irgendwas AG")).toBeNull();
   });
+});
+
+const DIGIT_CASES: [string, string, string][] = [
+  ["HOME24", "Kartenzahlung", "drugstore"],
+  ["BLUME 2000", "Kartenzahlung", "drugstore"],
+  ["1PASSWORD", "Lastschrift", "subscriptions"],
+  ["OFFICE 365", "Lastschrift", "subscriptions"],
+  ["MICROSOFT 365", "Lastschrift", "subscriptions"],
+  ["TSV 1860", "Lastschrift", "leisure"],
+  ["MAINZ 05", "Kartenzahlung", "leisure"],
+  ["BET365", "Kartenzahlung", "leisure"],
+  ["HUK24", "Lastschrift", "insurance"],
+  ["CHECK24 REISE", "Kartenzahlung", "travel"],
+  ["CHECK24", "Kartenzahlung", "online-retail"],
+  ["BUEROSHOP24", "Kartenzahlung", "online-retail"],
+  ["NU3", "Kartenzahlung", "online-retail"],
+  ["1UND1", "Lastschrift", "telecom"],
+  ["O2", "Lastschrift", "telecom"],
+  ["CASH26", "Kartenzahlung", "cash-atm"],
+];
+
+describe("merchant patterns with digits", () => {
+  test.each(DIGIT_CASES)("%s as counterparty (%s) hits rule %s", (counterparty, type, ruleId) => {
+    expect(ruleIdFor(counterparty, type)).toBe(ruleId);
+  });
+
+  test("the digit list covers every alternative with a digit in rules.json", () => {
+    const withDigits = loadRules()
+      .filter((rule) => rule.field === "merchant" || rule.field === "any")
+      .flatMap((rule) => rule.patterns.flatMap(alternatives))
+      .filter((alt) => /\d/.test(alt) && !/^\d+&\d+$/.test(alt));
+    expect(new Set(withDigits)).toEqual(new Set(DIGIT_CASES.map(([text]) => text)));
+  });
+
+  test("Blume 2000 from the test set is matched, HUK24 with a name in the purpose stays a rule hit", () => {
+    expect(match("Blume 2000")).toBe("Drogerie & Haushalt");
+    expect(match("HUK24 AG", "Kfz Beitrag Max Mustermann Vertrag 4711", "Lastschrift", -45)).toBe("Versicherungen");
+  });
+
+  test("PayPal purchases keep the inner merchant, not the PayPal counterparty", () => {
+    expect(match("PayPal Europe S.a.r.l. et Cie S.C.A", "PP.1234.PP . KLEINLADEN, Ihr Einkauf bei KLEINLADEN", "Lastschrift", -10)).toBeNull();
+  });
+});
+
+describe("every pattern alternative hits its own rule", () => {
+  for (const rule of loadRules()) {
+    test(`rule ${rule.id}`, () => {
+      const missed = rule.patterns.flatMap(alternatives).filter((alt) => !matchRule(rule, caseFor(rule, alt)));
+      expect(missed).toEqual([]);
+    });
+  }
 });

@@ -17,7 +17,7 @@ describe("cosineSimilarity", () => {
 });
 
 describe("voteKnn", () => {
-  test("Beispiel aus dem Umsetzungsdokument: REWE SAGT DANKE -> Lebensmittel mit 0,91", () => {
+  test("Rechenbeispiel: REWE SAGT DANKE -> Lebensmittel mit 0,91 (Mittel aus 0,94 und 0,88)", () => {
     const vote = voteKnn([
       { category: "Lebensmittel", similarity: 0.94, text: "REWE Filiale 123" },
       { category: "Lebensmittel", similarity: 0.88, text: "EDEKA Muenchen" },

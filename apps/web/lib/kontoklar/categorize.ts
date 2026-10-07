@@ -30,7 +30,7 @@ export function applyRules(transactions: Transaction[], engine: RuleEngine = def
   });
 }
 
-export function collectApiCandidates(items: CategorizedTransaction[]): string[] {
+export function collectApiCandidates(items: readonly CategorizedTransaction[]): string[] {
   const seen = new Set<string>();
   for (const it of items) {
     if (it.categorization.source !== "none") continue;
@@ -41,7 +41,7 @@ export function collectApiCandidates(items: CategorizedTransaction[]): string[] 
   return [...seen];
 }
 
-export function collectApiTexts(items: CategorizedTransaction[]): string[] {
+export function collectApiTexts(items: readonly CategorizedTransaction[]): string[] {
   return collectApiCandidates(items).slice(0, MAX_TEXTS_PER_CALL);
 }
 
@@ -71,6 +71,15 @@ export function applyManualToSameMerchant(items: CategorizedTransaction[], merch
       ? { ...it, categorization: { category, confidence: 1, source: "manual", needsReview: false } }
       : it,
   );
+}
+
+export const RULE_ENGINE_SENTENCE = "Die Regel-Engine bleibt aktiv.";
+
+export function apiErrorText(message: string | undefined): string {
+  const base = (message ?? "").trim().replace(/[.\s]+$/, "");
+  if (base === "") return RULE_ENGINE_SENTENCE;
+  if (base.includes("Regel-Engine")) return `${base}.`;
+  return `${base}. ${RULE_ENGINE_SENTENCE}`;
 }
 
 export interface ApiCallResult {

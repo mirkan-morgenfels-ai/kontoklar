@@ -2,7 +2,7 @@
 
 Kategorisiert Bankumsätze aus CSV-Exporten und zeigt, wohin das Geld geht. Regel-Engine zuerst, Embeddings zweitens, Sprachmodell nur als Fallback. Keine Kontoanbindung, keine Speicherung von Umsätzen.
 
-[![CI](https://github.com/mirkan-morgenfels-ai/AI-Project-2/actions/workflows/ci.yml/badge.svg)](https://github.com/mirkan-morgenfels-ai/AI-Project-2/actions/workflows/ci.yml)
+[![CI](https://github.com/mirkan-morgenfels-ai/kontoklar/actions/workflows/ci.yml/badge.svg)](https://github.com/mirkan-morgenfels-ai/kontoklar/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
 Live-Demo: https://kontoklar-eight.vercel.app/projects/kontoklar
@@ -126,8 +126,8 @@ Next.js 15 (App Router), TypeScript (strict), Tailwind CSS, Papa Parse, Recharts
 Voraussetzungen: Node.js 20 oder neuer, pnpm 10 (die Version 10.34.5 ist über `packageManager` in `package.json` festgelegt).
 
 ```bash
-git clone https://github.com/mirkan-morgenfels-ai/AI-Project-2.git
-cd AI-Project-2
+git clone https://github.com/mirkan-morgenfels-ai/kontoklar.git
+cd kontoklar
 pnpm install
 cp apps/web/.env.example apps/web/.env.local
 pnpm --filter web dev

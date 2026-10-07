@@ -1,8 +1,8 @@
-# Projekt: K2 KontoKlar (Repo AI-Project-2)
+# Projekt: K2 KontoKlar (Repo kontoklar)
 
 Aktueller Stand (06.10.2026): K2 KontoKlar ist implementiert (apps/web/app/projects/kontoklar) und live auf https://kontoklar-eight.vercel.app, derzeit nur mit der Regel-Engine; der API-Schritt ist fail-closed abgesichert, aber auf Vercel noch nicht eingerichtet.
 
-K1 DepotDoktor, K2 KontoKlar und K3 NetzRadar sind drei getrennte Repos (mirkan-morgenfels-ai/AI-Project-1, AI-Project-2, AI-Project-3); K1 und K2 haben je ein eigenes Vercel-Projekt, K3 ist noch ohne Deployment. Dieses Repo enthält nur K2; die Startseite verlinkt DepotDoktor extern und nennt NetzRadar ohne Link.
+K1 DepotDoktor, K2 KontoKlar und K3 NetzRadar sind drei getrennte Repos (mirkan-morgenfels-ai/depotdoktor, kontoklar, netzradar; öffentlich seit 07.10.2026, die früheren privaten Repos AI-Project-1 bis 3 sind Archiv); K1, K2 und K3 haben je ein eigenes Vercel-Projekt (K3: https://netzradar.vercel.app). Dieses Repo enthält nur K2; die Startseite verlinkt DepotDoktor extern und nennt NetzRadar ohne Link.
 
 ## Stack
 Next.js 15 App Router, TypeScript strict, Tailwind 4, Papa Parse, Recharts, OpenAI Node SDK, @upstash/redis, @upstash/ratelimit, Cloudflare Turnstile, Vitest, Playwright, pnpm Workspaces, GitHub Actions, Vercel Hobby.
@@ -17,7 +17,7 @@ Next.js 15 App Router, TypeScript strict, Tailwind 4, Papa Parse, Recharts, Open
 - `DESTATIS_TOKEN=... pnpm --filter web cpi:build`
 
 ## Git und Deployment
-- Remote: https://github.com/mirkan-morgenfels-ai/AI-Project-2 (privat). Vercel-Projekt `kontoklar` (Team AI-Team, Root `apps/web`) deployt jeden Push auf `main`; Produktions-URL https://kontoklar-eight.vercel.app.
+- Remote: https://github.com/mirkan-morgenfels-ai/kontoklar (öffentlich). Vercel-Projekt `kontoklar` (Team AI-Team, Root `apps/web`) deployt jeden Push auf `main`; Produktions-URL https://kontoklar-eight.vercel.app.
 - Commits müssen mit der GitHub-noreply-Adresse des Kontos mirkan-morgenfels-ai signiert sein (repo-lokal per `git config user.email` gesetzt), sonst blockiert Vercel das Deployment („commit email could not be matched“).
 - Planungsdokumente (Umsetzungsdokument-PDF, `Projektanweisungen_K2_KontoKlar.md`, `README_K2_KontoKlar.md`) liegen lokal im Projektordner, sind aber nicht eingecheckt (`.gitignore`). In älteren Commits sind sie noch enthalten.
 

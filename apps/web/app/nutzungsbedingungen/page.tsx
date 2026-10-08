@@ -67,8 +67,8 @@ export default function NutzungsbedingungenPage() {
 
       <LegalSection title="6. Ihre Daten">
         <p>
-          Die Verarbeitung erfolgt im Browser; ein optionaler API-Schritt sendet nur pseudonymisierte Händlernamen
-          (Einzelheiten in der{" "}
+          Hochgeladene CSV-Dateien werden im Browser ausgewertet. Nur wenn Sie den optionalen API-Schritt einschalten,
+          sendet der Browser normalisierte Händlernamen und das Token der Bot-Prüfung an den Server (Einzelheiten in der{" "}
           <Link href="/datenschutz" className="link">
             Datenschutzerklärung
           </Link>

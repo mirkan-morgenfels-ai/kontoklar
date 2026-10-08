@@ -44,7 +44,7 @@ Aufgenommen mit Playwright bei 1280 px gegen `next start` (Produktions-Build, De
 Bank-CSV (Browser) -> Papa Parse -> Normalisierung
   -> Regel-Engine (clientseitig; Ziel laut Plan etwa 70 % der Buchungen,
      auf dem synthetischen Testset 96,5 %)
-  -> Rest: Pseudonymisierung -> ein Batch-Aufruf /api/categorize (nur wenn eingeschaltet)
+  -> Rest: normalisierter Händlerteil -> ein Batch-Aufruf /api/categorize (nur wenn eingeschaltet)
        -> Konfiguration vollständig? sonst 503
        -> Beispielset vorhanden? sonst 503
        -> Body höchstens 200.000 Byte (Header und tatsächlich gelesene Bytes), sonst 413
@@ -119,12 +119,12 @@ Testdateien liegen unter `packages/csv/fixtures/` und sind synthetisch. Die Pars
 
 ## Persönliche Inflation
 
-Persönliche Rate = Σ (Anteil an den abgedeckten Ausgaben je COICOP-Abteilung × Vorjahresveränderung des Teilindex). Die eigenen Kategorien werden auf die COICOP-Abteilungen des Verbraucherpreisindex abgebildet. Bargeld und Kategorien ohne Indexwert sind nicht abgedeckt; die Anteile der übrigen Ausgaben werden auf 100 % normiert, die Oberfläche nennt den abgedeckten Anteil. Verwendet wird die Vorjahresveränderung des letzten verfügbaren Monats; die Gewichte stammen aus dem hochgeladenen Zeitraum. Die Tabelle der Oberfläche rundet Anteile und Beiträge nach dem Verfahren der größten Reste, sodass die angezeigten Anteile 100,0 % und die angezeigten Beiträge die persönliche Rate ergeben. Beispiel: Anteile Lebensmittel 30 %, Wohnen 40 %, Mobilität 15 %, Freizeit 15 % bei Teilindex-Veränderungen +5 %, +2 %, +6 %, +3 % ergeben 3,65 %.
+Persönliche Rate = Σ (Anteil an den abgedeckten Ausgaben je COICOP-Abteilung × Vorjahresveränderung des Teilindex). Die eigenen Kategorien werden auf die COICOP-Abteilungen des Verbraucherpreisindex abgebildet. Kategorien ohne Zuordnung (Online-Handel, Bargeld, Gebühren & Zinsen, Sonstiges) und Abteilungen ohne Indexwert sind nicht abgedeckt; die Anteile der übrigen Ausgaben werden auf 100 % normiert, die Oberfläche nennt den abgedeckten Anteil (mit den synthetischen Beispieldaten 93 %). Verwendet wird die Vorjahresveränderung des letzten verfügbaren Monats; die Gewichte stammen aus dem hochgeladenen Zeitraum. Die Tabelle der Oberfläche rundet Anteile und Beiträge nach dem Verfahren der größten Reste, sodass die angezeigten Anteile 100,0 % und die angezeigten Beiträge die persönliche Rate ergeben. Beispiel: Anteile Lebensmittel 30 %, Wohnen 40 %, Mobilität 15 %, Freizeit 15 % bei Teilindex-Veränderungen +5 %, +2 %, +6 %, +3 % ergeben 3,65 %.
 
 | Kategorie | COICOP-Abteilung |
 |---|---|
 | Lebensmittel | 01 Nahrungsmittel und alkoholfreie Getränke |
-| Drogerie & Haushalt | 05 Möbel, Leuchten, Geräte und anderes Haushaltszubehör |
+| Drogerie & Haushalt | 05 Möbel, Leuchten, Geräte und anderes Haushaltszubehör (Näherung) |
 | Restaurants & Cafés | 11 Gaststätten- und Beherbergungsdienstleistungen |
 | Wohnen | 04 Wohnung, Wasser, Strom, Gas und andere Brennstoffe |
 | Energie | 04 Wohnung, Wasser, Strom, Gas und andere Brennstoffe |
@@ -134,15 +134,25 @@ Persönliche Rate = Σ (Anteil an den abgedeckten Ausgaben je COICOP-Abteilung �
 | Freizeit & Kultur | 09 Freizeit, Unterhaltung und Kultur |
 | Kleidung | 03 Bekleidung und Schuhe |
 | Gesundheit | 06 Gesundheit |
-| Versicherungen | 12 Andere Waren und Dienstleistungen |
+| Versicherungen | 12 Andere Waren und Dienstleistungen (Näherung) |
 | Bildung | 10 Bildungswesen |
-| Reisen | 11 Gaststätten- und Beherbergungsdienstleistungen |
-| Online-Handel | 12 Andere Waren und Dienstleistungen |
+| Reisen | 11 Gaststätten- und Beherbergungsdienstleistungen (Näherung) |
+| Online-Handel | nicht abgedeckt |
 | Bargeld | nicht abgedeckt |
-| Gebühren & Zinsen | 12 Andere Waren und Dienstleistungen |
-| Sonstiges | 12 Andere Waren und Dienstleistungen |
+| Gebühren & Zinsen | nicht abgedeckt |
+| Sonstiges | nicht abgedeckt |
 
-Die Zuordnung ist eine Näherung; Online-Handel, Sonstiges und Gebühren laufen derzeit über Abteilung 12. Einkommen und Umbuchungen sind keine Ausgaben und fließen nicht ein.
+Grundlage ist die Gliederung des Verbraucherpreisindex auf Basis 2020 laut Wägungsschema 2020 des Statistischen Bundesamts: die SEA-VPI (Systematik der Einnahmen und Ausgaben der privaten Haushalte in der für den Verbraucherpreisindex geltenden Fassung), deren 12 Abteilungen denen der Klassifikation der Verwendungszwecke des Individualkonsums (COICOP) von 1999 entsprechen. In COICOP 2018 (13 Abteilungen) stehen Versicherungs- und Finanzdienstleistungen allein in Abteilung 12 und die Körperpflege in Abteilung 13; stellt Destatis den Verbraucherpreisindex darauf um, muss die Zuordnung nachgezogen werden. Die Zuordnung folgt den Händlermustern je Kategorie in `data/k2/rules.json` (Stand 08.10.2026):
+
+- Online-Handel: nicht abgedeckt. Amazon, eBay, Otto und Zahlungsdienste wie PayPal oder Klarna verkaufen oder vermitteln Waren aller Abteilungen; der Warenkorb ist unbekannt.
+- Sonstiges: nicht abgedeckt. Hier landen Buchungen ohne Regeltreffer und Ausgaben wie Spenden, Geschenke, Bußgelder oder Verwaltungsgebühren, also ebenfalls ein unbekannter Warenkorb, zum Teil gar kein Konsum.
+- Gebühren & Zinsen: nicht abgedeckt. Die Regeln erfassen neben Kontoführungs- und Kartenentgelten auch Soll- und Dispozinsen sowie Mahngebühren. Bankentgelte zählen zu den Finanzdienstleistungen in Abteilung 12, Zinsen sind im Verbraucherpreisindex aber kein Konsum; die Kategorie trennt beides nicht.
+- Bargeld: nicht abgedeckt, die Verwendung ist unbekannt.
+- Versicherungen, Näherung: Abteilung 12, Gruppe Versicherungsdienstleistungen. Sie umfasst laut Wägungsschema 2020 Hausrat-, private Kranken- und Unfall-, Kfz-, Verkehrsrechtsschutz-, Auslandsreisekranken-, Haftpflicht- und Rechtsschutzversicherungen. Lebens- und Rentenversicherungen (auch Riester und Rürup) und Berufsunfähigkeitsversicherungen sind nicht im Verbraucherpreisindex enthalten, Pflegeversicherungen führt das Wägungsschema nicht eigens auf. Die Regel `insurance` erfasst sie trotzdem, die Kategorie trennt sie nicht von den übrigen Versicherungen; im Testset betrifft das 2 von 8 Versicherungs-Buchungen (Berufsunfähigkeit, Risikolebensversicherung), nach Betrag 37 %. Die Kategorie ganz herauszunehmen, ließe auch die Versicherungen weg, die im Index stehen. Der Teilindex der Abteilung 12 enthält daneben Körperpflege, Schmuck und Uhren, soziale Dienste und Finanzdienstleistungen.
+- Reisen, Näherung: Abteilung 11. Die meisten Muster sind Unterkünfte (Hotels, Ferienwohnungen, Hostels, Camping, Buchungsportale wie Booking.com, Airbnb, HRS), also Beherbergungsdienstleistungen; im Testset sind es 6 von 7 Reise-Buchungen, nach Betrag aber nur 51 %, weil die eine Pauschalreise (TUI, 899 €) 49 % ausmacht. Pauschalreisen und Kreuzfahrten (etwa TUI, DERTOUR, AIDA) gehören zu Abteilung 09, Flug- und Fährbuchungen zu Abteilung 07; sie laufen mit. Den Teilindex der Abteilung 11 bestimmen außerdem vor allem die Gaststätten.
+- Drogerie & Haushalt, Näherung: Abteilung 05. Die meisten Muster sind Möbel-, Einrichtungs-, Haushaltswaren- und Baumärkte; Wasch- und Reinigungsmittel aus der Drogerie gehören ebenfalls zu 05. Körperpflegeartikel aus Drogerien gehören dagegen zu Abteilung 12 (in COICOP 2018 zu 13), Tierbedarf, Blumen und Gartenartikel zu 09. In den Beispieldaten besteht die Kategorie nur aus Drogeriemärkten; dort ist die Näherung am gröbsten.
+
+Einkommen und Umbuchungen sind keine Ausgaben und fließen nicht ein.
 
 Datenquelle: Statistisches Bundesamt (Destatis), GENESIS-Online, Tabelle 61111-0002, Datenlizenz Deutschland – Namensnennung – Version 2.0. Die Teilindizes werden monatlich per GitHub Actions abgerufen und als `data/k2/cpi.json` im Repository abgelegt; zur Laufzeit gibt es keinen Destatis-Aufruf. Derzeit enthält `cpi.json` Beispielwerte (`"sample": true`); die Oberfläche zeigt dann „Gesamtrate (Beispielwert)“ und „Persönliche Rate (Beispielrechnung)“.
 
@@ -205,7 +215,7 @@ CI=true pnpm test:e2e
 
 Das gelabelte Beispielset für die Embedding-Stufe liegt in `data/k2/labeled-examples.json`; die Vektoren entstehen einmalig mit `pnpm --filter web embeddings:build` (OpenAI-Key nötig, etwa 300 Texte, unter 0,01 $).
 
-Unit-Tests decken die Bank-Parser (auch mit CRLF-Zeilenenden), die Regel-Engine (jede Muster-Alternative trifft ihre eigene Regel), die Normalisierung der Händlernamen und die Auswahl der API-Texte, Kosinus-Ähnlichkeit und kNN-Abstimmung, die Erkennung wiederkehrender Zahlungen, die persönliche Inflation, die Diagrammfarben und die Beispieldaten ab. Die API-Route wird mit gemocktem OpenAI-Client, Redis-Mock und gemockter Turnstile-Prüfung getestet: für jede der sechs fehlenden Variablen (503 ohne OpenAI-Aufruf), für die IP-Pseudonymisierung (nur der HMAC erreicht das Rate-Limit, IPv6 je /64-Präfix), für ein Rate-Limit, das nicht antwortet (503 nach dem Timeout, kein OpenAI-Aufruf), für Cloudflare-Testschlüssel in der Produktionsumgebung und für das Body-Limit mit falschem oder fehlendem `content-length`. Ein Test liest das Lua-Skript der installierten Version von `@upstash/ratelimit` und prüft Ablaufzeit und UTC-Tagesfenster, die in der Datenschutzerklärung stehen. Die Playwright-Tests prüfen Upload, Beispieldaten, Startseite, Navigation, Rechtsseiten, 404, Metadaten, dass nur Anfragen an die eigene Adresse gehen, und laufen axe bei 390, 768 und 1280 px. Stand 07.10.2026: 298 Unit-Tests (csv 45, ratelimit 24, web 229) und 34 Playwright-Tests, alle grün.
+Unit-Tests decken die Bank-Parser (auch mit CRLF-Zeilenenden), die Regel-Engine (jede Muster-Alternative trifft ihre eigene Regel), die Normalisierung der Händlernamen und die Auswahl der API-Texte, Kosinus-Ähnlichkeit und kNN-Abstimmung, die Erkennung wiederkehrender Zahlungen, die persönliche Inflation, die Diagrammfarben und die Beispieldaten ab. Die API-Route wird mit gemocktem OpenAI-Client, Redis-Mock und gemockter Turnstile-Prüfung getestet: für jede der sechs fehlenden Variablen (503 ohne OpenAI-Aufruf), für die IP-Pseudonymisierung (nur der HMAC erreicht das Rate-Limit, IPv6 je /64-Präfix), für ein Rate-Limit, das nicht antwortet (503 nach dem Timeout, kein OpenAI-Aufruf), für Cloudflare-Testschlüssel in der Produktionsumgebung und für das Body-Limit mit falschem oder fehlendem `content-length`. Ein Test liest das Lua-Skript der installierten Version von `@upstash/ratelimit` und prüft Ablaufzeit und UTC-Tagesfenster, die in der Datenschutzerklärung stehen. Die Playwright-Tests prüfen Upload, Beispieldaten, Startseite, Navigation, Rechtsseiten, 404, Metadaten, dass nur Anfragen an die eigene Adresse gehen, und laufen axe bei 390, 768 und 1280 px. Stand 08.10.2026: 303 Unit-Tests (csv 45, ratelimit 24, web 234) und 34 Playwright-Tests, alle grün.
 
 Die CI führt bei jedem Push auf `main` und bei jedem Pull Request `install → typecheck → lint → test → accuracy (Accuracy der Regel-Engine auf zugeordneten Buchungen mindestens 0,9) → build → Playwright-E2E` aus.
 
@@ -242,7 +252,7 @@ packages/ratelimit/                   Rate-Limit, IP-Pseudonymisierung (HMAC), T
 - Die Kategorisierung ist nur so gut wie Regelsatz und Beispielset; ungewöhnliche Händler landen in der Prüfliste.
 - Die persönliche Inflation ist eine Näherung auf Ebene der COICOP-Abteilungen, nicht auf Produktebene.
 - Bankformate ändern sich; bei unbekannter Kopfzeile greift das manuelle Spalten-Mapping.
-- Der API-Schritt überträgt pseudonymisierte Händlertexte an einen externen Anbieter.
+- Der API-Schritt überträgt normalisierte Händlertexte an einen externen Anbieter.
 
 ## Roadmap
 
@@ -257,6 +267,8 @@ KontoKlar ist ein Werkzeug zur Auswertung eigener Daten und stellt keine Finanz-
 ## Quellen
 
 - Statistisches Bundesamt, GENESIS-Online, Verbraucherpreisindex, Tabelle 61111-0002: https://genesis.destatis.de/datenbank/online/statistic/61111/table/61111-0002 (abgerufen am 07.10.2026)
+- Statistisches Bundesamt, Verbraucherpreisindex für Deutschland, Wägungsschema für das Basisjahr 2020 (Gliederung nach SEA-VPI, Gruppe 125 Versicherungsdienstleistungen): https://www.destatis.de/DE/Themen/Wirtschaft/Preise/Verbraucherpreisindex/Methoden/Downloads/waegungsschema-2020.html (abgerufen am 08.10.2026)
+- United Nations Statistics Division, Classification of Individual Consumption According to Purpose (COICOP) 2018, Statistical Papers Series M No. 99: https://unstats.un.org/unsd/classifications/Family/Detail/2094 (abgerufen am 08.10.2026)
 - Datenlizenz Deutschland – Namensnennung – Version 2.0: https://www.govdata.de/dl-de/by-2-0 (abgerufen am 07.10.2026)
 - OpenAI API, Preise für `text-embedding-3-small` und GPT-5 nano: https://developers.openai.com/api/docs/pricing (abgerufen am 07.10.2026)
 - Upstash, Preise und Free-Tier-Limits für Redis: https://upstash.com/pricing/redis (abgerufen am 07.10.2026)

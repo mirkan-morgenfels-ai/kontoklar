@@ -62,7 +62,7 @@ async function main() {
     if (!client) throw new Error("--api braucht OPENAI_API_KEY");
     const labeled = await loadLabeledVectors();
     const texts = collectApiTexts(items);
-    console.log(`API-Stufe: ${texts.length} Händlertexte werden eingebettet (nur pseudonymisierte Händlerteile).`);
+    console.log(`API-Stufe: ${texts.length} Händlertexte werden eingebettet (nur normalisierte Händlerteile).`);
     const res = await categorizeTexts(texts, {
       cache: null,
       embed: labeled.length > 0 ? createOpenAiEmbed(client) : null,

@@ -63,10 +63,32 @@ export const CATEGORY_TO_COICOP: Record<Category, string | null> = {
   Versicherungen: "12",
   Bildung: "10",
   Reisen: "11",
-  "Online-Handel": "12",
+  "Online-Handel": null,
   Bargeld: null,
-  "Gebühren & Zinsen": "12",
+  "Gebühren & Zinsen": null,
   Einkommen: null,
   Umbuchung: null,
-  Sonstiges: "12",
+  Sonstiges: null,
 };
+
+export const COICOP_APPROXIMATIONS: ReadonlySet<Category> = new Set<Category>(["Drogerie & Haushalt", "Versicherungen", "Reisen"]);
+
+export const UNCOVERED_EXPENSE_CATEGORIES: readonly Category[] = EXPENSE_CATEGORIES.filter((c) => CATEGORY_TO_COICOP[c] === null);
+
+export const APPROXIMATED_EXPENSE_CATEGORIES: readonly Category[] = EXPENSE_CATEGORIES.filter((c) => COICOP_APPROXIMATIONS.has(c));
+
+export function coicopDivisionLabel(category: Category): string | null {
+  const division = CATEGORY_TO_COICOP[category];
+  return division ? `${division} ${COICOP_DIVISIONS[division] ?? ""}`.trim() : null;
+}
+
+export function coicopLabel(category: Category): string {
+  const label = coicopDivisionLabel(category);
+  if (!label) return "nicht abgedeckt";
+  return COICOP_APPROXIMATIONS.has(category) ? `${label} (Näherung)` : label;
+}
+
+export function joinGerman(items: readonly string[]): string {
+  if (items.length <= 1) return items.join("");
+  return `${items.slice(0, -1).join(", ")} und ${items[items.length - 1]}`;
+}

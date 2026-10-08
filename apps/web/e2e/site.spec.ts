@@ -21,7 +21,7 @@ const LEGAL_PAGES = [
   { path: "/datenschutz", heading: "Datenschutzerklärung", title: "Datenschutzerklärung · KontoKlar" },
   { path: "/nutzungsbedingungen", heading: "Nutzungsbedingungen", title: "Nutzungsbedingungen · KontoKlar" },
 ];
-const LEGAL_UPDATED = "07.10.2026";
+const LEGAL_UPDATED = "08.10.2026";
 const REPO_BASE = "https://github.com/mirkan-morgenfels-ai";
 const KONTOKLAR_REPO = `${REPO_BASE}/kontoklar`;
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://kontoklar-eight.vercel.app").replace(/\/+$/, "");
@@ -260,6 +260,10 @@ test("operator details on imprint and privacy page", async ({ page }) => {
   await page.goto("/impressum");
   await page.getByRole("main").locator("article").getByRole("link", { name: "Nutzungsbedingungen" }).click();
   await expect(page).toHaveURL(/\/nutzungsbedingungen$/);
+  await expect(page.getByRole("main")).toContainText(
+    "Hochgeladene CSV-Dateien werden im Browser ausgewertet. Nur wenn Sie den optionalen API-Schritt einschalten, sendet der Browser normalisierte Händlernamen und das Token der Bot-Prüfung an den Server",
+  );
+  await expect(page.getByRole("main")).not.toContainText("pseudonymisierte Händlernamen");
 });
 
 test("no page overflows horizontally at 320 px", async ({ page }) => {

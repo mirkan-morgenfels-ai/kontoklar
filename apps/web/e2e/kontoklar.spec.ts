@@ -97,9 +97,29 @@ test("inflation card marks sample values and never says official", async ({ page
   const sum = page.getByTestId("inflation-sum");
   await expect(sum.locator("td").first()).toHaveText(germanPercent(1, 1));
   await expect(sum.locator("td").last()).toHaveText(await personal.innerText());
+  await expect(stat(page, "Abgedeckter Ausgabenanteil")).toContainText(
+    "Online-Handel, Bargeld, Gebühren & Zinsen und Sonstiges sowie Abteilungen ohne Indexwert sind nicht abgedeckt.",
+  );
+  await expect(page.getByTestId("inflation-covered")).toContainText("Drogerie & Haushalt, Versicherungen und Reisen gehen als Näherung ein.");
   await page.getByText("Zuordnung Kategorie → COICOP-Abteilung").click();
-  await expect(page.getByTestId("coicop-mapping")).toContainText("Bargeld");
-  await expect(page.getByTestId("coicop-mapping")).toContainText("nicht abgedeckt");
+  const mapping = page.getByTestId("coicop-mapping");
+  await expect(mapping).toContainText("Bargeld");
+  for (const category of ["Online-Handel", "Bargeld", "Gebühren & Zinsen", "Sonstiges"]) {
+    await expect(mapping.getByRole("row").filter({ has: page.getByRole("cell", { name: category, exact: true }) })).toContainText("nicht abgedeckt");
+  }
+  await expect(mapping.getByRole("row").filter({ has: page.getByRole("cell", { name: "Versicherungen", exact: true }) })).toContainText("12 Andere Waren und Dienstleistungen");
+  const approximations = mapping.locator("tr[data-approximation='true']");
+  await expect(approximations).toHaveCount(3);
+  await expect(approximations.nth(0).getByRole("cell").first()).toHaveText("Drogerie & Haushalt");
+  await expect(approximations.nth(0).getByRole("cell").last()).toHaveText("05 Möbel, Leuchten, Geräte und anderes Haushaltszubehör Näherung");
+  await expect(approximations.nth(1).getByRole("cell").first()).toHaveText("Versicherungen");
+  await expect(approximations.nth(1).getByRole("cell").last()).toHaveText("12 Andere Waren und Dienstleistungen Näherung");
+  await expect(approximations.nth(2).getByRole("cell").first()).toHaveText("Reisen");
+  await expect(approximations.nth(2).getByRole("cell").last()).toHaveText("11 Gaststätten- und Beherbergungsdienstleistungen Näherung");
+  await expect(page.getByTestId("coicop-note")).toContainText("Zinsen enthält, die im Verbraucherpreisindex kein Konsum sind");
+  await expect(page.getByTestId("coicop-note")).toContainText(
+    "obwohl Lebens-, Renten- und Berufsunfähigkeitsversicherungen nicht im Verbraucherpreisindex enthalten sind",
+  );
 });
 
 test("chart legend uses ink text and income keeps moss for itself", async ({ page }) => {

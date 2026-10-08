@@ -157,9 +157,9 @@ Im Repo-Root:
 
 ## Test-Stand
 
-Stand 07.10.2026:
+Stand 08.10.2026:
 
-- Vitest: 298 Tests (csv 45, ratelimit 24, web 229).
+- Vitest: 303 Tests (csv 45, ratelimit 24, web 234).
 - Playwright: 34 Tests, davon 3 axe-Läufe über alle Seiten und ein Lauf `label-content-name-mismatch`; mit `CI=true` gegen `next start`.
 - `pnpm --filter web accuracy`: Regel-Engine 96,5 % Abdeckung, 99,0 % richtig auf zugeordneten Buchungen, 95,5 % gesamt (198 Buchungen).
 - `pnpm audit --prod`: keine Meldung; `pnpm audit` meldet nur braces ≤ 3.0.3 über `eslint-config-next` (nur Linting, ohne Patch).
@@ -168,17 +168,20 @@ Stand 07.10.2026:
 
 - `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm accuracy`, `pnpm build` und `pnpm test:e2e` grün, E2E-Wächter ohne fremde Anfragen, axe ohne Verstöße
 - jede neue Kennzahl mit Handtest, Accuracy gemessen und in `docs/genauigkeit.md` dokumentiert
-- Netzwerk-Tab zeigt nur pseudonymisierte Händlertexte
+- Netzwerk-Tab zeigt nur normalisierte Händlertexte
 - Feature in der Vorschau sichtbar, CI grün
 
 ## Offene Entscheidungen
 
-1. **Nutzungsbedingungen**: Wortlaut von `/nutzungsbedingungen` (8 Abschnitte, nach K1) vor dem Merge freigeben.
+Der Autor hat die Punkte 1, 4 und 7 am 08.10.2026 an Claude delegiert; die Begründungen stehen jeweils dabei.
+
+1. ~~**Nutzungsbedingungen**: Wortlaut von `/nutzungsbedingungen` (8 Abschnitte, nach K1) vor dem Merge freigeben.~~ Freigegeben am 08.10.2026 nach Abgleich mit dem Verhalten der Anwendung (Regel-Engine im Browser, API-Schritt implementiert, aber nicht freigeschaltet, fail-closed, keine Speicherung von Umsätzen), mit der Datenschutzerklärung und mit den Nutzungsbedingungen von K1 und K3. Eine Korrektur in Abschnitt 6: Statt „Die Verarbeitung erfolgt im Browser; ein optionaler API-Schritt sendet nur pseudonymisierte Händlernamen“ steht dort „Hochgeladene CSV-Dateien werden im Browser ausgewertet. Nur wenn Sie den optionalen API-Schritt einschalten, sendet der Browser normalisierte Händlernamen und das Token der Bot-Prüfung an den Server“. Gründe: Die Datenschutzerklärung (Abschnitt 4) nennt neben den Händlernamen auch das Token der Bot-Prüfung, das „nur“ war also falsch; „pseudonymisiert“ verwendet die Datenschutzerklärung im Sinn von Art. 4 Nr. 5 DSGVO nur für den HMAC der IP-Adresse, für die Händlernamen heißt es dort „normalisiert“ (Oberfläche, Definition of Done, README und Accuracy-Skript sagen deshalb ebenfalls „normalisiert“); „Die Verarbeitung erfolgt im Browser“ nannte kein Objekt und traf wörtlich weder für den API-Schritt noch für die Logdaten bei Vercel zu, deshalb nennt der Satz wie Abschnitt 3 der Datenschutzerklärung und Abschnitt 6 der Nutzungsbedingungen von K1 die hochgeladenen Dateien. `OPERATOR.lastUpdated` und die E2E-Konstante `LEGAL_UPDATED` stehen deshalb auf 08.10.2026. Abschnitte 1 bis 5, 7 und 8 unverändert; die Haftungsklausel (Abschnitt 5) ist bis auf den letzten Satz (projektspezifische Schadensarten) wortgleich mit K1 und K3.
 2. ~~**Kicker „Projekt K1/K2/K3“**~~ Entschieden am 08.10.2026: „Projekt 01/02/03“ wie auf den Projektkarten, in allen drei Repos umgesetzt (`PROJECTS.kicker`).
-3. **Impressum**: ob nach § 5 DDG eine ladungsfähige Anschrift nötig ist; derzeit wie K1/K3 nur Name, Ort und E-Mail.
-4. **COICOP-Zuordnung**: Online-Handel, Sonstiges, Gebühren & Zinsen und Versicherungen laufen über Abteilung 12, Reisen über 11. Die Zuordnung steht in `CATEGORY_TO_COICOP` und als Tabelle in Oberfläche und README.
+3. ~~**Impressum**: ob nach § 5 DDG eine ladungsfähige Anschrift nötig ist; derzeit wie K1/K3 nur Name, Ort und E-Mail.~~ Entschieden am 07.10.2026 vom Autor, gemeinsam für K1, K2 und K3: Das Impressum nennt nur Name, Ort und E-Mail, ohne ladungsfähige Anschrift. Die Rechtstexte bleiben dafür unverändert.
+4. ~~**COICOP-Zuordnung**: Online-Handel, Sonstiges, Gebühren & Zinsen und Versicherungen laufen über Abteilung 12, Reisen über 11.~~ Entschieden am 08.10.2026 anhand der Gliederung des Verbraucherpreisindex (Basis 2020, SEA-VPI laut Wägungsschema 2020, deren 12 Abteilungen denen von COICOP 1999 entsprechen; Vergleich mit COICOP 2018) und der Händlermuster in `data/k2/rules.json`: Online-Handel und Sonstiges nicht abgedeckt (Warenkorb unbekannt); Gebühren & Zinsen nicht abgedeckt, weil die Kategorie neben Bankentgelten auch Soll- und Dispozinsen und Mahngebühren enthält und Zinsen im Verbraucherpreisindex kein Konsum sind; Versicherungen als Näherung in Abteilung 12 (Gruppe 125 Versicherungsdienstleistungen, in COICOP 2018 ebenfalls 12), weil das Wägungsschema 2020 dort Hausrat, private Kranken- und Unfall-, Kfz-, Haftpflicht- und Rechtsschutzversicherungen führt, Lebens- und Rentenversicherungen (Riester, Rürup) und Berufsunfähigkeitsversicherungen aber nicht im Verbraucherpreisindex enthalten sind und Pflegeversicherungen nicht eigens aufgeführt werden; die Regel `insurance` erfasst beides (im Testset 2 von 8 Versicherungs-Buchungen nicht im Index, nach Betrag 37 %), ganz herausnehmen ließe auch den abgedeckten Teil weg; Reisen als Näherung in Abteilung 11, weil die meisten Muster Unterkünfte sind (6 von 7 Reise-Buchungen im Testset, nach Betrag 51 %; die eine Pauschalreise macht 49 % aus), Pauschalreisen (09) und Flüge (07) laufen mit; Drogerie & Haushalt als Näherung in Abteilung 05, weil die meisten Muster Möbel-, Einrichtungs- und Baumärkte sind, Körperpflege (12, in COICOP 2018 13) läuft mit. Umgesetzt in `CATEGORY_TO_COICOP` und `COICOP_APPROXIMATIONS` (`lib/kontoklar/categories.ts`), in Zuordnungstabelle, Kachel „Abgedeckter Ausgabenanteil“ und Fußnote der Oberfläche, in der README-Tabelle mit Begründung je Kategorie, in den Unit-Tests und im Screenshot `docs/screenshots/inflation.png`. Beispieldaten: abgedeckt 93 % statt 99 %, persönliche Rate 3,02 % statt 2,99 % (Beispielwerte).
 5. **Test- und Beispielset entflechten**: 113 der 198 Händlerschlüssel des Testsets stehen wörtlich oder als Präfix im Beispielset. Mit `--api` eingebettet würden derzeit nur 4 Texte (ohne Regeltreffer und von `isApiEligible` zugelassen), davon steht 1 im Beispielset (DEUTSCHES ROTES KREUZ); `pnpm --filter web accuracy` gibt beide Zahlen aus. Optionen: (a) Sperre streng lassen (derzeit so) und die Sets entflechten, (b) Sperre nur auf die eingebetteten Texte beziehen, dann reicht es, diesen einen Eintrag zu entfernen; mit 4 Texten sagt die Messung aber wenig über die Embedding-Stufe. Empfehlung: (a), mit einem eigenen, disjunkten Testset für die API-Stufe.
-6. **CLAUDE.md öffentlich lassen** (bereinigt, Standard) oder aus dem Repo nehmen und nur eine kurze Architekturbeschreibung veröffentlichen.
+6. ~~**CLAUDE.md öffentlich lassen** (bereinigt, Standard) oder aus dem Repo nehmen und nur eine kurze Architekturbeschreibung veröffentlichen.~~ Entschieden am 08.10.2026, gemeinsam für K1, K2 und K3: bleibt bereinigt öffentlich, als transparenter Nachweis KI-gestützter Arbeit. Rechnerspezifisches steht weiter nur in der nicht versionierten `CLAUDE.local.md`.
+7. ~~**Name „KontoKlar“**~~ Entschieden am 08.10.2026: Der Name bleibt. Eine Websuche am 08.10.2026 fand weder eine eingetragene Marke noch eine App oder ein Finanzprodukt „KontoKlar“ (nur ähnlich gebildete Namen wie „Kredit Klar“); kontoklar.vercel.app zeigt nur Titel und Slogan ohne Betreiberangaben; das Projekt ist privat und nicht kommerziell. Die Adresse bleibt https://kontoklar-eight.vercel.app. Vor einer kommerziellen Nutzung ist eine Markenrecherche bei DPMA und EUIPO nötig.
 
 Weitere offene Punkte:
 
@@ -186,4 +189,5 @@ Weitere offene Punkte:
 - Betreiber: `DESTATIS_TOKEN` als GitHub-Secret anlegen und `cpi.yml` von Hand starten. Beim Einrichten des `DESTATIS_TOKEN` prüfen, welche GENESIS-Tabelle Monatswerte je COICOP-Abteilung liefert (vermutlich 61111-0004); Basis-URL genesis.destatis.de. Der Bot-Commit nutzt die Adresse von github-actions[bot]; ob Vercel ihn deployt, ist ungeprüft.
 - Echtes DKB-Datumsformat (TT.MM.JJJJ oder TT.MM.JJ) mit einem echten Export klären; anonymisiertes echtes CSV als zweites Testset.
 - Abhängigkeiten beobachten: braces ≤ 3.0.3 (GHSA-vfj7-8cjw-p6xm) nur über `eslint-config-next` › `@next/eslint-plugin-next` › `fast-glob` › `micromatch`; mit dem nächsten Update von `eslint-config-next` erneut prüfen.
-- `OPERATOR.lastUpdated` steht in K1, K2 und K3 auf 07.10.2026 (gemeinsames Datum der Rechtstexte).
+- `OPERATOR.lastUpdated` steht in K2 seit 08.10.2026 auf 08.10.2026 (Nutzungsbedingungen, Abschnitt 6, siehe Punkt 1); bis dahin hatten K1, K2 und K3 das gemeinsame Datum 07.10.2026.
+- COICOP-Zuordnung nachziehen, sobald Destatis den Verbraucherpreisindex auf COICOP 2018 (13 Abteilungen) umstellt: dann Körperpflege in 13, Versicherungs- und Finanzdienstleistungen allein in 12; `COICOP_DIVISIONS`, `build-cpi.ts` (Codes `CC13-xx`) und README-Tabelle anpassen.

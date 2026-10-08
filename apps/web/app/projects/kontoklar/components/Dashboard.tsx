@@ -4,7 +4,15 @@ import { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, type TooltipContentProps } from "recharts";
 import cpiJson from "../../../../../../data/k2/cpi.json";
 import { categoryTotals, expenseAmountsByCategory, formatEur, formatPercent, monthlyBreakdown, monthsCovered } from "@/lib/kontoklar/analytics";
-import { CATEGORY_TO_COICOP, COICOP_DIVISIONS, EXPENSE_CATEGORIES, type Category } from "@/lib/kontoklar/categories";
+import {
+  APPROXIMATED_EXPENSE_CATEGORIES,
+  COICOP_APPROXIMATIONS,
+  EXPENSE_CATEGORIES,
+  UNCOVERED_EXPENSE_CATEGORIES,
+  coicopDivisionLabel,
+  joinGerman,
+  type Category,
+} from "@/lib/kontoklar/categories";
 import {
   AXIS_TICK,
   CHART_COLORS,
@@ -39,6 +47,9 @@ const RHYTHM_LABEL: Record<Rhythm, string> = {
 };
 
 const AXIS_NUMBER = new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 });
+
+const UNCOVERED_TEXT = joinGerman(UNCOVERED_EXPENSE_CATEGORIES);
+const APPROXIMATED_TEXT = joinGerman(APPROXIMATED_EXPENSE_CATEGORIES);
 
 function formatMonth(iso: string): string {
   return `${iso.slice(5, 7)}/${iso.slice(0, 4)}`;
@@ -358,7 +369,7 @@ export function Dashboard({ items }: { items: CategorizedTransaction[] }) {
                 variant="ledger"
                 label="Abgedeckter Ausgabenanteil"
                 value={formatPercent(inflation.coveredShare, 0)}
-                hint="Bargeld und Kategorien ohne Indexwert sind nicht abgedeckt."
+                hint={`${UNCOVERED_TEXT} sowie Abteilungen ohne Indexwert sind nicht abgedeckt.`}
               />
             </div>
             <div className="min-w-0 self-start">
@@ -406,7 +417,8 @@ export function Dashboard({ items }: { items: CategorizedTransaction[] }) {
               </ScrollRegion>
               <p className="mt-4 max-w-[70ch] text-sm leading-relaxed text-ink" data-testid="inflation-covered">
                 Abgedeckt: {formatPercent(inflation.coveredShare, 0)} Ihrer Ausgaben. Anteile und Beiträge beziehen sich auf die
-                abgedeckten Ausgaben und sind so gerundet, dass sie zusammen 100 % und die persönliche Rate ergeben.
+                abgedeckten Ausgaben und sind so gerundet, dass sie zusammen 100 % und die persönliche Rate ergeben.{" "}
+                {APPROXIMATED_TEXT} gehen als Näherung ein.
               </p>
             </div>
           </div>
@@ -438,11 +450,19 @@ export function Dashboard({ items }: { items: CategorizedTransaction[] }) {
                 </thead>
                 <tbody>
                   {EXPENSE_CATEGORIES.map((c) => {
-                    const division = CATEGORY_TO_COICOP[c];
+                    const label = coicopDivisionLabel(c);
                     return (
-                      <tr key={c}>
+                      <tr key={c} data-approximation={COICOP_APPROXIMATIONS.has(c) ? "true" : undefined}>
                         <td className="py-2 pr-3 sm:pr-4">{c}</td>
-                        <td className="py-2 wrap-anywhere hyphens-auto">{division ? `${division} ${COICOP_DIVISIONS[division] ?? ""}` : "nicht abgedeckt"}</td>
+                        <td className="py-2 wrap-anywhere hyphens-auto">
+                          {label ?? "nicht abgedeckt"}
+                          {COICOP_APPROXIMATIONS.has(c) && (
+                            <>
+                              {" "}
+                              <Badge>Näherung</Badge>
+                            </>
+                          )}
+                        </td>
                       </tr>
                     );
                   })}
@@ -450,8 +470,13 @@ export function Dashboard({ items }: { items: CategorizedTransaction[] }) {
               </table>
             </ScrollRegion>
           </div>
-          <p className="mt-3 max-w-[70ch] text-xs text-slate">
-            Die Zuordnung ist eine Näherung; Online-Handel, Sonstiges und Gebühren & Zinsen laufen derzeit über Abteilung 12.
+          <p className="mt-3 max-w-[70ch] text-xs leading-relaxed text-slate" data-testid="coicop-note">
+            Nicht abgedeckt sind Online-Handel und Sonstiges, weil der Warenkorb unbekannt ist, Bargeld, weil die Verwendung
+            unbekannt ist, und Gebühren & Zinsen, weil die Kategorie Zinsen enthält, die im Verbraucherpreisindex kein Konsum
+            sind. Näherungen: Drogerie & Haushalt zählt zu Abteilung 05, obwohl Körperpflege zu Abteilung 12 gehört;
+            Versicherungen zählen zu Abteilung 12, obwohl Lebens-, Renten- und Berufsunfähigkeitsversicherungen nicht im
+            Verbraucherpreisindex enthalten sind; Reisen zählt zu Abteilung 11 (Beherbergung), obwohl Pauschalreisen zu
+            Abteilung 09 und Flüge zu Abteilung 07 gehören.
           </p>
         </details>
       </Panel>

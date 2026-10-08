@@ -201,7 +201,7 @@ export function KontoKlarApp({ turnstileSiteKey, cacheDays }: { turnstileSiteKey
           ) : null}
           {showSent && postedTexts && apiInfo && (
             <div className="rounded-xl border border-line bg-ivory/60 p-4 text-xs">
-              <p className="mb-2 font-medium text-ink">Übertragene Händlertexte (pseudonymisiert):</p>
+              <p className="mb-2 font-medium text-ink">Übertragene Händlertexte (normalisiert):</p>
               <ul className="grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
                 {apiInfo.sentTexts.map((t) => (
                   <li key={t} className="truncate font-mono text-slate">

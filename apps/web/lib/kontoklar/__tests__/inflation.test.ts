@@ -3,7 +3,17 @@ import path from "node:path";
 import { describe, expect, test } from "vitest";
 import { parseBankCsv } from "@portfolio/csv";
 import cpiJson from "../../../../../data/k2/cpi.json";
-import { CATEGORY_TO_COICOP, COICOP_DIVISIONS, EXPENSE_CATEGORIES } from "../categories";
+import {
+  APPROXIMATED_EXPENSE_CATEGORIES,
+  CATEGORY_TO_COICOP,
+  COICOP_APPROXIMATIONS,
+  COICOP_DIVISIONS,
+  EXPENSE_CATEGORIES,
+  UNCOVERED_EXPENSE_CATEGORIES,
+  coicopDivisionLabel,
+  coicopLabel,
+  joinGerman,
+} from "../categories";
 import { expenseAmountsByCategory, formatPercent } from "../analytics";
 import { applyRules } from "../categorize";
 import {
@@ -68,6 +78,35 @@ describe("expenseShares und COICOP-Zuordnung", () => {
     expect(divisions.get("04")).toBeCloseTo(500 / 600, 10);
     expect(divisions.has("bargeld")).toBe(false);
   });
+  test("Online-Handel, Bargeld, Gebühren & Zinsen und Sonstiges sind nicht abgedeckt, Versicherungen gehen in Abteilung 12 ein", () => {
+    expect(UNCOVERED_EXPENSE_CATEGORIES).toEqual(["Online-Handel", "Bargeld", "Gebühren & Zinsen", "Sonstiges"]);
+    expect(CATEGORY_TO_COICOP.Versicherungen).toBe("12");
+    const divisions = sharesByDivision(
+      expenseShares({ Versicherungen: 100, "Online-Handel": 100, "Gebühren & Zinsen": 100, Sonstiges: 100, Bargeld: 100 }),
+    );
+    expect([...divisions.keys()]).toEqual(["12"]);
+    expect(divisions.get("12")).toBeCloseTo(100 / 500, 10);
+  });
+  test("Drogerie & Haushalt (05), Versicherungen (12) und Reisen (11) sind als Näherung markiert", () => {
+    expect(APPROXIMATED_EXPENSE_CATEGORIES).toEqual(["Drogerie & Haushalt", "Versicherungen", "Reisen"]);
+    expect(CATEGORY_TO_COICOP["Drogerie & Haushalt"]).toBe("05");
+    expect(CATEGORY_TO_COICOP.Versicherungen).toBe("12");
+    expect(CATEGORY_TO_COICOP.Reisen).toBe("11");
+    for (const category of COICOP_APPROXIMATIONS) expect(CATEGORY_TO_COICOP[category], category).not.toBeNull();
+    expect(coicopLabel("Reisen")).toBe("11 Gaststätten- und Beherbergungsdienstleistungen (Näherung)");
+    expect(coicopLabel("Versicherungen")).toBe("12 Andere Waren und Dienstleistungen (Näherung)");
+    expect(coicopLabel("Lebensmittel")).toBe("01 Nahrungsmittel und alkoholfreie Getränke");
+    expect(coicopLabel("Online-Handel")).toBe("nicht abgedeckt");
+    expect(coicopDivisionLabel("Drogerie & Haushalt")).toBe("05 Möbel, Leuchten, Geräte und anderes Haushaltszubehör");
+    expect(coicopDivisionLabel("Sonstiges")).toBeNull();
+  });
+  test("joinGerman verbindet die letzte Angabe mit „und“", () => {
+    expect(joinGerman([])).toBe("");
+    expect(joinGerman(["Bargeld"])).toBe("Bargeld");
+    expect(joinGerman(["Reisen", "Bargeld"])).toBe("Reisen und Bargeld");
+    expect(joinGerman(UNCOVERED_EXPENSE_CATEGORIES)).toBe("Online-Handel, Bargeld, Gebühren & Zinsen und Sonstiges");
+    expect(joinGerman(APPROXIMATED_EXPENSE_CATEGORIES)).toBe("Drogerie & Haushalt, Versicherungen und Reisen");
+  });
 });
 
 describe("yearOverYearChange", () => {
@@ -117,6 +156,12 @@ describe("computePersonalInflation mit cpi.json", () => {
     expect(r!.coveredWeights[0]!.contribution).toBeCloseTo(change01, 10);
     expect(r!.weights[0]!.share).toBeCloseTo(0.75, 10);
   });
+  test("Lebensmittel 300 € and Online-Handel 100 €: rate 5.00 %, covered 75 %", () => {
+    const r = computePersonalInflation(cpi, { Lebensmittel: 300, "Online-Handel": 100 });
+    expect(r!.coveredShare).toBeCloseTo(300 / 400, 10);
+    expect(r!.personalRate).toBeCloseTo(126.38 / 120.36 - 1, 10);
+    expect(r!.coveredWeights.map((w) => w.division)).toEqual(["01"]);
+  });
   test("normalized contributions add up to the personal rate", () => {
     const r = computePersonalInflation(cpi, { Lebensmittel: 300, Wohnen: 400, Mobilität: 150, "Freizeit & Kultur": 150, Bargeld: 200 });
     const shares = r!.coveredWeights.reduce((s, w) => s + w.share, 0);
@@ -128,14 +173,16 @@ describe("computePersonalInflation mit cpi.json", () => {
 });
 
 describe("COICOP mapping in the README", () => {
-  test("the README table lists every expense category with the division used in the code", () => {
+  test("the README table lists every expense category with the division used in the code and marks approximations", () => {
     const readme = readFileSync(path.resolve(__dirname, "..", "..", "..", "..", "..", "README.md"), "utf-8");
     const rows = new Map(
       [...readme.matchAll(/^\| ([^|]+?) \| (\d{2} [^|]+?|nicht abgedeckt) \|$/gm)].map((m) => [m[1]!, m[2]!]),
     );
     for (const category of EXPENSE_CATEGORIES) {
       const division = CATEGORY_TO_COICOP[category];
-      expect(rows.get(category)).toBe(division ? `${division} ${COICOP_DIVISIONS[division]}` : "nicht abgedeckt");
+      const label = division ? `${division} ${COICOP_DIVISIONS[division]}` : "nicht abgedeckt";
+      expect(rows.get(category)).toBe(COICOP_APPROXIMATIONS.has(category) ? `${label} (Näherung)` : label);
+      expect(rows.get(category)).toBe(coicopLabel(category));
     }
     expect(rows.size).toBe(EXPENSE_CATEGORIES.length);
   });
@@ -167,41 +214,73 @@ describe("displayed shares and contributions add up", () => {
     contributions: rows.reduce((s, w) => s + Math.round(w.contribution / CONTRIBUTION_STEP), 0),
   });
 
-  test("sample data: contributions 1.01 + 1.28 + 0.16 + 0.30 + 0.14 + 0.02 + 0.08 - 0.02 + 0.01 + 0.01 = 2.99 % (naive rounding gave 2.97 %), shares 100.0 %", () => {
+  test("sample data: Online-Handel 363.44 €, Sonstiges 284.40 € and cash 100 € are not covered (9,835.48 of 10,583.32 €), shares 53.9 + 27.3 + 5.4 + 3.7 + 3.3 + 3.0 + 1.8 + 1.4 + 0.2 = 100.0 % (naive rounding gave 99.9 %), contributions add up to 3.02 %", () => {
     const r = computePersonalInflation(cpi, expenseAmountsByCategory(applyRules(parseBankCsv(SAMPLE_CSV_DEMO, "dkb").transactions)))!;
-    expect(pct(r.personalRate, 2)).toBe("2,99 %");
-    expect(r.coveredShare).toBeCloseTo(10483.32 / 10583.32, 10);
-    expect(r.coveredWeights[0]!.share).toBeCloseTo((4790.16 + 510) / 10483.32, 10);
-    expect(r.coveredWeights[1]!.share).toBeCloseTo(2687.08 / 10483.32, 10);
-    expect(r.coveredWeights[2]!.share).toBeCloseTo((363.44 + 284.4) / 10483.32, 10);
-    expect(r.coveredWeights.map((w) => pct(w.contribution, 2))).toEqual([
-      "1,01 %", "1,28 %", "0,15 %", "0,30 %", "0,14 %", "0,02 %", "0,08 %", "-0,02 %", "0,01 %", "0,00 %",
-    ]);
+    const covered = 10583.32 - 363.44 - 284.4 - 100;
+    expect(covered).toBeCloseTo(9835.48, 6);
+    expect(r.coveredShare).toBeCloseTo(9835.48 / 10583.32, 10);
+    expect(formatPercent(r.coveredShare, 0)).toBe(formatPercent(0.93, 0));
+    expect(r.coveredWeights[0]!.share).toBeCloseTo((4790.16 + 510) / 9835.48, 10);
+    expect(r.coveredWeights[1]!.share).toBeCloseTo(2687.08 / 9835.48, 10);
+    expect(r.coveredWeights[2]!.share).toBeCloseTo(529.79 / 9835.48, 10);
+    expect(r.coveredWeights[3]!.share).toBeCloseTo(356.9 / 9835.48, 10);
+    expect(r.coveredWeights[4]!.share).toBeCloseTo(325.7 / 9835.48, 10);
+    const change = (july2026: number) => july2026 / 120.36 - 1;
+    const byHand =
+      ((4790.16 + 510) * change(122.77) +
+        2687.08 * change(126.38) +
+        529.79 * change(127.58) +
+        356.9 * change(125.17) +
+        325.7 * change(120.96) +
+        (149.94 + 143.88) * change(123.97) +
+        179.7 * change(119.16) +
+        139.88 * change(121.56) +
+        22.45 * change(122.77)) /
+      9835.48;
+    expect(r.personalRate).toBeCloseTo(byHand, 10);
+    expect(pct(r.personalRate, 2)).toBe("3,02 %");
+    expect(r.coveredWeights.reduce((s, w) => s + Math.round(w.share / SHARE_STEP), 0)).toBe(999);
     const rows = displayWeights(r.coveredWeights, r.personalRate);
-    expect(rows.map((w) => w.division)).toEqual(["04", "01", "12", "07", "11", "05", "09", "08", "03", "06"]);
-    expect(rows.map((w) => pct(w.contribution, 2))).toEqual([
-      "1,01 %", "1,28 %", "0,16 %", "0,30 %", "0,14 %", "0,02 %", "0,08 %", "-0,02 %", "0,01 %", "0,01 %",
-    ]);
+    expect(rows.map((w) => w.division)).toEqual(["04", "01", "07", "11", "05", "09", "08", "03", "06"]);
     expect(rows.map((w) => pct(w.share, 1))).toEqual([
-      "50,6 %", "25,6 %", "6,2 %", "5,1 %", "3,4 %", "3,1 %", "2,8 %", "1,7 %", "1,3 %", "0,2 %",
+      "53,9 %", "27,3 %", "5,4 %", "3,7 %", "3,3 %", "3,0 %", "1,8 %", "1,4 %", "0,2 %",
     ]);
-    expect(units(rows)).toEqual({ shares: 1000, contributions: 299 });
+    expect(rows.map((w) => pct(w.contribution, 2))).toEqual([
+      "1,08 %", "1,37 %", "0,32 %", "0,15 %", "0,02 %", "0,09 %", "-0,02 %", "0,01 %", "0,00 %",
+    ]);
+    expect(units(rows)).toEqual({ shares: 1000, contributions: 302 });
   });
 
-  test("ing.csv (naive 100.1 %) and n26.csv (naive 99.9 %) show shares of exactly 100.0 %", () => {
-    const expected: Record<string, { shares: string[]; rate: number }> = {
-      "ing.csv": { shares: ["42,4 %", "38,2 %", "19,4 %"], rate: 411 },
-      "n26.csv": { shares: ["94,9 %", "3,8 %", "0,8 %", "0,5 %"], rate: 583 },
+  test("ing.csv (naive shares 100.1 %) shows shares of exactly 100.0 %, n26.csv (naive contributions 5.97 %) shows contributions of exactly 5.96 %", () => {
+    const expected: Record<string, { shares: string[]; contributions: string[]; rate: number; naive: { shares: number; contributions: number } }> = {
+      "ing.csv": {
+        shares: ["42,4 %", "38,2 %", "19,4 %"],
+        contributions: ["0,85 %", "2,29 %", "0,97 %"],
+        rate: 411,
+        naive: { shares: 1001, contributions: 411 },
+      },
+      "n26.csv": {
+        shares: ["98,6 %", "0,9 %", "0,5 %"],
+        contributions: ["5,92 %", "0,02 %", "0,02 %"],
+        rate: 596,
+        naive: { shares: 1000, contributions: 597 },
+      },
     };
     for (const [file, want] of Object.entries(expected)) {
       const r = computePersonalInflation(cpi, expenseAmountsByCategory(applyRules(parseBankCsv(readFileSync(path.join(fixtures, file), "utf-8")).transactions)))!;
-      const naive = r.coveredWeights.reduce((s, w) => s + Math.round(w.share / SHARE_STEP), 0);
-      expect(naive, file).not.toBe(1000);
+      expect(units(r.coveredWeights), file).toEqual(want.naive);
       const rows = displayWeights(r.coveredWeights, r.personalRate);
       expect(rows.map((w) => pct(w.share, 1)), file).toEqual(want.shares);
+      expect(rows.map((w) => pct(w.contribution, 2)), file).toEqual(want.contributions);
       expect(units(rows), file).toEqual({ shares: 1000, contributions: want.rate });
       expect(Math.round(r.personalRate / CONTRIBUTION_STEP), file).toBe(want.rate);
     }
+  });
+
+  test("n26.csv: Online-Handel 49.99 € is not covered, covered share 1,251.67 / 1,301.66 €", () => {
+    const r = computePersonalInflation(cpi, expenseAmountsByCategory(applyRules(parseBankCsv(readFileSync(path.join(fixtures, "n26.csv"), "utf-8")).transactions)))!;
+    expect(r.coveredShare).toBeCloseTo((1234.56 + 10.99 + 6.12) / (1234.56 + 49.99 + 10.99 + 6.12), 10);
+    expect(r.coveredWeights.map((w) => w.division)).toEqual(["07", "09", "11"]);
   });
 });
 

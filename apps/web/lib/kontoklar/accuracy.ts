@@ -8,6 +8,7 @@ export interface LabeledCase {
   type: string;
   amount: number;
   label: Category;
+  labelFromPurpose?: boolean;
 }
 
 export interface StageStats {
@@ -110,6 +111,28 @@ export function evaluateAccuracy(
   };
 }
 
+export interface PurposeLabelSplit {
+  excluded: string[];
+  report: AccuracyReport;
+}
+
+export function evaluateWithoutPurposeLabels(
+  cases: readonly LabeledCase[],
+  items: readonly CategorizedTransaction[],
+  options: { date: string; mode: AccuracyMode },
+): PurposeLabelSplit {
+  if (cases.length !== items.length) throw new Error("Testfälle und Ergebnisse haben unterschiedliche Länge");
+  const keep = cases.map((c) => c.labelFromPurpose !== true);
+  return {
+    excluded: items.filter((_, i) => !keep[i]).map((it) => it.merchantKey),
+    report: evaluateAccuracy(
+      cases.filter((_, i) => keep[i]),
+      items.filter((_, i) => keep[i]),
+      options,
+    ),
+  };
+}
+
 export interface RuleEngineFigures {
   total: number;
   ruleCoverage: number;
@@ -130,6 +153,49 @@ export function ruleEngineFigures(report: Pick<AccuracyReport, "total" | "stages
 export function overlappingKeys(testKeys: readonly string[], exampleTexts: readonly string[]): string[] {
   const examples = exampleTexts.filter((e) => e !== "");
   return testKeys.filter((key) => key !== "" && examples.some((e) => e === key || e.startsWith(`${key} `)));
+}
+
+export function prefixOverlap(key: string, example: string): boolean {
+  if (key === "" || example === "") return false;
+  return key === example || example.startsWith(`${key} `) || key.startsWith(`${example} `);
+}
+
+export type ApiTestsetIssueKind = "rule-hit" | "not-eligible" | "empty-key" | "duplicate-key" | "example-overlap";
+
+export interface ApiTestsetIssue {
+  index: number;
+  counterparty: string;
+  merchantKey: string;
+  kind: ApiTestsetIssueKind;
+  detail: string;
+}
+
+export function checkApiTestset(items: readonly CategorizedTransaction[], exampleTexts: readonly string[]): ApiTestsetIssue[] {
+  const examples = [...new Set(exampleTexts.filter((e) => e !== ""))];
+  const firstIndex = new Map<string, number>();
+  const issues: ApiTestsetIssue[] = [];
+  items.forEach((it, index) => {
+    const add = (kind: ApiTestsetIssueKind, detail: string) => issues.push({ index, counterparty: it.counterparty, merchantKey: it.merchantKey, kind, detail });
+    if (it.categorization.source !== "none") add("rule-hit", it.categorization.ruleId ?? it.categorization.source);
+    if (!it.apiEligible) add("not-eligible", "isApiEligible lässt die Buchung nicht zu");
+    if (it.merchantKey === "") {
+      add("empty-key", "leerer Händlerschlüssel");
+      return;
+    }
+    const first = firstIndex.get(it.merchantKey);
+    if (first === undefined) firstIndex.set(it.merchantKey, index);
+    else add("duplicate-key", `wie Buchung ${first}`);
+    for (const example of examples) {
+      if (prefixOverlap(it.merchantKey, example)) add("example-overlap", example);
+    }
+  });
+  return issues;
+}
+
+export function labelCounts(cases: readonly Pick<LabeledCase, "label">[]): Map<Category, number> {
+  const counts = new Map<Category, number>();
+  for (const c of cases) counts.set(c.label, (counts.get(c.label) ?? 0) + 1);
+  return counts;
 }
 
 export interface OverlapReport {

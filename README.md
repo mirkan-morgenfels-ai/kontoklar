@@ -96,12 +96,14 @@ Gemessen mit `pnpm --filter web accuracy` auf einem von Hand gelabelten, synthet
 | Stufe | Anteil der Buchungen | Accuracy |
 |---|---|---|
 | Regel-Engine | 96,5 % | 99,0 % |
-| Embedding-kNN | noch nicht gemessen | – |
-| Sprachmodell-Fallback | noch nicht gemessen | – |
+| Embedding-kNN | noch nicht gemessen (eigenes Testset, siehe unten) | – |
+| Sprachmodell-Fallback | noch nicht gemessen (eigenes Testset, siehe unten) | – |
 | offen (keine Regel) | 3,5 % | – |
 | Gesamt (offene zählen als falsch) | 100 % | 95,5 % |
 
 Das Testset wurde parallel zum Regelsatz erstellt; die hohe Regelabdeckung ist deshalb kein Beleg für echte Kontohistorien. Precision und Recall je Kategorie, die Fehlerliste mit allen 9 Fehlfällen und offene Messungen stehen in [`docs/genauigkeit.md`](docs/genauigkeit.md), der Rohbericht in [`docs/genauigkeit.json`](docs/genauigkeit.json). Ziel für v1: mindestens 90 % Accuracy auf den häufigen Kategorien.
+
+Die API-Stufe wird nicht auf diesem Testset gemessen: 113 seiner 198 Händlerschlüssel stehen wörtlich oder als Präfix im Beispielset der Embedding-Stufe, und an die API gingen von dort nur 4 Texte. Dafür gibt es ein eigenes Testset, [`data/k2/testset-api.json`](data/k2/testset-api.json), mit 95 Buchungen, je 5 in jeder Kategorie außer Einkommen. Es enthält nur Ausgaben, die keine Regel trifft und die für die API zugelassen sind. Die Händler sind frei erfunden; bei den beiden PayPal-Einkäufen ist PayPal Europe der Empfänger, an die API ginge nur der erfundene Händler aus „Ihr Einkauf bei …“. Kein Händlerschlüssel steht wörtlich oder als Präfix im Beispielset oder umgekehrt. Bei 3 Buchungen (alle in Gebühren & Zinsen) folgt das Label nur aus dem Verwendungszweck, den die API nie bekommt; trifft die API-Stufe diese nicht zufällig, beträgt ihre Gesamt-Accuracy auf dem Set höchstens 96,8 %. `--api` gibt die Kennzahlen deshalb auch ohne diese 3 Buchungen aus. Erstellt und gelabelt hat es Claude (KI-Assistent von Anthropic) am 08.10.2026; die stichprobenartige Prüfung der Labels durch den Autor steht aus. `pnpm --filter web accuracy` prüft diese Bedingungen bei jedem Lauf, `pnpm --filter web accuracy --api` misst Embedding-kNN und Fallback auf dem Set. Gemessen ist das noch nicht, weil kein OpenAI-Schlüssel eingerichtet ist; ohne Schlüssel endet `--api` nach der Prüfung mit einem Hinweis. Einzelheiten, Grenzfälle der Labels, die Obergrenze und die Kosten stehen in [`docs/genauigkeit.md`](docs/genauigkeit.md#api-stufe-eigenes-testset).
 
 ## Unterstützte Banken
 
@@ -211,11 +213,11 @@ pnpm --filter web exec playwright install chromium
 CI=true pnpm test:e2e
 ```
 
-`pnpm --filter web accuracy` gibt die Kennzahlen nur aus; `pnpm --filter web accuracy --write` schreibt `docs/genauigkeit.json` neu. Die E2E-Tests starten ohne `CI` den Entwicklungsserver (`next dev`), mit `CI=true` `next start` auf dem vorher gebauten Stand. Der Port kommt aus `PORT` (Standard 3000), zum Beispiel `PORT=3111 pnpm test:e2e`. `pnpm ci` führt Typecheck, Lint, Unit-Tests, Accuracy und Build nacheinander aus.
+`pnpm --filter web accuracy` gibt die Kennzahlen nur aus und prüft das API-Testset; `pnpm --filter web accuracy --write` schreibt `docs/genauigkeit.json` neu. `pnpm --filter web accuracy --api` misst die API-Stufe auf `data/k2/testset-api.json` (braucht `OPENAI_API_KEY` und `data/k2/labeled-embeddings.json`), mit `--write` in `docs/genauigkeit-api.json`. Die E2E-Tests starten ohne `CI` den Entwicklungsserver (`next dev`), mit `CI=true` `next start` auf dem vorher gebauten Stand. Der Port kommt aus `PORT` (Standard 3000), zum Beispiel `PORT=3111 pnpm test:e2e`. `pnpm ci` führt Typecheck, Lint, Unit-Tests, Accuracy und Build nacheinander aus.
 
 Das gelabelte Beispielset für die Embedding-Stufe liegt in `data/k2/labeled-examples.json`; die Vektoren entstehen einmalig mit `pnpm --filter web embeddings:build` (OpenAI-Key nötig, etwa 300 Texte, unter 0,01 $).
 
-Unit-Tests decken die Bank-Parser (auch mit CRLF-Zeilenenden), die Regel-Engine (jede Muster-Alternative trifft ihre eigene Regel), die Normalisierung der Händlernamen und die Auswahl der API-Texte, Kosinus-Ähnlichkeit und kNN-Abstimmung, die Erkennung wiederkehrender Zahlungen, die persönliche Inflation, die Diagrammfarben und die Beispieldaten ab. Die API-Route wird mit gemocktem OpenAI-Client, Redis-Mock und gemockter Turnstile-Prüfung getestet: für jede der sechs fehlenden Variablen (503 ohne OpenAI-Aufruf), für die IP-Pseudonymisierung (nur der HMAC erreicht das Rate-Limit, IPv6 je /64-Präfix), für ein Rate-Limit, das nicht antwortet (503 nach dem Timeout, kein OpenAI-Aufruf), für Cloudflare-Testschlüssel in der Produktionsumgebung und für das Body-Limit mit falschem oder fehlendem `content-length`. Ein Test liest das Lua-Skript der installierten Version von `@upstash/ratelimit` und prüft Ablaufzeit und UTC-Tagesfenster, die in der Datenschutzerklärung stehen. Die Playwright-Tests prüfen Upload, Beispieldaten, Startseite, Navigation, Rechtsseiten, 404, Metadaten, dass nur Anfragen an die eigene Adresse gehen, und laufen axe bei 390, 768 und 1280 px. Stand 08.10.2026: 303 Unit-Tests (csv 45, ratelimit 24, web 234) und 34 Playwright-Tests, alle grün.
+Unit-Tests decken die Bank-Parser (auch mit CRLF-Zeilenenden), die Regel-Engine (jede Muster-Alternative trifft ihre eigene Regel), die Normalisierung der Händlernamen und die Auswahl der API-Texte, Kosinus-Ähnlichkeit und kNN-Abstimmung, die Erkennung wiederkehrender Zahlungen, die persönliche Inflation, die Diagrammfarben und die Beispieldaten ab, außerdem das API-Testset (kein Regeltreffer, für die API zugelassen, disjunkt zum Beispielset, ausgewogen, Obergrenze durch Labels, die nur aus dem Verwendungszweck folgen). Die API-Route wird mit gemocktem OpenAI-Client, Redis-Mock und gemockter Turnstile-Prüfung getestet: für jede der sechs fehlenden Variablen (503 ohne OpenAI-Aufruf), für die IP-Pseudonymisierung (nur der HMAC erreicht das Rate-Limit, IPv6 je /64-Präfix), für ein Rate-Limit, das nicht antwortet (503 nach dem Timeout, kein OpenAI-Aufruf), für Cloudflare-Testschlüssel in der Produktionsumgebung und für das Body-Limit mit falschem oder fehlendem `content-length`. Ein Test liest das Lua-Skript der installierten Version von `@upstash/ratelimit` und prüft Ablaufzeit und UTC-Tagesfenster, die in der Datenschutzerklärung stehen. Die Playwright-Tests prüfen Upload, Beispieldaten, Startseite, Navigation, Rechtsseiten, 404, Metadaten, dass nur Anfragen an die eigene Adresse gehen, und laufen axe bei 390, 768 und 1280 px. Stand 08.10.2026: 314 Unit-Tests (csv 45, ratelimit 24, web 245) und 34 Playwright-Tests, alle grün.
 
 Die CI führt bei jedem Push auf `main` und bei jedem Pull Request `install → typecheck → lint → test → accuracy (Accuracy der Regel-Engine auf zugeordneten Buchungen mindestens 0,9) → build → Playwright-E2E` aus.
 
@@ -236,8 +238,10 @@ data/k2/cpi.json                      Destatis-Teilindizes (derzeit Beispielwert
 data/k2/labeled-examples.json         gelabeltes Beispielset (Texte)
 data/k2/labeled-embeddings.json       Beispielset mit Vektoren (wird erzeugt)
 data/k2/rules.json                    Regelsatz der Regel-Engine
-data/k2/testset.json                  gelabeltes Testset für die Accuracy-Messung
+data/k2/testset.json                  gelabeltes Testset für die Accuracy-Messung der Regel-Engine
+data/k2/testset-api.json              gelabeltes Testset für die API-Stufe, disjunkt zum Beispielset
 docs/genauigkeit.md                   Messergebnisse und Fehlerliste
+docs/genauigkeit-api.json             Bericht der API-Stufe (wird mit accuracy --api --write erzeugt)
 docs/screenshots/                     Screenshots für dieses README
 packages/csv/                         Bank-Parser, Erkennung, Fixtures (inkl. demo-synthetic.csv)
 packages/ratelimit/                   Rate-Limit, IP-Pseudonymisierung (HMAC), Turnstile-Verifikation

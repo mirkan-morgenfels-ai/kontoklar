@@ -32,6 +32,7 @@ const SECURITY_HEADERS = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  agentRules: false,
   transpilePackages: ["@portfolio/csv", "@portfolio/ratelimit"],
   outputFileTracingRoot: fileURLToPath(new URL("../../", import.meta.url)),
   async headers() {

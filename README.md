@@ -11,7 +11,7 @@ Live-Demo: https://kontoklar-eight.vercel.app/projects/kontoklar
 
 **English summary.** KontoKlar categorizes German bank account CSV exports (DKB, ING, comdirect, N26, VR-Bank in the new and old format, Sparkasse, plus a generic column mapping for other banks) and builds a household dashboard: monthly spending by category, recurring payments, and a personal inflation rate that weights consumer price sub-indices with the user's own spending shares. Categorization is a three-stage hybrid: a client-side rule engine, then OpenAI embeddings with k-nearest-neighbour voting against a labelled example set, then a small LLM only for low-confidence cases. Results are cached per merchant, requests are rate-limited (keyed by an HMAC of the client IP or, for IPv6, of its /64 prefix, never the raw IP) and bot-protected, so variable API cost stays near zero. The API route is fail-closed: unless the OpenAI key, Upstash Redis, Cloudflare Turnstile and the IP hashing secret are all configured, it answers 503 and never calls OpenAI. No transactions are stored server-side; with the optional API step, only cleaned merchant names of card payments, direct debits and transfers to recipients with a company marker leave the browser; never purposes (for PayPal only the merchant from "Ihr Einkauf bei …", and only if it carries a company marker), amounts, credits or transfers to recipients without a company marker.
 
-Status: live with the in-browser rule engine; the embedding/LLM stage is implemented and tested with mocks but not enabled yet.
+Status: live with the in-browser rule engine; the embedding/LLM stage is implemented and tested with mocks but not enabled yet (setup guide in German: [docs/einrichtung-api.md](docs/einrichtung-api.md)).
 Measured on a 198-transaction synthetic test set: rules cover 96.5 % at 99.0 % accuracy (95.5 % overall, uncovered counted as wrong); the test set was built alongside the rules.
 
 ## Problem
@@ -103,7 +103,7 @@ Gemessen mit `pnpm --filter web accuracy` auf einem von Hand gelabelten, synthet
 
 Das Testset wurde parallel zum Regelsatz erstellt; die hohe Regelabdeckung ist deshalb kein Beleg für echte Kontohistorien. Precision und Recall je Kategorie, die Fehlerliste mit allen 9 Fehlfällen und offene Messungen stehen in [`docs/genauigkeit.md`](docs/genauigkeit.md), der Rohbericht in [`docs/genauigkeit.json`](docs/genauigkeit.json). Ziel für v1: mindestens 90 % Accuracy auf den häufigen Kategorien.
 
-Die API-Stufe wird nicht auf diesem Testset gemessen: 113 seiner 198 Händlerschlüssel stehen wörtlich oder als Präfix im Beispielset der Embedding-Stufe, und an die API gingen von dort nur 4 Texte. Dafür gibt es ein eigenes Testset, [`data/k2/testset-api.json`](data/k2/testset-api.json), mit 95 Buchungen, je 5 in jeder Kategorie außer Einkommen. Es enthält nur Ausgaben, die keine Regel trifft und die für die API zugelassen sind. Die Händler sind frei erfunden; bei den beiden PayPal-Einkäufen ist PayPal Europe der Empfänger, an die API ginge nur der erfundene Händler aus „Ihr Einkauf bei …“. Kein Händlerschlüssel steht wörtlich oder als Präfix im Beispielset oder umgekehrt. Bei 3 Buchungen (alle in Gebühren & Zinsen) folgt das Label nur aus dem Verwendungszweck, den die API nie bekommt; trifft die API-Stufe diese nicht zufällig, beträgt ihre Gesamt-Accuracy auf dem Set höchstens 96,8 %. `--api` gibt die Kennzahlen deshalb auch ohne diese 3 Buchungen aus. Erstellt und gelabelt hat es Claude (KI-Assistent von Anthropic) am 08.10.2026; die stichprobenartige Prüfung der Labels durch den Autor steht aus. `pnpm --filter web accuracy` prüft diese Bedingungen bei jedem Lauf, `pnpm --filter web accuracy --api` misst Embedding-kNN und Fallback auf dem Set. Gemessen ist das noch nicht, weil kein OpenAI-Schlüssel eingerichtet ist; ohne Schlüssel endet `--api` nach der Prüfung mit einem Hinweis. Einzelheiten, Grenzfälle der Labels, die Obergrenze und die Kosten stehen in [`docs/genauigkeit.md`](docs/genauigkeit.md#api-stufe-eigenes-testset).
+Die API-Stufe wird nicht auf diesem Testset gemessen: 113 seiner 198 Händlerschlüssel stehen wörtlich oder als Präfix im Beispielset der Embedding-Stufe, und an die API gingen von dort nur 4 Texte. Dafür gibt es ein eigenes Testset, [`data/k2/testset-api.json`](data/k2/testset-api.json), mit 95 Buchungen, je 5 in jeder Kategorie außer Einkommen. Es enthält nur Ausgaben, die keine Regel trifft und die für die API zugelassen sind. Die Händler sind frei erfunden; bei den beiden PayPal-Einkäufen ist PayPal Europe der Empfänger, an die API ginge nur der erfundene Händler aus „Ihr Einkauf bei …“. Kein Händlerschlüssel steht wörtlich oder als Präfix im Beispielset oder umgekehrt. Bei 3 Buchungen (alle in Gebühren & Zinsen) folgt das Label nur aus dem Verwendungszweck, den die API nie bekommt; trifft die API-Stufe diese nicht zufällig, beträgt ihre Gesamt-Accuracy auf dem Set höchstens 96,8 %. `--api` gibt die Kennzahlen deshalb auch ohne diese 3 Buchungen aus. Erstellt und gelabelt hat es Claude (KI-Assistent von Anthropic) am 08.10.2026; die stichprobenartige Prüfung der Labels durch den Autor steht aus (Prüfliste mit allen Buchungen: [`docs/pruefung-testset-api.md`](docs/pruefung-testset-api.md)). `pnpm --filter web accuracy` prüft diese Bedingungen bei jedem Lauf, `pnpm --filter web accuracy --api` misst Embedding-kNN und Fallback auf dem Set. Gemessen ist das noch nicht, weil kein OpenAI-Schlüssel eingerichtet ist; ohne Schlüssel endet `--api` nach der Prüfung mit einem Hinweis. Einzelheiten, Grenzfälle der Labels, die Obergrenze und die Kosten stehen in [`docs/genauigkeit.md`](docs/genauigkeit.md#api-stufe-eigenes-testset).
 
 ## Unterstützte Banken
 
@@ -117,7 +117,7 @@ Die API-Stufe wird nicht auf diesem Testset gemessen: 113 seiner 198 Händlersch
 | Sparkasse | unterstützt | CSV-CAMT und CSV-MT940, zweistellige Jahre, Windows-1252 |
 | Andere | generisch | Spalten werden beim Upload manuell zugeordnet |
 
-Testdateien liegen unter `packages/csv/fixtures/` und sind synthetisch. Die Parser lesen Dateien mit LF- und CRLF-Zeilenenden. Der DKB-Parser akzeptiert die Datumsformate TT.MM.JJJJ und TT.MM.JJ; welches der echte Export nutzt, ist noch zu verifizieren.
+Testdateien liegen unter `packages/csv/fixtures/` und sind synthetisch. Die Parser lesen Dateien mit LF- und CRLF-Zeilenenden. Der DKB-Parser akzeptiert die Datumsformate TT.MM.JJJJ und TT.MM.JJ; welches der echte Export nutzt, ist noch zu verifizieren. Anleitung und ein Prüfskript, das nur Kopfzeile und Datumsformate meldet (`pnpm --filter web dkb:check <Datei>`): [`docs/pruefung-dkb.md`](docs/pruefung-dkb.md).
 
 ## Persönliche Inflation
 
@@ -156,15 +156,15 @@ Grundlage ist die Gliederung des Verbraucherpreisindex auf Basis 2020 laut Wägu
 
 Einkommen und Umbuchungen sind keine Ausgaben und fließen nicht ein.
 
-Datenquelle: Statistisches Bundesamt (Destatis), GENESIS-Online, Tabelle 61111-0002, Datenlizenz Deutschland – Namensnennung – Version 2.0. Die Teilindizes werden monatlich per GitHub Actions abgerufen und als `data/k2/cpi.json` im Repository abgelegt; zur Laufzeit gibt es keinen Destatis-Aufruf. Derzeit enthält `cpi.json` Beispielwerte (`"sample": true`); die Oberfläche zeigt dann „Gesamtrate (Beispielwert)“ und „Persönliche Rate (Beispielrechnung)“.
+Datenquelle: Statistisches Bundesamt (Destatis), GENESIS-Online, Tabellen 61111-0002 (Gesamtindex, Monate) und 61111-0006 (Teilindizes nach COICOP-Abteilungen, Monate, Merkmal `CC13A2`), Datenlizenz Deutschland – Namensnennung – Version 2.0 (https://www.govdata.de/dl-de/by-2-0). Die Indexwerte werden nicht verändert, nur zu Vorjahresveränderungen umgerechnet und gewichtet. Sie werden monatlich per GitHub Actions abgerufen und als `data/k2/cpi.json` im Repository abgelegt; zur Laufzeit gibt es keinen Destatis-Aufruf. Token, Tabellen, Abruf und Prüfung: [`docs/destatis.md`](docs/destatis.md). Derzeit enthält `cpi.json` Beispielwerte (`"sample": true`); die Oberfläche zeigt dann „Gesamtrate (Beispielwert)“ und „Persönliche Rate (Beispielrechnung)“.
 
 ## Tech-Stack
 
-Next.js 15 (App Router), TypeScript (strict), Tailwind CSS, Papa Parse, Recharts, OpenAI Node SDK (`text-embedding-3-small`, GPT-5 nano), Upstash Redis und `@upstash/ratelimit`, Cloudflare Turnstile, Vitest, Playwright mit axe-core, pnpm Workspaces, GitHub Actions, Vercel.
+Next.js 16 (App Router, Turbopack), TypeScript 5.9 (strict), Tailwind CSS 4, Papa Parse, Recharts, OpenAI Node SDK (`text-embedding-3-small`, GPT-5 nano), Upstash Redis und `@upstash/ratelimit`, Cloudflare Turnstile, Vitest 5, Playwright mit axe-core, ESLint 10, pnpm Workspaces, GitHub Actions, Vercel. TypeScript 7 ist noch nicht im Einsatz, weil typescript-eslint es nicht unterstützt (Begründung in [`CLAUDE.md`](CLAUDE.md), Abschnitt „Abhängigkeiten“).
 
 ## Lokale Ausführung
 
-Voraussetzungen: Node.js 22 (mindestens 20.19), pnpm 10 (die Version 10.34.5 ist über `packageManager` in `package.json` festgelegt).
+Voraussetzungen: Node.js 22 (mindestens 22.13; 24 und ab 26 gehen ebenfalls), pnpm 10 (die Version 10.34.5 ist über `packageManager` in `package.json` festgelegt).
 
 ```bash
 git clone https://github.com/mirkan-morgenfels-ai/kontoklar.git
@@ -195,9 +195,11 @@ Optional, mit Standardwert:
 
 `IP_HASH_SECRET` ist ein zufälliger Server-Schlüssel mit mindestens 32 Zeichen, zum Beispiel aus `openssl rand -hex 32` oder `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Er wird nur auf dem Server gelesen und darf nicht mit `NEXT_PUBLIC_` beginnen. Wird er gewechselt, beginnen alle Tageszähler neu.
 
+Schritt-für-Schritt-Anleitung für OpenAI (mit Ausgabenlimit), Upstash, Turnstile, `IP_HASH_SECRET`, Vercel, Prüfung und Notabschaltung: [`docs/einrichtung-api.md`](docs/einrichtung-api.md). Vorher ist die Datenschutzerklärung zu ergänzen ([`docs/entwurf-datenschutz-api.md`](docs/entwurf-datenschutz-api.md), Entwurf, keine Rechtsberatung).
+
 Fehlt eine der sechs Pflichtvariablen, läuft die Anwendung mit der Regel-Engine allein; der API-Schritt ist dann deaktiviert, und `GET /api/categorize` nennt die fehlenden Variablen. Für Cloudflare Turnstile gibt es dokumentierte Testschlüssel, die lokal jede Prüfung bestehen lassen; auch damit muss `TURNSTILE_SECRET_KEY` gesetzt sein, denn ohne Secret lehnt die Bot-Prüfung jede Anfrage ab. In der Produktionsumgebung (`VERCEL_ENV=production`, ohne Vercel `NODE_ENV=production`, also auch bei `next start`) gelten diese Testschlüssel als fehlend; der API-Schritt bleibt dann aus, und `GET /api/categorize` nennt den Grund.
 
-Das CPI-JSON wird im Repository mitgeliefert. Aktuell enthält `data/k2/cpi.json` Beispielwerte (`"sample": true`), die Oberfläche weist darauf hin. Zum Aufbau mit echten Destatis-Daten ist ein GENESIS-Token als GitHub-Actions-Secret `DESTATIS_TOKEN` nötig. Ohne das Secret endet der monatliche Workflow `cpi.yml` mit einem Hinweis und ohne Fehler, `cpi.json` bleibt dann unverändert. Lokal:
+Das CPI-JSON wird im Repository mitgeliefert. Aktuell enthält `data/k2/cpi.json` Beispielwerte (`"sample": true`), die Oberfläche weist darauf hin. Zum Aufbau mit echten Destatis-Daten ist ein GENESIS-Token als GitHub-Actions-Secret `DESTATIS_TOKEN` nötig (Registrierung und Token: [`docs/destatis.md`](docs/destatis.md)). Ohne das Secret endet der monatliche Workflow `cpi.yml` mit einem Hinweis und ohne Fehler, `cpi.json` bleibt dann unverändert. Lokal:
 
 ```bash
 DESTATIS_TOKEN=... pnpm --filter web cpi:build
@@ -215,9 +217,9 @@ CI=true pnpm test:e2e
 
 `pnpm --filter web accuracy` gibt die Kennzahlen nur aus und prüft das API-Testset; `pnpm --filter web accuracy --write` schreibt `docs/genauigkeit.json` neu. `pnpm --filter web accuracy --api` misst die API-Stufe auf `data/k2/testset-api.json` (braucht `OPENAI_API_KEY` und `data/k2/labeled-embeddings.json`), mit `--write` in `docs/genauigkeit-api.json`. Die E2E-Tests starten ohne `CI` den Entwicklungsserver (`next dev`), mit `CI=true` `next start` auf dem vorher gebauten Stand. Der Port kommt aus `PORT` (Standard 3000), zum Beispiel `PORT=3111 pnpm test:e2e`. `pnpm ci` führt Typecheck, Lint, Unit-Tests, Accuracy und Build nacheinander aus.
 
-Das gelabelte Beispielset für die Embedding-Stufe liegt in `data/k2/labeled-examples.json`; die Vektoren entstehen einmalig mit `pnpm --filter web embeddings:build` (OpenAI-Key nötig, etwa 300 Texte, unter 0,01 $).
+Das gelabelte Beispielset für die Embedding-Stufe liegt in `data/k2/labeled-examples.json`; die Vektoren entstehen einmalig und nur lokal mit `pnpm --filter web embeddings:build` (OpenAI-Key nötig). `pnpm --filter web embeddings:build --dry-run` zeigt ohne Schlüssel Umfang und Kosten: 278 Einträge, 277 verschiedene Texte, geschätzt 1.197 Token, etwa 0,000024 $.
 
-Unit-Tests decken die Bank-Parser (auch mit CRLF-Zeilenenden), die Regel-Engine (jede Muster-Alternative trifft ihre eigene Regel), die Normalisierung der Händlernamen und die Auswahl der API-Texte, Kosinus-Ähnlichkeit und kNN-Abstimmung, die Erkennung wiederkehrender Zahlungen, die persönliche Inflation, die Diagrammfarben und die Beispieldaten ab, außerdem das API-Testset (kein Regeltreffer, für die API zugelassen, disjunkt zum Beispielset, ausgewogen, Obergrenze durch Labels, die nur aus dem Verwendungszweck folgen). Die API-Route wird mit gemocktem OpenAI-Client, Redis-Mock und gemockter Turnstile-Prüfung getestet: für jede der sechs fehlenden Variablen (503 ohne OpenAI-Aufruf), für die IP-Pseudonymisierung (nur der HMAC erreicht das Rate-Limit, IPv6 je /64-Präfix), für ein Rate-Limit, das nicht antwortet (503 nach dem Timeout, kein OpenAI-Aufruf), für Cloudflare-Testschlüssel in der Produktionsumgebung und für das Body-Limit mit falschem oder fehlendem `content-length`. Ein Test liest das Lua-Skript der installierten Version von `@upstash/ratelimit` und prüft Ablaufzeit und UTC-Tagesfenster, die in der Datenschutzerklärung stehen. Die Playwright-Tests prüfen Upload, Beispieldaten, Startseite, Navigation, Rechtsseiten, 404, Metadaten, dass nur Anfragen an die eigene Adresse gehen, und laufen axe bei 390, 768 und 1280 px. Stand 08.10.2026: 314 Unit-Tests (csv 45, ratelimit 24, web 245) und 34 Playwright-Tests, alle grün.
+Unit-Tests decken die Bank-Parser (auch mit CRLF-Zeilenenden), die Regel-Engine (jede Muster-Alternative trifft ihre eigene Regel), die Normalisierung der Händlernamen und die Auswahl der API-Texte, Kosinus-Ähnlichkeit und kNN-Abstimmung, die Erkennung wiederkehrender Zahlungen, die persönliche Inflation, die Diagrammfarben und die Beispieldaten ab, außerdem das API-Testset (kein Regeltreffer, für die API zugelassen, disjunkt zum Beispielset, ausgewogen, Obergrenze durch Labels, die nur aus dem Verwendungszweck folgen). Die API-Route wird mit gemocktem OpenAI-Client, Redis-Mock und gemockter Turnstile-Prüfung getestet: für jede der sechs fehlenden Variablen (503 ohne OpenAI-Aufruf), für die IP-Pseudonymisierung (nur der HMAC erreicht das Rate-Limit, IPv6 je /64-Präfix), für ein Rate-Limit, das nicht antwortet (503 nach dem Timeout, kein OpenAI-Aufruf), für Cloudflare-Testschlüssel in der Produktionsumgebung und für das Body-Limit mit falschem oder fehlendem `content-length`. Ein Test liest das Lua-Skript der installierten Version von `@upstash/ratelimit` und prüft Ablaufzeit und UTC-Tagesfenster, die in der Datenschutzerklärung stehen. Weitere Tests prüfen den Destatis-Abruf mit erfundenen GENESIS-Antworten (Anfrage mit Token im Header, ZIP, Flat-CSV, nur Indexwerte, Abbruch bei unvollständigen Daten), den Aufbau des Beispielsets mit Vektoren mit einem gemockten Embedding-Anbieter und die Aufbauprüfung von Bank-CSVs (meldet nur Spaltennamen und Zählwerte, nie Inhalte). Die Playwright-Tests prüfen Upload, Beispieldaten, Startseite, Navigation, Rechtsseiten, 404, Metadaten, dass nur Anfragen an die eigene Adresse gehen, und laufen axe bei 390, 768 und 1280 px. Stand 21.10.2026: 341 Unit-Tests (csv 45, ratelimit 24, web 272) und 34 Playwright-Tests, alle grün.
 
 Die CI führt bei jedem Push auf `main` und bei jedem Pull Request `install → typecheck → lint → test → accuracy (Accuracy der Regel-Engine auf zugeordneten Buchungen mindestens 0,9) → build → Playwright-E2E` aus.
 
@@ -233,7 +235,8 @@ apps/web/lib/kontoklar/               Regel-Engine, kNN, Pseudonymisierung, Konf
                                       Abo-Erkennung, Inflation, Diagrammfarben (chartTheme.ts), Beispieldaten (sample.ts)
 apps/web/lib/kontoklar/__tests__/     Unit-Tests (inkl. API-Route mit Mocks)
 apps/web/e2e/                         Playwright-Tests (Projektseite, Seitenrahmen, axe)
-apps/web/scripts/                     accuracy, build-embeddings, build-cpi
+apps/web/scripts/                     accuracy, build-embeddings, build-cpi, check-dkb
+apps/web/assets/                      Schriftdatei des Vorschaubilds (Noto Sans, OFL)
 data/k2/cpi.json                      Destatis-Teilindizes (derzeit Beispielwerte)
 data/k2/labeled-examples.json         gelabeltes Beispielset (Texte)
 data/k2/labeled-embeddings.json       Beispielset mit Vektoren (wird erzeugt)
@@ -242,12 +245,17 @@ data/k2/testset.json                  gelabeltes Testset für die Accuracy-Messu
 data/k2/testset-api.json              gelabeltes Testset für die API-Stufe, disjunkt zum Beispielset
 docs/genauigkeit.md                   Messergebnisse und Fehlerliste
 docs/genauigkeit-api.json             Bericht der API-Stufe (wird mit accuracy --api --write erzeugt)
+docs/einrichtung-api.md               Einrichtung des API-Schritts (OpenAI, Upstash, Turnstile, Vercel, Prüfung, Abschaltung)
+docs/entwurf-datenschutz-api.md       Entwurf der Datenschutzangaben für den API-Schritt (nicht veröffentlicht)
+docs/destatis.md                      Destatis-Token, GENESIS-Tabellen und Abruf der Teilindizes
+docs/pruefung-dkb.md                  Prüfung mit einem echten DKB-Export
+docs/pruefung-testset-api.md          Prüfliste der Labels im API-Testset
 docs/screenshots/                     Screenshots für dieses README
 packages/csv/                         Bank-Parser, Erkennung, Fixtures (inkl. demo-synthetic.csv)
 packages/ratelimit/                   Rate-Limit, IP-Pseudonymisierung (HMAC), Turnstile-Verifikation
 .github/workflows/ci.yml              install, typecheck, lint, test, accuracy, build, E2E
 .github/workflows/cpi.yml             monatlicher Destatis-Abruf (ohne Secret: Hinweis, kein Fehler)
-.github/dependabot.yml                monatliche Updates für npm und GitHub Actions
+.github/dependabot.yml                monatliche Updates für npm und GitHub Actions (ohne TypeScript 7.x)
 ```
 
 ## Grenzen
@@ -260,7 +268,7 @@ packages/ratelimit/                   Rate-Limit, IP-Pseudonymisierung (HMAC), T
 
 ## Roadmap
 
-- v1: Sechs Banken (DKB, ING, comdirect, N26, VR-Bank in neuem und altem Format, Sparkasse) plus generisches Spalten-Mapping, dreistufige Kategorisierung, Dashboard, Abo-Erkennung, persönliche Inflation. Stand 07.10.2026: live auf Vercel mit der Regel-Engine; der API-Schritt ist fail-closed abgesichert, aber noch nicht eingerichtet. Offen sind OpenAI-Key, Upstash, Turnstile-Schlüssel, `IP_HASH_SECRET`, Embedding-Vektoren, echte Destatis-Daten und die Prüfung des echten DKB-Datumsformats.
+- v1: Sechs Banken (DKB, ING, comdirect, N26, VR-Bank in neuem und altem Format, Sparkasse) plus generisches Spalten-Mapping, dreistufige Kategorisierung, Dashboard, Abo-Erkennung, persönliche Inflation. Stand 21.10.2026: live auf Vercel mit der Regel-Engine; der API-Schritt ist fail-closed abgesichert, aber noch nicht eingerichtet. Offen sind OpenAI-Key, Upstash, Turnstile-Schlüssel, `IP_HASH_SECRET` und Embedding-Vektoren ([`docs/einrichtung-api.md`](docs/einrichtung-api.md), vorher [`docs/entwurf-datenschutz-api.md`](docs/entwurf-datenschutz-api.md)), echte Destatis-Daten ([`docs/destatis.md`](docs/destatis.md)), die Prüfung des echten DKB-Exports ([`docs/pruefung-dkb.md`](docs/pruefung-dkb.md)) und die Stichprobe der Labels im API-Testset ([`docs/pruefung-testset-api.md`](docs/pruefung-testset-api.md)).
 - v2: Budget-Prognose je Kategorie für den Folgemonat (saisonale Zeitreihenmethode) mit Unsicherheitsband.
 - v3: Anomalie-Erkennung auf dem Zahlungsgraph (Händler, Kategorien, Geldflüsse) mit einem Graph Neural Network: neue ungewöhnliche Empfänger, Betragsausreißer.
 
@@ -271,12 +279,13 @@ KontoKlar ist ein Werkzeug zur Auswertung eigener Daten und stellt keine Finanz-
 ## Quellen
 
 - Statistisches Bundesamt, GENESIS-Online, Verbraucherpreisindex, Tabelle 61111-0002: https://genesis.destatis.de/datenbank/online/statistic/61111/table/61111-0002 (abgerufen am 07.10.2026)
+- Statistisches Bundesamt, GENESIS-Online, Verbraucherpreisindex nach Verwendungszwecken, Tabelle 61111-0006: https://genesis.destatis.de/datenbank/online/statistic/61111/table/61111-0006 (geprüft am 20.10.2026; weitere Quellen zur GENESIS-API in [`docs/destatis.md`](docs/destatis.md))
 - Statistisches Bundesamt, Verbraucherpreisindex für Deutschland, Wägungsschema für das Basisjahr 2020 (Gliederung nach SEA-VPI, Gruppe 125 Versicherungsdienstleistungen): https://www.destatis.de/DE/Themen/Wirtschaft/Preise/Verbraucherpreisindex/Methoden/Downloads/waegungsschema-2020.html (abgerufen am 08.10.2026)
 - United Nations Statistics Division, Classification of Individual Consumption According to Purpose (COICOP) 2018, Statistical Papers Series M No. 99: https://unstats.un.org/unsd/classifications/Family/Detail/2094 (abgerufen am 08.10.2026)
-- Datenlizenz Deutschland – Namensnennung – Version 2.0: https://www.govdata.de/dl-de/by-2-0 (abgerufen am 07.10.2026)
-- OpenAI API, Preise für `text-embedding-3-small` und GPT-5 nano: https://developers.openai.com/api/docs/pricing (abgerufen am 07.10.2026)
+- Datenlizenz Deutschland – Namensnennung – Version 2.0: https://www.govdata.de/dl-de/by-2-0 (abgerufen am 21.10.2026)
+- OpenAI API, Preise für `text-embedding-3-small` und GPT-5 nano: https://developers.openai.com/api/docs/pricing (abgerufen am 21.10.2026, unverändert 0,02 $ bzw. 0,05 $ Eingabe und 0,40 $ Ausgabe je Million Token)
 - Upstash, Preise und Free-Tier-Limits für Redis: https://upstash.com/pricing/redis (abgerufen am 07.10.2026)
-- Cloudflare Turnstile, Dokumentation: https://developers.cloudflare.com/turnstile/ und Testschlüssel: https://developers.cloudflare.com/turnstile/troubleshooting/testing/ (abgerufen am 07.10.2026)
+- Cloudflare Turnstile, Dokumentation: https://developers.cloudflare.com/turnstile/ und Testschlüssel: https://developers.cloudflare.com/turnstile/troubleshooting/testing/ (abgerufen am 07.10.2026, Testschlüssel erneut am 21.10.2026)
 
 ## Weitere Projekte
 
@@ -285,4 +294,4 @@ KontoKlar ist ein Werkzeug zur Auswertung eigener Daten und stellt keine Finanz-
 
 ## Lizenz
 
-MIT, siehe [LICENSE](./LICENSE). Die Destatis-Daten in `data/k2/cpi.json` stehen unter der Datenlizenz Deutschland – Namensnennung – Version 2.0; Quelle: Statistisches Bundesamt (Destatis), 2026. Solange `cpi.json` Beispielwerte enthält (`"sample": true`), stammen die angezeigten Teilindizes nicht von Destatis.
+MIT, siehe [LICENSE](./LICENSE). Ausgenommen ist die Schriftdatei für das Vorschaubild, `apps/web/assets/noto-sans-v27-latin-regular.ttf` (Noto Sans, Copyright 2015-2021 Google LLC): Sie steht unter der SIL Open Font License 1.1, siehe [apps/web/assets/OFL.txt](apps/web/assets/OFL.txt). Die Destatis-Daten in `data/k2/cpi.json` stehen unter der Datenlizenz Deutschland – Namensnennung – Version 2.0; Quelle: Statistisches Bundesamt (Destatis), 2026. Solange `cpi.json` Beispielwerte enthält (`"sample": true`), stammen die angezeigten Teilindizes nicht von Destatis.

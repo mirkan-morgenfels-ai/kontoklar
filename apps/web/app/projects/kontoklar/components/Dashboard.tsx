@@ -427,9 +427,17 @@ export function Dashboard({ items }: { items: CategorizedTransaction[] }) {
           <p className="max-w-[70ch] text-xs leading-relaxed text-slate">
             Persönliche Rate = Summe (Anteil an den abgedeckten Ausgaben je Abteilung × Vorjahresveränderung). Verwendet wird
             die Vorjahresveränderung des letzten verfügbaren Monats; die Gewichte stammen aus dem hochgeladenen Zeitraum.{" "}
-            {sample
-              ? "Quelle: Beispielwerte, nicht Destatis."
-              : "Quelle: Statistisches Bundesamt (Destatis), GENESIS-Online 61111-0002, Datenlizenz Deutschland – Namensnennung – Version 2.0."}
+            {sample ? (
+              "Quelle: Beispielwerte, nicht Destatis."
+            ) : (
+              <>
+                Quelle: Statistisches Bundesamt (Destatis), GENESIS-Online 61111-0002 und 61111-0006,{" "}
+                <a href="https://www.govdata.de/dl-de/by-2-0" rel="noopener noreferrer" className="link" data-testid="cpi-license-link">
+                  Datenlizenz Deutschland – Namensnennung – Version 2.0<span className="sr-only"> (externe Seite)</span>
+                </a>
+                .
+              </>
+            )}
           </p>
         </div>
         <details className="group mt-5 text-sm">

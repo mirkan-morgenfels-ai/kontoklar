@@ -1,7 +1,14 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { isCategory } from "../lib/kontoklar/categories";
-import { normalizeMerchant } from "../lib/kontoklar/merchant";
+import {
+  DEFAULT_EMBEDDING_MODEL,
+  EMBEDDING_PRICE_USD_PER_MILLION_TOKENS,
+  embedExamples,
+  estimateCostUsd,
+  estimateTokens,
+  labeledEmbeddingsFile,
+  prepareExamples,
+} from "../lib/kontoklar/embeddings";
 import { createOpenAiEmbed, openAiClient } from "../lib/kontoklar/providers";
 
 const root = path.resolve(__dirname, "..", "..", "..");
@@ -9,31 +16,29 @@ const input = path.join(root, "data", "k2", "labeled-examples.json");
 const output = path.join(root, "data", "k2", "labeled-embeddings.json");
 
 async function main() {
-  const client = openAiClient();
-  if (!client) throw new Error("OPENAI_API_KEY fehlt");
+  const dryRun = process.argv.includes("--dry-run");
   const raw = JSON.parse(readFileSync(input, "utf-8")) as { examples: { text: string; category: string }[] };
-  const examples = raw.examples
-    .map((e) => ({ text: normalizeMerchant(e.text), category: e.category }))
-    .filter((e) => e.text !== "" && isCategory(e.category));
-  const unique = new Map<string, string>();
-  for (const e of examples) unique.set(e.text, e.category);
-  const texts = [...unique.keys()];
-  const model = process.env.KONTOKLAR_EMBEDDING_MODEL ?? "text-embedding-3-small";
-  const embed = createOpenAiEmbed(client, model);
-  const items: { text: string; category: string; vector: number[] }[] = [];
-  const batchSize = 200;
-  for (let i = 0; i < texts.length; i += batchSize) {
-    const batch = texts.slice(i, i + batchSize);
-    const vectors = await embed(batch);
-    batch.forEach((text, j) => items.push({ text, category: unique.get(text)!, vector: vectors[j]!.map((x) => Math.round(x * 1e5) / 1e5) }));
-    console.log(`eingebettet: ${Math.min(i + batchSize, texts.length)}/${texts.length}`);
+  const { items, skipped, conflicts } = prepareExamples(raw.examples);
+  const model = process.env.KONTOKLAR_EMBEDDING_MODEL?.trim() || DEFAULT_EMBEDDING_MODEL;
+  const tokens = estimateTokens(items.map((item) => item.text));
+  console.log(`Beispielset: ${raw.examples.length} Einträge, ${items.length} verschiedene normalisierte Texte, ${skipped} übersprungen, ${conflicts.length} mit widersprüchlicher Kategorie (letzte gilt).`);
+  console.log(`Modell ${model}: geschätzt ${tokens} Token, Kosten ≈ ${estimateCostUsd(tokens).toFixed(6)} $ (${EMBEDDING_PRICE_USD_PER_MILLION_TOKENS} $ je Million Token für ${DEFAULT_EMBEDDING_MODEL}).`);
+  if (dryRun) {
+    console.log("Probelauf (--dry-run): keine Anfrage an OpenAI, keine Datei geschrieben.");
+    return;
   }
-  const tokensEstimate = texts.reduce((s, t) => s + Math.ceil(t.length / 3), 0);
-  writeFileSync(output, JSON.stringify({ model, createdAt: new Date().toISOString().slice(0, 10), count: items.length, items }) + "\n");
-  console.log(`geschrieben: ${output} (${items.length} Beispiele, geschätzt ${tokensEstimate} Token, Kosten ≈ ${((tokensEstimate / 1e6) * 0.02).toFixed(4)} $)`);
+  if (process.env.CI) throw new Error("Abbruch: embeddings:build läuft nur lokal, nicht in der CI (CI ist gesetzt).");
+  const client = openAiClient(process.env.OPENAI_API_KEY?.trim() || undefined);
+  if (!client) throw new Error("Abbruch: OPENAI_API_KEY fehlt. Ohne Schlüssel zeigt --dry-run Umfang und Kosten.");
+  const vectors = await embedExamples(items, createOpenAiEmbed(client, model), {
+    onBatch: (done, total) => console.log(`eingebettet: ${done}/${total}`),
+  });
+  const file = labeledEmbeddingsFile(model, new Date().toISOString().slice(0, 10), vectors);
+  writeFileSync(output, JSON.stringify(file) + "\n");
+  console.log(`geschrieben: data/k2/labeled-embeddings.json (${file.count} Texte, ${vectors[0]?.vector.length ?? 0} Dimensionen).`);
 }
 
 main().catch((e) => {
-  console.error(e);
+  console.error(e instanceof Error ? e.message : e);
   process.exit(1);
 });

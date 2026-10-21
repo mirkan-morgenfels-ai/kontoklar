@@ -2,7 +2,8 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, test } from "vitest";
 import { parseBankCsv } from "@portfolio/csv";
-import cpiJson from "../../../../../data/k2/cpi.json";
+import dataCpiJson from "../../../../../data/k2/cpi.json";
+import cpiJson from "./fixtures/cpi-sample.json";
 import {
   APPROXIMATED_EXPENSE_CATEGORIES,
   CATEGORY_TO_COICOP,
@@ -122,9 +123,30 @@ describe("yearOverYearChange", () => {
   });
 });
 
-describe("computePersonalInflation mit cpi.json", () => {
+describe("data/k2/cpi.json", () => {
+  const cpi = dataCpiJson as CpiData;
+  test("has every COICOP division and the total index with sorted monthly values", () => {
+    expect(Object.keys(cpi.divisions).sort()).toEqual(Object.keys(COICOP_DIVISIONS).sort());
+    for (const series of [...Object.values(cpi.divisions).map((d) => d.series), cpi.total.series]) {
+      expect(series.length).toBeGreaterThan(0);
+      expect(series.every((p) => /^\d{4}-(0[1-9]|1[0-2])$/.test(p.period) && Number.isFinite(p.value) && p.value > 0)).toBe(true);
+      expect(series.map((p) => p.period)).toEqual([...series.map((p) => p.period)].sort());
+    }
+    expect(computePersonalInflation(cpi, { Lebensmittel: 100 })).not.toBeNull();
+  });
+  test("names its origin: sample values are marked, real values name Destatis and the licence", () => {
+    if (cpi.sample) {
+      expect(cpi.source).toContain("Beispielwerte");
+    } else {
+      expect(cpi.source).toContain("Statistisches Bundesamt (Destatis), GENESIS-Online");
+      expect(cpi.license).toContain("dl-de/by-2-0");
+    }
+  });
+});
+
+describe("computePersonalInflation mit Beispielwerten (Kopie der Beispiel-cpi.json)", () => {
   const cpi = cpiJson as CpiData;
-  test("Datei ist als Beispiel markiert", () => {
+  test("Fixture ist als Beispiel markiert", () => {
     expect(cpi.sample).toBe(true);
   });
   test("liefert persönliche und amtliche Rate für den letzten Monat", () => {

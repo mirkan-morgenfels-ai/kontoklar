@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { ORNAMENT_AREA_PATH, ORNAMENT_AXIS_Y, ORNAMENT_BALANCE_PATH, ORNAMENT_BARS, ORNAMENT_LAST } from "@/components/site/motif";
 import { OG_GLYPHS } from "@/lib/og-glyphs";
@@ -7,6 +9,8 @@ export const alt = OG_IMAGE_ALT;
 export const size = OG_IMAGE_SIZE;
 export const contentType = "image/png";
 export const dynamic = "force-static";
+
+const sansFont = await readFile(join(process.cwd(), "assets/noto-sans-v27-latin-regular.ttf"));
 
 const NAVY = "#0b1626";
 const IVORY = "#f7f3ea";
@@ -155,6 +159,6 @@ export default function OpenGraphImage() {
         </div>
       </div>
     ),
-    size,
+    { ...size, fonts: [{ name: "Noto Sans", data: sansFont, weight: 400, style: "normal" }] },
   );
 }

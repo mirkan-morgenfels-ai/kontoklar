@@ -6,10 +6,7 @@ function useOverflow() {
   const [element, setElement] = useState<HTMLDivElement | null>(null);
   const [overflowing, setOverflowing] = useState(false);
   useEffect(() => {
-    if (!element) {
-      setOverflowing(false);
-      return;
-    }
+    if (!element) return;
     const update = () => setOverflowing(element.scrollWidth > element.clientWidth + 1);
     update();
     const observer = new ResizeObserver(update);

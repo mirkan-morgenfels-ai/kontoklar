@@ -63,15 +63,16 @@ export function createOpenAiFallback(client: OpenAI, model = process.env.KONTOKL
 
 let labeledCache: LabeledVector[] | null = null;
 
+const LABELED_READS = [
+  () => readFile(path.join(process.cwd(), "data", "k2", "labeled-embeddings.json"), "utf-8"),
+  () => readFile(path.join(process.cwd(), "..", "..", "data", "k2", "labeled-embeddings.json"), "utf-8"),
+];
+
 export async function loadLabeledVectors(): Promise<LabeledVector[]> {
   if (labeledCache) return labeledCache;
-  const candidates = [
-    path.join(process.cwd(), "data", "k2", "labeled-embeddings.json"),
-    path.join(process.cwd(), "..", "..", "data", "k2", "labeled-embeddings.json"),
-  ];
-  for (const file of candidates) {
+  for (const read of LABELED_READS) {
     try {
-      const raw = await readFile(file, "utf-8");
+      const raw = await read();
       const parsed = JSON.parse(raw) as { items?: LabeledVector[] };
       const items = (parsed.items ?? []).filter((it) => isCategory(it.category) && Array.isArray(it.vector) && it.vector.length > 0);
       labeledCache = items;

@@ -12,13 +12,14 @@
     "test:e2e": "playwright test",
     "accuracy": "tsx scripts/accuracy.ts",
     "embeddings:build": "tsx scripts/build-embeddings.ts",
-    "cpi:build": "tsx scripts/build-cpi.ts"
+    "cpi:build": "tsx scripts/build-cpi.ts",
+    "dkb:check": "tsx scripts/check-dkb.ts"
   },
   "dependencies": {
     "@portfolio/csv": "workspace:*",
     "@portfolio/ratelimit": "workspace:*",
     "@upstash/redis": "^1.35.6",
-    "next": "^15.5.27",
+    "next": "^16.4.2",
     "openai": "^6.10.0",
     "papaparse": "^5.5.3",
     "react": "^19.3.0",
@@ -26,21 +27,21 @@
     "recharts": "^3.3.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.7",
-    "@eslint/js": "^9.39.1",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.1.17",
-    "@types/node": "^22.19.0",
+    "@types/node": "^26.6.5",
     "@types/papaparse": "^5.3.16",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "axe-core": "^4.14.0",
-    "eslint": "^9.39.1",
-    "eslint-config-next": "^15.5.27",
+    "eslint": "^10.13.0",
+    "eslint-config-next": "^16.4.2",
     "tailwindcss": "^4.1.17",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.50.0",
-    "vitest": "^4.1.11"
+    "typescript-eslint": "^8.56.0",
+    "vite": "^7.3.7",
+    "vitest": "^5.0.5"
   }
 }

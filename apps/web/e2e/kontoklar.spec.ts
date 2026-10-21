@@ -8,6 +8,8 @@ const ACCURACY = JSON.parse(readFileSync(path.resolve(__dirname, "..", "..", "..
   stages: Record<string, { count: number; correct: number }>;
   accuracyAssigned: number;
 };
+const CPI_SAMPLE = (JSON.parse(readFileSync(path.resolve(__dirname, "..", "..", "..", "data", "k2", "cpi.json"), "utf-8")) as { sample?: boolean }).sample === true;
+const PERSONAL_RATE = CPI_SAMPLE ? "Persönliche Rate (Beispielrechnung)" : "Persönliche Rate";
 const INK = "rgb(15, 27, 45)";
 const SLATE = "rgb(91, 100, 116)";
 const MOSS = "rgb(47, 107, 58)";
@@ -76,20 +78,30 @@ test("Happy Path: DKB-CSV hochladen, Regel-Engine kategorisiert, Dashboard ersch
   expect(requests).toHaveLength(0);
 });
 
-test("inflation card marks sample values and never says official", async ({ page }) => {
+test("inflation card names its source and never calls sample values official", async ({ page }) => {
   await upload(page, "dkb.csv");
-  await expect(page.getByText("Gesamtrate (Beispielwert)", { exact: true })).toBeVisible();
-  await expect(page.getByText("Persönliche Rate (Beispielrechnung)", { exact: true })).toBeVisible();
-  await expect(page.getByText("keine Destatis-Daten", { exact: true })).toBeVisible();
-  await expect(page.getByText("Quelle: Beispielwerte, nicht Destatis.")).toBeVisible();
-  await expect(page.getByText("Teilindizes nach COICOP-Abteilung (Beispielwerte)")).toBeVisible();
-  await expect(page.getByRole("main")).not.toContainText("Amtliche");
-  await expect(stat(page, "Persönliche Rate (Beispielrechnung)")).toHaveCount(1);
-  const personal = stat(page, "Persönliche Rate (Beispielrechnung)").getByTestId("stat-value");
-  await expect(personal).toHaveCSS("color", INK);
-  await expect(stat(page, "Persönliche Rate (Beispielrechnung)")).toContainText(/\d{2}\/\d{4} → \d{2}\/\d{4}/);
-  await expect(stat(page, "Gesamtrate (Beispielwert)").getByTestId("stat-value")).toHaveCSS("color", SLATE);
-  await expect(page.getByTestId("inflation-readme-link")).toHaveAttribute("href", "https://github.com/mirkan-morgenfels-ai/kontoklar#readme");
+  if (CPI_SAMPLE) {
+    await expect(page.getByText("Gesamtrate (Beispielwert)", { exact: true })).toBeVisible();
+    await expect(page.getByText("Persönliche Rate (Beispielrechnung)", { exact: true })).toBeVisible();
+    await expect(page.getByText("keine Destatis-Daten", { exact: true })).toBeVisible();
+    await expect(page.getByText("Quelle: Beispielwerte, nicht Destatis.")).toBeVisible();
+    await expect(page.getByText("Teilindizes nach COICOP-Abteilung (Beispielwerte)")).toBeVisible();
+    await expect(page.getByRole("main")).not.toContainText("Amtliche");
+    await expect(stat(page, "Gesamtrate (Beispielwert)").getByTestId("stat-value")).toHaveCSS("color", SLATE);
+    await expect(page.getByTestId("inflation-readme-link")).toHaveAttribute("href", "https://github.com/mirkan-morgenfels-ai/kontoklar#readme");
+  } else {
+    await expect(page.getByText("Amtliche Gesamtrate", { exact: true })).toBeVisible();
+    await expect(page.getByText("Verbraucherpreisindex insgesamt", { exact: true })).toBeVisible();
+    await expect(page.getByText("Quelle: Statistisches Bundesamt (Destatis), GENESIS-Online 61111-0002 und 61111-0006")).toBeVisible();
+    await expect(page.getByTestId("cpi-license-link")).toHaveAttribute("href", "https://www.govdata.de/dl-de/by-2-0");
+    await expect(page.getByText("Teilindizes nach COICOP-Abteilung", { exact: true })).toBeVisible();
+    await expect(page.getByRole("main")).not.toContainText("Beispielwert");
+    await expect(page.getByTestId("inflation-readme-link")).toHaveCount(0);
+  }
+  await expect(stat(page, PERSONAL_RATE)).toHaveCount(1);
+  const personal = stat(page, PERSONAL_RATE).getByTestId("stat-value");
+  if (CPI_SAMPLE) await expect(personal).toHaveCSS("color", INK);
+  await expect(stat(page, PERSONAL_RATE)).toContainText(/\d{2}\/\d{4} → \d{2}\/\d{4}/);
   await expect(page.getByTestId("inflation-covered")).toContainText("Abgedeckt:");
   const table = page.getByTestId("inflation-table");
   await expect(table.getByRole("columnheader", { name: "Veränderung zum Vorjahr", exact: true })).toBeVisible();

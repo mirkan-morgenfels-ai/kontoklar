@@ -59,3 +59,4 @@ export const MAX_BODY_BYTES = 200_000;
 export const MAX_TEXTS_PER_CALL = 500;
 export const MAX_TEXT_LENGTH = 80;
 export const CACHE_TTL_SECONDS = 60 * 60 * 24 * 30;
+export const DEFAULT_FALLBACK_MODEL = "gpt-5.6-luna";

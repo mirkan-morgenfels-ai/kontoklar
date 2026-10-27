@@ -1,20 +1,23 @@
 # Einrichtung des API-Schritts
 
-Stand: 21.10.2026. Diese Anleitung schaltet den optionalen API-Schritt von KontoKlar auf https://kontoklar-eight.vercel.app ein: Embedding-kNN und Sprachmodell-Fallback bei OpenAI, Zwischenspeicher und Tageslimit bei Upstash Redis, Bot-Prüfung mit Cloudflare Turnstile. Konten anlegen, Zahlungsdaten hinterlegen, Verträge annehmen und Schlüssel erzeugen nimmt der Autor selbst vor; Schlüssel gehören nie ins Repository, in Issues oder in Chats.
+Stand: 21.10.2026, überarbeitet am 27.10.2026 (Reihenfolge, Auftragsverarbeitungsvertrag und Datenfreigabe bei OpenAI, Abschaltung von `gpt-5-nano`, Lese-Regionen und Archivierung bei Upstash, Funktionsregion bei Vercel). Diese Anleitung schaltet den optionalen API-Schritt von KontoKlar auf https://kontoklar-eight.vercel.app ein: Embedding-kNN und Sprachmodell-Fallback bei OpenAI, Zwischenspeicher und Tageslimit bei Upstash Redis, Bot-Prüfung mit Cloudflare Turnstile. Konten anlegen, Zahlungsdaten hinterlegen, Verträge annehmen und Schlüssel erzeugen nimmt der Autor selbst vor; Schlüssel gehören nie ins Repository, in Issues oder in Chats.
 
 Die API-Route ist fail-closed (`apps/web/lib/kontoklar/config.ts`, `apps/web/app/api/categorize/route.ts`): Solange auch nur eine der sechs Pflichtvariablen fehlt, leer ist oder in der Produktion ein Cloudflare-Testschlüssel ist, meldet `GET /api/categorize` `enabled: false` mit den fehlenden Namen, und `POST` antwortet mit 503, ohne OpenAI, Upstash oder Cloudflare anzusprechen. Ohne `data/k2/labeled-embeddings.json` im Deployment bleibt der Schritt ebenfalls aus. Man kann die Variablen also nacheinander anlegen; aktiv wird der Schritt erst mit der letzten und dem nächsten Deployment.
 
 ## Reihenfolge
 
-1. Datenschutzerklärung ergänzen und veröffentlichen (Pflicht, vor allem anderen in der Produktion)
-2. OpenAI: Konto, Guthaben, Ausgabenlimit, API-Schlüssel
-3. Beispielset einbetten und API-Stufe messen (lokal)
-4. Upstash Redis in Frankfurt
-5. Cloudflare Turnstile
-6. `IP_HASH_SECRET` erzeugen
-7. Variablen in Vercel eintragen und neu deployen
-8. Prüfen
-9. Kosten im Blick behalten, im Notfall abschalten
+Die Schritte behalten ihre Nummern, weil andere Dokumente auf sie verweisen. Abgearbeitet werden sie in dieser Reihenfolge, damit die Angaben für die Datenschutzerklärung feststehen, bevor sie veröffentlicht wird, und die Erklärung veröffentlicht ist, bevor der Schritt in der Produktion eingeschaltet wird:
+
+1. Schritt 2: OpenAI: Konto, Guthaben, Ausgabenlimit, API-Schlüssel, Auftragsverarbeitungsvertrag, Datenfreigabe, Sprachmodell
+2. Schritt 3: Beispielset einbetten und API-Stufe messen (lokal)
+3. Schritt 4: Upstash Redis in Frankfurt
+4. Schritt 5: Cloudflare Turnstile
+5. Schritt 6: `IP_HASH_SECRET` erzeugen
+6. Schritt 7, Punkt 1: Funktionsregion bei Vercel
+7. Schritt 1: Datenschutzerklärung ergänzen und auf `main` veröffentlichen (Pflicht vor den Variablen)
+8. Schritt 7, Punkte 2 und 3: Variablen in Vercel eintragen und neu deployen
+9. Schritt 8: Prüfen
+10. Schritt 9: Kosten im Blick behalten, im Notfall abschalten
 
 ## Die Variablen
 
@@ -29,14 +32,14 @@ Die Namen stehen in `API_REQUIREMENTS` (`apps/web/lib/kontoklar/config.ts`), in 
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | ja | Cloudflare, Schritt 5 (Sitekey, öffentlich) | Config | Production |
 | `IP_HASH_SECRET` | ja, mindestens 32 Zeichen | Schritt 6 | Secret | Production |
 | `KONTOKLAR_EMBEDDING_MODEL` | nein, Standard `text-embedding-3-small` | – | Config | – |
-| `KONTOKLAR_FALLBACK_MODEL` | nein, Standard `gpt-5-nano` | – | Config | – |
+| `KONTOKLAR_FALLBACK_MODEL` | nein, Standard `gpt-5-nano` (wird am 11.12.2026 abgeschaltet, siehe Schritt 2) | – | Config | – |
 | `NEXT_PUBLIC_SITE_URL` | nein, leer bedeutet `https://kontoklar-eight.vercel.app` | – | Config | – |
 
-Die optionalen Variablen nicht setzen, solange die Standardwerte passen. Wird `KONTOKLAR_EMBEDDING_MODEL` gesetzt, muss `labeled-embeddings.json` mit demselben Modell erzeugt sein.
+Die optionalen Variablen nicht setzen, solange die Standardwerte passen. Wird `KONTOKLAR_EMBEDDING_MODEL` gesetzt, muss `labeled-embeddings.json` mit demselben Modell erzeugt sein. `KONTOKLAR_FALLBACK_MODEL` nur setzen, wenn der Wert zu dem Modell passt, das die Datenschutzerklärung nennt. `OPENAI_BASE_URL` nicht setzen: Das OpenAI-SDK liest die Variable selbst und würde den Endpunkt unbemerkt umstellen.
 
-## Schritt 1: Datenschutzerklärung (Pflicht vor dem Einschalten)
+## Schritt 1: Datenschutzerklärung (nach Schritt 7, Punkt 1, vor den Variablen)
 
-Der Entwurf [`entwurf-datenschutz-api.md`](entwurf-datenschutz-api.md) ergänzt Rechtsträger, Sitz und Region von Upstash, Vertragspartner und Übermittlungsgrundlage bei OpenAI und Cloudflare und die Speicherdauer bei OpenAI. Seine Prüfliste abarbeiten, Platzhalter mit den Angaben aus den Konten füllen (die entstehen in den Schritten 2 und 4), den Text in `apps/web/app/datenschutz/page.tsx` übernehmen und auf `main` veröffentlichen. Erst danach die Variablen in der Produktion vollständig setzen (Schritt 7). Der Entwurf ist keine Rechtsberatung.
+Der Entwurf [`entwurf-datenschutz-api.md`](entwurf-datenschutz-api.md) ergänzt die Angaben zu OpenAI (Vertragspartner, Auftragsverarbeitungsvertrag, Empfänger, Übermittlungsgrundlage, Speicherdauer), Upstash (Rechtsträger, Sitz, Region, Empfänger, eigene Zwecke), Cloudflare (Daten, Rolle, Übermittlung, Speicherdauer) und Vercel (Funktionsregion, Protokolle) sowie die Fundstellen der Garantien. Seine Platzhalter füllen sich aus den Schritten 2 bis 5 und Schritt 7, Punkt 1; dazu kommen einige Entscheidungen des Autors. Die Prüfliste des Entwurfs abarbeiten, den Text in `apps/web/app/datenschutz/page.tsx` übernehmen, auf `main` veröffentlichen und live gegenlesen. Erst danach die Variablen in der Produktion setzen (Schritt 7, Punkte 2 und 3). Der Entwurf ist keine Rechtsberatung.
 
 ## Schritt 2: OpenAI
 
@@ -44,7 +47,10 @@ Der Entwurf [`entwurf-datenschutz-api.md`](entwurf-datenschutz-api.md) ergänzt 
 2. Guthaben: Die API wird im Voraus bezahlt (Prepaid). Beim ersten Kauf ist die automatische Aufladung („auto recharge“) voreingestellt; sie vor dem Bestätigen ausschalten. Einen kleinen Betrag kaufen, etwa 5 $. Ohne automatische Aufladung ist das Guthaben die äußerste Grenze; gekaufte Guthaben verfallen nach einem Jahr.
 3. Ausgabenlimit (Monatslimit 5 $ laut `CLAUDE.md`): In den Organisationseinstellungen unter „Limits“ (https://platform.openai.com/settings/organization/limits) bei „Spend“ auf „Edit spend limit“, als „Monthly spend limit“ 5 eintragen, „Enforce a hard limit“ einschalten, „Save“. Dasselbe im Projekt unter „Project settings“ > „Limits“. Wird das Limit erreicht, antwortet OpenAI mit HTTP 429 (`organization_spend_limit_exceeded` bzw. `project_spend_limit_exceeded`); die Route meldet dann für Händlertexte, die noch nicht im Zwischenspeicher stehen, 502 „Kategorisierung derzeit nicht verfügbar.“, und die Oberfläche bleibt bei der Regel-Engine. OpenAI weist darauf hin, dass die Sperre nicht sofort greift und der Verbrauch das Limit leicht überschreiten kann. Zusätzlich eine Benachrichtigung („alert“) bei etwa 2 $ setzen.
 4. API-Schlüssel: im Projekt unter „API keys“ „Create new secret key“, Name „kontoklar-vercel“, Berechtigung „Restricted“ mit „Model capabilities“ auf „Write“ und allen übrigen Bereichen auf „None“ (KontoKlar ruft nur `/v1/embeddings` und `/v1/chat/completions` auf). Der Schlüssel wird nur einmal angezeigt; in einem Passwortmanager ablegen. Falls ein Aufruf mit dieser Einschränkung scheitert (Schritt 3 meldet dann einen Fehler 401 oder 403), die Berechtigung auf „All“ setzen.
-5. Datenresidenz: Eine Verarbeitung in Europa (`eu.api.openai.com`) setzt laut OpenAI eine Freigabe voraus und würde eine Code-Änderung brauchen; vorerst nicht nötig, der Entwurf der Datenschutzerklärung berücksichtigt die Verarbeitung in den USA.
+5. Datenresidenz: Eine Verarbeitung in Europa (`eu.api.openai.com`) setzt laut OpenAI eine Freigabe (Zero Data Retention, Modified Abuse Monitoring, Private Retention mit PSP oder Safety Retention) und ein unterzeichnetes Modified Retention Amendment voraus; technisch ginge sie ohne Codeänderung über `OPENAI_BASE_URL`. Vorerst nicht nötig, der Entwurf der Datenschutzerklärung berücksichtigt die Verarbeitung in den USA; `OPENAI_BASE_URL` deshalb nicht setzen.
+6. Auftragsverarbeitungsvertrag: auf https://openai.com/policies/data-processing-addendum/ den Link „Execute Data Processing Agreement“ öffnen (Formular bei Ironclad). Es fragt den vollständigen Namen bzw. Firmennamen, die Anschrift, die Organization ID (Seite „Organization settings“), ob der Kunde im EWR oder in der Schweiz ansässig ist (bei Wohnsitz in Deutschland: ja, dann ist OpenAI Ireland Ltd. Vertragspartner) sowie Name und E-Mail der unterzeichnenden Person. Nach dem Absenden geht eine Prüfanfrage an diese E-Mail; verbindlich wird die Vereinbarung laut Formular erst, wenn Sie die Bedingungen annehmen. Vertragspartner und Datum der Annahme für die Datenschutzerklärung notieren.
+7. Datenfreigabe: In den Organisationseinstellungen unter „Data controls“ (Bereich „Sharing“) prüfen, dass alle Freigaben an OpenAI aus sind (Feedback, Evaluations- und Fine-Tuning-Daten, Ein- und Ausgaben), auch für keine einzelnen Projekte eingeschaltet. Laut OpenAI ist das Teilen von Ein- und Ausgaben standardmäßig aus, und nur der Organization Owner kann es ändern.
+8. Sprachmodell: OpenAI schaltet `gpt-5-nano`, den bisherigen Standard für den Fallback, am 11.12.2026 ab und nennt `gpt-5.6-luna` als Nachfolger. Das Modell vor Schritt 3 festlegen (Abwägung im Entwurf der Datenschutzerklärung, „Vorab zu entscheiden“) und in Schritt 3 mit einem echten Aufruf prüfen, ob es den JSON-Modus des Codes annimmt; danach den Standard in `apps/web/lib/kontoklar/providers.ts`, `apps/web/.env.example`, README und dieser Anleitung anpassen.
 
 ## Schritt 3: Beispielset einbetten und API-Stufe messen (lokal)
 
@@ -62,13 +68,13 @@ Remove-Item Env:OPENAI_API_KEY
 
 - Der Probelauf `--dry-run` braucht keinen Schlüssel. Stand 21.10.2026 meldet er 278 Einträge, 277 verschiedene normalisierte Texte (`CASH26` wird zu einem leeren Text und übersprungen), geschätzt 1.197 Token und Kosten von etwa 0,000024 $ (0,02 $ je Million Token für `text-embedding-3-small`; die Schätzung rechnet ein Token je drei Zeichen).
 - `embeddings:build` schreibt `data/k2/labeled-embeddings.json` (277 Vektoren mit je 1.536 Werten, auf 5 Nachkommastellen gerundet; die Datei wird einige Megabyte groß).
-- `accuracy --api` prüft das API-Testset (95 Buchungen), bettet die 95 Händlertexte ein (etwa 760 Token) und schickt die unsicheren in einem Aufruf an GPT-5 nano (0,05 $ je Million Eingabe-Token, 0,40 $ je Million Ausgabe-Token). Zusammen liegt die Messung nach dieser Rechnung deutlich unter 0,01 $. Erst mit `--write` entsteht `docs/genauigkeit-api.json`.
+- `accuracy --api` prüft das API-Testset (95 Buchungen), bettet die 95 Händlertexte ein (etwa 760 Token) und schickt die unsicheren in einem Aufruf an das Fallback-Modell (bisher GPT-5 nano, 0,05 $ je Million Eingabe-Token, 0,40 $ je Million Ausgabe-Token; `gpt-5.6-luna` laut Modellseite am 27.10.2026 0,20 $ bzw. 1,20 $). Ein anderes Modell als den Standard probeweise mit `$env:KONTOKLAR_FALLBACK_MODEL = "gpt-5.6-luna"` vor dem Aufruf; scheitert es mit Fehler 400, nimmt es den JSON-Modus (`response_format: json_object`) nicht an, und der Code muss auf Structured Outputs umgestellt werden. Zusammen liegt die Messung nach dieser Rechnung deutlich unter 0,01 $. Erst mit `--write` entsteht `docs/genauigkeit-api.json`.
 - Danach `labeled-embeddings.json` und `docs/genauigkeit-api.json` committen und pushen (Commit nimmt der Autor vor) und die Kennzahlen in `docs/genauigkeit.md` und im README nachtragen (kann Claude übernehmen). Der Build nimmt die Datei in die API-Funktion auf (am 20.10.2026 mit einer Probedatei geprüft: `.next/server/app/api/categorize/route.js.nft.json` enthält `data/k2/labeled-embeddings.json`).
 
 ## Schritt 4: Upstash Redis in Frankfurt
 
 1. Unter https://console.upstash.com anmelden bzw. registrieren.
-2. Im Reiter „Redis“ auf „+ Create Database“. Name „kontoklar“, „Primary Region“ AWS „eu-central-1“ (Frankfurt). Keine Lese-Regionen außerhalb der EU auswählen (am einfachsten keine). „Next“, den kostenlosen Tarif wählen, anlegen.
+2. Im Reiter „Redis“ auf „+ Create Database“. Name „kontoklar“, „Primary Region“ AWS „eu-central-1“ (Frankfurt). Keine Lese-Regionen auswählen (der Entwurf der Datenschutzerklärung sagt „keine weiteren Lese-Regionen“). „Next“, den kostenlosen Tarif wählen, anlegen. Im Reiter „Backups“ „Daily Backup“ aus lassen. Laut FAQ archiviert Upstash kostenlose Datenbanken nach mindestens 30 Tagen ohne Nutzung (Sicherung der Daten, Entfernen der Datenbank); ob das die Datenschutzerklärung betrifft, klärt der Entwurf (Prüfliste, Punkt 4).
 3. In der Datenbank im Bereich „Connect“ den Reiter „REST“ öffnen. Dort stehen die Werte für `UPSTASH_REDIS_REST_URL` (beginnt mit `https://` und endet auf `.upstash.io`) und `UPSTASH_REDIS_REST_TOKEN`. Den normalen Token nehmen, nicht den „Readonly Token“: Tageslimit und Zwischenspeicher schreiben.
 4. Die Variablennamen müssen genau so lauten; eine Integration, die andere Namen anlegt, reicht nicht.
 5. Region für den Entwurf der Datenschutzerklärung notieren.
@@ -90,10 +96,11 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 Alternativ `openssl rand -hex 32`. Der Server bildet damit HMAC-SHA256 der IP-Adresse (IPv6: /64-Präfix) als Schlüssel des Tageslimits. Ein neuer Wert setzt alle Tageszähler zurück.
 
-## Schritt 7: Variablen in Vercel eintragen und neu deployen
+## Schritt 7: Funktionsregion, Variablen in Vercel eintragen und neu deployen
 
-1. https://vercel.com öffnen, Team „AI-Team“, Projekt „kontoklar“, in der Seitenleiste „Environment Variables“ (Project Settings).
-2. Je Variable: Name aus der Tabelle oben, Wert einfügen, Typ „Secret“ (für `NEXT_PUBLIC_TURNSTILE_SITE_KEY` „Config“), als Umgebung nur „Production“ anhaken, „Save“. Preview und Development frei lassen: Preview-Adressen stehen nicht in der Turnstile-Hostname-Liste, und jede Vorschau würde das OpenAI-Guthaben mitnutzen.
+1. Funktionsregion (vor Schritt 1, weil die Datenschutzerklärung sie nennt): https://vercel.com öffnen, Team „AI-Team“, Projekt „kontoklar“, Settings → Functions → „Function Regions“. Für neue Projekte ist Washington, D.C. (`iad1`) voreingestellt; im Repository ist keine Region gesetzt. Empfehlung: Frankfurt (`fra1`), nahe an Upstash eu-central-1; im Hobby-Tarif ist genau eine Region möglich. Die Einstellung gilt ab dem nächsten Deployment.
+2. Nach der Veröffentlichung der Datenschutzerklärung (Schritt 1) im Projekt in der Seitenleiste „Environment Variables“ (Project Settings) öffnen. Je Variable: Name aus der Tabelle oben, Wert einfügen, Typ „Secret“ (für `NEXT_PUBLIC_TURNSTILE_SITE_KEY` „Config“), als Umgebung nur „Production“ anhaken, „Save“. Preview und Development frei lassen: Preview-Adressen stehen nicht in der Turnstile-Hostname-Liste, und jede Vorschau würde das OpenAI-Guthaben mitnutzen.
+   `OPENAI_BASE_URL` nicht anlegen; `KONTOKLAR_FALLBACK_MODEL` nur passend zur Datenschutzerklärung.
 3. Änderungen gelten nur für neue Deployments. Deshalb danach in der Seitenleiste „Deployments“ das aktuelle Production-Deployment wählen, „…“ > „Redeploy“, im Fenster „Redeploy to Production“ den Build-Cache abwählen (der Sitekey wird beim Build in das JavaScript geschrieben) und „Redeploy“. Ein Push auf `main`, etwa mit `labeled-embeddings.json`, erzeugt ebenfalls ein neues Deployment.
 
 ## Schritt 8: Prüfen
@@ -130,7 +137,8 @@ Invoke-WebRequest $api -Method Post -ContentType "application/json" -Body ("x" *
 | Posten | Preis bzw. Grenze |
 |---|---|
 | `text-embedding-3-small` | 0,02 $ je Million Token |
-| GPT-5 nano (Fallback) | 0,05 $ je Million Eingabe-Token, 0,40 $ je Million Ausgabe-Token |
+| GPT-5 nano (Fallback, bis 11.12.2026) | 0,05 $ je Million Eingabe-Token, 0,40 $ je Million Ausgabe-Token |
+| `gpt-5.6-luna` (Nachfolger laut OpenAI) | 0,20 $ je Million Eingabe-Token, 1,20 $ je Million Ausgabe-Token (Modellseite, 27.10.2026) |
 | OpenAI-Ausgabenlimit | 5 $ im Monat, harte Grenze (Schritt 2) |
 | Upstash Redis, Cloudflare Turnstile | kostenlose Tarife |
 | Tageslimit je IP-Hash | 30 Aufrufe, höchstens 500 Texte je Aufruf |
@@ -153,6 +161,10 @@ Notabschaltung, je nach Dringlichkeit:
 - Upstash, Global Replication (Region AWS EU-Central-1 Frankfurt): https://upstash.com/docs/common/concepts/global-replication (abgerufen am 21.10.2026)
 - Cloudflare, Turnstile: Widget im Dashboard anlegen (Stand 16.04.2026): https://developers.cloudflare.com/turnstile/get-started/widget-management/dashboard/ (abgerufen am 21.10.2026)
 - Cloudflare, Turnstile: Testschlüssel (Stand 20.10.2026; Produktionsschlüssel lehnen Test-Token ab): https://developers.cloudflare.com/turnstile/troubleshooting/testing/ (abgerufen am 21.10.2026)
+- OpenAI, Abkündigungen (`gpt-5-nano` bis 11.12.2026, Nachfolger `gpt-5.6-luna`): https://developers.openai.com/api/docs/deprecations (abgerufen am 27.10.2026); Modellseite `gpt-5.6-luna`: https://developers.openai.com/api/docs/models/gpt-5.6-luna (abgerufen am 27.10.2026)
+- OpenAI, Data Processing Addendum und Formular „Execute Data Processing Agreement“: https://openai.com/policies/data-processing-addendum/ und https://ironcladapp.com/public-launch/63ffefa2bed6885f4536d0fe (im Browser gelesen am 27.10.2026); Help Center zu Datenfreigaben: https://help.openai.com/en/articles/10306912 (im Browser gelesen am 27.10.2026)
+- Upstash, FAQ (Archivierung kostenloser Datenbanken): https://upstash.com/docs/redis/help/faq; Backups: https://upstash.com/docs/redis/features/backup (abgerufen am 27.10.2026)
+- Vercel, Configuring regions for Vercel Functions (Vorgabe `iad1`, Hobby eine Region; Stand 11.08.2026): https://vercel.com/docs/functions/configuring-functions/region (abgerufen am 27.10.2026)
 - Vercel, Managing environment variables (Seitenleiste „Environment Variables“, „Save“, nur neue Deployments, Löschen über „…“; Stand 11.09.2026): https://vercel.com/docs/environment-variables/managing-environment-variables (abgerufen am 21.10.2026)
 - Vercel, Config and Secret environment variables (Stand 28.08.2026): https://vercel.com/docs/environment-variables/sensitive-environment-variables (abgerufen am 20.10.2026)
 - Vercel, Managing Deployments, „Redeploy a project“ (Stand 15.09.2026): https://vercel.com/docs/deployments/managing-deployments (abgerufen am 20.10.2026)

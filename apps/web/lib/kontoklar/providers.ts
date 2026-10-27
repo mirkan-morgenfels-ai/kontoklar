@@ -3,8 +3,33 @@ import path from "node:path";
 import OpenAI from "openai";
 import { Redis } from "@upstash/redis";
 import { isCategory } from "./categories";
+import { DEFAULT_EMBEDDING_MODEL } from "./embeddings";
 import type { LabeledVector } from "./knn";
 import type { CategoryCache, EmbedFn, FallbackFn } from "./server";
+import { DEFAULT_FALLBACK_MODEL } from "./types";
+
+type CompletionUsage = {
+  prompt_tokens?: number;
+  completion_tokens?: number;
+  completion_tokens_details?: { reasoning_tokens?: number | null } | null;
+} | null | undefined;
+
+export interface FallbackUsage {
+  calls: number;
+  sent: number;
+  assigned: number;
+  promptTokens: number;
+  completionTokens: number;
+  reasoningTokens: number;
+}
+
+export function embeddingModel(): string {
+  return process.env.KONTOKLAR_EMBEDDING_MODEL?.trim() || DEFAULT_EMBEDDING_MODEL;
+}
+
+export function fallbackModel(): string {
+  return process.env.KONTOKLAR_FALLBACK_MODEL?.trim() || DEFAULT_FALLBACK_MODEL;
+}
 
 export function createRedisCache(redis: Redis): CategoryCache {
   return {
@@ -21,7 +46,7 @@ export function createRedisCache(redis: Redis): CategoryCache {
   };
 }
 
-export function createOpenAiEmbed(client: OpenAI, model = process.env.KONTOKLAR_EMBEDDING_MODEL ?? "text-embedding-3-small"): EmbedFn {
+export function createOpenAiEmbed(client: OpenAI, model = embeddingModel()): EmbedFn {
   return async (texts) => {
     const res = await client.embeddings.create({ model, input: texts });
     const sorted = [...res.data].sort((a, b) => a.index - b.index);
@@ -29,7 +54,7 @@ export function createOpenAiEmbed(client: OpenAI, model = process.env.KONTOKLAR_
   };
 }
 
-export function createOpenAiFallback(client: OpenAI, model = process.env.KONTOKLAR_FALLBACK_MODEL ?? "gpt-5-nano"): FallbackFn {
+export function createOpenAiFallback(client: OpenAI, model = fallbackModel(), onUsage?: (usage: CompletionUsage) => void): FallbackFn {
   return async (texts, categories) => {
     const system = [
       "Du ordnest normalisierte Händlernamen deutscher Kontoumsätze genau einer Kategorie zu.",
@@ -45,6 +70,7 @@ export function createOpenAiFallback(client: OpenAI, model = process.env.KONTOKL
         { role: "user", content: user },
       ],
     });
+    onUsage?.(res.usage);
     const content = res.choices[0]?.message?.content ?? "{}";
     const out: Record<string, string> = {};
     try {
@@ -59,6 +85,23 @@ export function createOpenAiFallback(client: OpenAI, model = process.env.KONTOKL
     }
     return out;
   };
+}
+
+export function measuredFallback(client: OpenAI, model = fallbackModel()): { fallback: FallbackFn; usage: FallbackUsage; model: string } {
+  const usage: FallbackUsage = { calls: 0, sent: 0, assigned: 0, promptTokens: 0, completionTokens: 0, reasoningTokens: 0 };
+  const inner = createOpenAiFallback(client, model, (u) => {
+    usage.promptTokens += u?.prompt_tokens ?? 0;
+    usage.completionTokens += u?.completion_tokens ?? 0;
+    usage.reasoningTokens += u?.completion_tokens_details?.reasoning_tokens ?? 0;
+  });
+  const fallback: FallbackFn = async (texts, categories) => {
+    usage.calls++;
+    usage.sent += texts.length;
+    const out = await inner(texts, categories);
+    usage.assigned += Object.keys(out).length;
+    return out;
+  };
+  return { fallback, usage, model };
 }
 
 let labeledCache: LabeledVector[] | null = null;

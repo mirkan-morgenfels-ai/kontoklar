@@ -15,7 +15,7 @@ import {
 import { isCategory } from "../lib/kontoklar/categories";
 import { applyRules, collectApiTexts, mergeApiResults } from "../lib/kontoklar/categorize";
 import { normalizeMerchant } from "../lib/kontoklar/merchant";
-import { createOpenAiEmbed, createOpenAiFallback, loadLabeledVectors, openAiClient } from "../lib/kontoklar/providers";
+import { createOpenAiEmbed, embeddingModel, loadLabeledVectors, measuredFallback, openAiClient } from "../lib/kontoklar/providers";
 import { categorizeTexts } from "../lib/kontoklar/server";
 
 const root = path.resolve(__dirname, "..", "..", "..");
@@ -180,14 +180,26 @@ async function measureApi(write: boolean) {
     process.exit(1);
   }
 
-  console.log(`API-Stufe: ${texts.length} Händlertexte werden eingebettet (nur normalisierte Händlerteile).`);
+  const models = { embedding: embeddingModel(), fallback: "" };
+  const measured = measuredFallback(client);
+  models.fallback = measured.model;
+  console.log(`API-Stufe: ${texts.length} Händlertexte werden eingebettet (nur normalisierte Händlerteile). Modelle: ${models.embedding}, Fallback ${models.fallback}.`);
+  const startedAt = Date.now();
   const res = await categorizeTexts(texts, {
     cache: null,
-    embed: createOpenAiEmbed(client),
+    embed: createOpenAiEmbed(client, models.embedding),
     labeled,
-    fallback: createOpenAiFallback(client),
+    fallback: measured.fallback,
   });
-  console.log(`Eingebettet: ${res.stats.embedded}, an das Sprachmodell: ${res.stats.fallback}.`);
+  const fallbackUsage = { ...measured.usage, seconds: Math.round((Date.now() - startedAt) / 100) / 10 };
+  console.log(`Eingebettet: ${res.stats.embedded}. An das Sprachmodell gesendet: ${fallbackUsage.sent} in ${fallbackUsage.calls} Aufruf(en), davon zugeordnet: ${fallbackUsage.assigned}.`);
+  console.log(`Token des Sprachmodells: ${fallbackUsage.promptTokens} Eingabe, ${fallbackUsage.completionTokens} Ausgabe, davon ${fallbackUsage.reasoningTokens} Reasoning. Dauer der API-Stufe: ${fallbackUsage.seconds} s.`);
+  if (fallbackUsage.sent === 0) {
+    console.warn(`Hinweis: Kein Text ging an das Sprachmodell; ob ${models.fallback} den JSON-Modus annimmt, ist damit nicht geprüft.`);
+  } else if (fallbackUsage.assigned === 0) {
+    console.error(`Abbruch: ${models.fallback} hat keinen der ${fallbackUsage.sent} Texte zugeordnet. Antwort und JSON-Modus (response_format json_object) prüfen, gegebenenfalls auf Structured Outputs umstellen.`);
+    process.exit(1);
+  }
   const items = mergeApiResults(ruled, res.results);
 
   const options = { date: new Date().toISOString().slice(0, 10), mode: "rule+knn+fallback" as const };
@@ -199,7 +211,7 @@ async function measureApi(write: boolean) {
   const { total, stages, accuracyTotal, accuracyAssigned, perCategory } = nameOnly.report;
   writeReport(
     apiOutPath,
-    { testset: "data/k2/testset-api.json", ...report, withoutLabelFromPurpose: { excluded: nameOnly.excluded, total, stages, accuracyTotal, accuracyAssigned, perCategory } },
+    { testset: "data/k2/testset-api.json", models, fallbackUsage, ...report, withoutLabelFromPurpose: { excluded: nameOnly.excluded, total, stages, accuracyTotal, accuracyAssigned, perCategory } },
     write,
   );
 }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BUTTON_GOLD, BUTTON_OUTLINE_LIGHT } from "@/components/site/buttons";
 import { StatusPage } from "@/components/site/StatusPage";
-import { PORTFOLIO_LABEL, PORTFOLIO_URL, PROJECT_PATH } from "@/lib/site";
+import { PORTFOLIO_HOME_URL, PORTFOLIO_LABEL, PROJECT_PATH } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Seite nicht gefunden",
@@ -21,7 +21,7 @@ export default function NotFound() {
           <Link href={PROJECT_PATH} className={BUTTON_GOLD}>
             Zu KontoKlar
           </Link>
-          <a href={PORTFOLIO_URL} rel="noopener noreferrer" className={BUTTON_OUTLINE_LIGHT}>
+          <a href={PORTFOLIO_HOME_URL} rel="noopener noreferrer" className={BUTTON_OUTLINE_LIGHT}>
             Zur Website {PORTFOLIO_LABEL}
             <span className="sr-only"> (externe Seite)</span>
           </a>

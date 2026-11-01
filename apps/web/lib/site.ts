@@ -29,6 +29,8 @@ export const PORTFOLIO_LABEL = "mirkandeniz.de";
 
 export const PORTFOLIO_PROJECTS_URL = `${PORTFOLIO_URL}/projekte`;
 
+export const PORTFOLIO_HOME_URL = `${PORTFOLIO_URL}/#start`;
+
 export const OWNER_NAME = "Mirkan Deniz Günkaya";
 
 export const GITHUB_PROFILE_URL = "https://github.com/mirkan-morgenfels-ai";

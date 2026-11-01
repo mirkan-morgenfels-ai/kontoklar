@@ -1,11 +1,11 @@
-import { PORTFOLIO_LABEL, PORTFOLIO_URL } from "@/lib/site";
+import { PORTFOLIO_HOME_URL, PORTFOLIO_LABEL } from "@/lib/site";
 import { Monogram } from "./Monogram";
 import { cx } from "./cx";
 
 export function Brand({ className }: { className?: string }) {
   return (
     <a
-      href={PORTFOLIO_URL}
+      href={PORTFOLIO_HOME_URL}
       rel="noopener noreferrer"
       className={cx("group -m-1.5 inline-flex items-center gap-3 rounded-lg p-1.5", className)}
       data-testid="portfolio-link"

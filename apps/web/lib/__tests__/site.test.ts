@@ -7,6 +7,7 @@ import {
   LEGAL_LINKS,
   NAV_LINKS,
   OWNER_NAME,
+  PORTFOLIO_HOME_URL,
   PORTFOLIO_LABEL,
   PORTFOLIO_PROJECTS_URL,
   PORTFOLIO_URL,
@@ -67,6 +68,7 @@ describe("navigation", () => {
 
   it("leads back to the website mirkandeniz.de", () => {
     expect(PORTFOLIO_URL).toBe("https://mirkandeniz.de");
+    expect(PORTFOLIO_HOME_URL).toBe("https://mirkandeniz.de/#start");
     expect(PORTFOLIO_LABEL).toBe(new URL(PORTFOLIO_URL).host);
   });
 

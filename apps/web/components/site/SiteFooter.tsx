@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GITHUB_PROFILE_URL, LEGAL_LINKS, OWNER_NAME, PORTFOLIO_LABEL, PORTFOLIO_URL, PROJECTS, REPO_URL } from "@/lib/site";
+import { GITHUB_PROFILE_URL, LEGAL_LINKS, OWNER_NAME, PORTFOLIO_HOME_URL, PORTFOLIO_LABEL, PROJECTS, REPO_URL } from "@/lib/site";
 import { Brand } from "./Brand";
 import { ExternalMark } from "./ExternalMark";
 import { Shell } from "./Shell";
@@ -20,7 +20,7 @@ export function SiteFooter() {
             <Brand />
             <p className="mt-6 max-w-sm text-sm leading-relaxed text-navy-300">
               Ein Projekt von {OWNER_NAME}. Werdegang, alle Projekte und Kontakt auf{" "}
-              <a href={PORTFOLIO_URL} rel="noopener noreferrer" className={LINK_CLASS} data-testid="footer-portfolio-link">
+              <a href={PORTFOLIO_HOME_URL} rel="noopener noreferrer" className={LINK_CLASS} data-testid="footer-portfolio-link">
                 {PORTFOLIO_LABEL}
                 <span className="sr-only"> (externe Seite)</span>
                 <ExternalMark className="ml-1.5 h-2.5 w-2.5 text-gold/80" />

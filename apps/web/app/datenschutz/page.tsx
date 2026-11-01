@@ -133,6 +133,11 @@ export default function DatenschutzPage() {
           b). Die Daten werden gelöscht, sobald die Anfrage erledigt ist und keine gesetzlichen Aufbewahrungspflichten
           entgegenstehen.
         </p>
+        <p>
+          Das E-Mail-Postfach wird bei der IONOS SE, Elgendorfer Straße 57, 56410 Montabaur, geführt. IONOS verarbeitet die
+          E-Mails als Auftragsverarbeiter auf Grundlage eines Vertrags nach Art. 28 DSGVO. E-Mails werden dort gespeichert,
+          bis sie wie oben beschrieben gelöscht werden.
+        </p>
       </LegalSection>
 
       <LegalSection title="8. Externe Links">

@@ -243,9 +243,11 @@ test("operator details on imprint and privacy page", async ({ page }) => {
     const main = page.getByRole("main");
     await expect(main).toContainText("Mirkan Deniz Günkaya");
     await expect(main).toContainText("München");
-    await expect(main).toContainText("mirkandeniz52@gmail.com");
+    await expect(main).toContainText("guenkaya@mirkandeniz.de");
+    await expect(main).not.toContainText("gmail.com");
   }
   const main = page.getByRole("main");
+  await expect(main).toContainText("IONOS SE, Elgendorfer Straße 57, 56410 Montabaur");
   await expect(main).toContainText("HMAC-SHA256");
   await expect(main).toContainText("Diese Seite verlinkt auf die Website mirkandeniz.de und die Projekte DepotDoktor und NetzRadar");
   await expect(main).toContainText("Quellcode-Repositories bei GitHub (GitHub, Inc., USA)");

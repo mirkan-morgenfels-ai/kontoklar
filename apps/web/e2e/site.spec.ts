@@ -400,3 +400,51 @@ test("visible labels are part of the accessible names (label-content-name-mismat
   expect(names.length).toBe(5);
   expect(new Set(names).size).toBe(5);
 });
+
+type ClickInit = { ctrlKey?: boolean; metaKey?: boolean; shiftKey?: boolean; altKey?: boolean; button?: number };
+
+test("the way back to mirkandeniz.de shows a short transition", async ({ page }) => {
+  await page.route(`${PORTFOLIO_URL}/**`, (route) =>
+    route.fulfill({ status: 200, contentType: "text/html", body: "<!doctype html><title>Website</title><p>Website</p>" }),
+  );
+  await page.goto("/projects/kontoklar");
+  await expect(page.locator("html")).toHaveAttribute("data-transition-ready", "");
+  await page.locator("header").getByTestId("portfolio-link").click();
+  const overlay = page.locator('[data-portfolio-transition="mirkandeniz.de"]');
+  await expect(overlay).toBeVisible();
+  await expect(overlay).toContainText("Zurück zur Website");
+  await expect(overlay).toContainText("Mirkan Deniz");
+  await page.waitForURL(PORTFOLIO_HOME_URL);
+  await expect(page.locator("p")).toHaveText("Website");
+});
+
+test("the transition also leads to the sister projects and leaves modifier clicks and reduced motion alone", async ({ page }) => {
+  const sister = "https://depotdoktor.mirkandeniz.de/projects/depotdoktor";
+  await page.route(`${new URL(sister).origin}/**`, (route) =>
+    route.fulfill({ status: 200, contentType: "text/html", body: "<!doctype html><title>App</title><p>App</p>" }),
+  );
+  await page.goto("/projects/kontoklar");
+  await expect(page.locator("html")).toHaveAttribute("data-transition-ready", "");
+  const link = page.getByRole("navigation", { name: "Hauptnavigation" }).locator(`a[href="${sister}"]`);
+  const prevented = (inits: ClickInit[]) =>
+    link.evaluate((element, list) => {
+      const results: boolean[] = [];
+      const record = (event: Event) => {
+        results.push(event.defaultPrevented);
+        event.preventDefault();
+      };
+      window.addEventListener("click", record);
+      for (const init of list) element.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, ...init }));
+      window.removeEventListener("click", record);
+      return results;
+    }, inits);
+  expect(await prevented([{ ctrlKey: true }, { metaKey: true }, { shiftKey: true }, { altKey: true }, { button: 1 }])).toEqual([false, false, false, false, false]);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  expect(await prevented([{}])).toEqual([false]);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect(page.locator("[data-portfolio-transition]")).toHaveCount(0);
+  await link.click();
+  await expect(page.locator(`[data-portfolio-transition="${new URL(sister).host}"]`)).toContainText("Weiter zum Projekt");
+  await page.waitForURL(sister);
+  await expect(page.locator("p")).toHaveText("App");
+});

@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { transitionDestination } from "../../components/site/transition";
 import { OG_IMAGE_ALT, OG_IMAGE_PATH, pageMetadata, withSiteName } from "../metadata";
 import {
   DEFAULT_SITE_URL,
@@ -124,5 +125,21 @@ describe("pageMetadata", () => {
     const meta = pageMetadata({ path: "/", title: "Projekte · Mirkan Deniz Günkaya", absoluteTitle: true, description: "d" });
     expect(meta.title).toEqual({ absolute: "Projekte · Mirkan Deniz Günkaya" });
     expect(meta.openGraph?.title).toBe("Projekte · Mirkan Deniz Günkaya");
+  });
+});
+
+describe("transitionDestination", () => {
+  it("names the website and the sister projects as destinations of the transition", () => {
+    expect(transitionDestination(PORTFOLIO_HOME_URL)).toEqual({ eyebrow: "Zurück zur Website", title: "Mirkan", accent: "Deniz", host: "mirkandeniz.de" });
+    expect(transitionDestination(PORTFOLIO_PROJECTS_URL)?.host).toBe(PORTFOLIO_LABEL);
+    expect(transitionDestination("https://depotdoktor.mirkandeniz.de/projects/depotdoktor")).toEqual({
+      eyebrow: "Weiter zum Projekt",
+      title: "DepotDoktor",
+      accent: null,
+      host: "depotdoktor.mirkandeniz.de",
+    });
+    expect(transitionDestination(REPO_URL)).toBeNull();
+    expect(transitionDestination(GITHUB_PROFILE_URL)).toBeNull();
+    expect(transitionDestination("/impressum")).toBeNull();
   });
 });

@@ -1,5 +1,6 @@
 import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
+import { LEGACY_HOSTS, PROJECT_PATH, siteUrl } from "./lib/site";
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -39,6 +40,18 @@ const nextConfig: NextConfig = {
     return [
       { source: "/(.*)", headers: SECURITY_HEADERS },
       { source: "/api/(.*)", headers: [{ key: "Cache-Control", value: "no-store" }] },
+    ];
+  },
+  async redirects() {
+    const target = siteUrl();
+    return [
+      ...LEGACY_HOSTS.filter((host) => host !== target.host).map((host) => ({
+        source: "/:path*",
+        has: [{ type: "host" as const, value: host }],
+        destination: `${target.origin}/:path*`,
+        permanent: true,
+      })),
+      { source: "/", destination: PROJECT_PATH, permanent: true },
     ];
   },
 };

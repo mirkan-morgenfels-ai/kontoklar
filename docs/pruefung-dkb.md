@@ -19,7 +19,7 @@ Stand: 21.10.2026. Ziel: klären, welches Datumsformat und welchen Aufbau der ec
 
 ## Schritt 2: Lokal prüfen
 
-Variante A, ohne Kommandozeile: https://kontoklar-eight.vercel.app/projects/kontoklar öffnen, den API-Schritt ausgeschaltet lassen (Standard) und die Datei hochladen. Die Datei bleibt im Browser; ohne API-Schritt geht keine Anfrage mit Inhalten an den Server (das prüft auch die E2E). Erwartung: „Ergebnis für <Dateiname>“, keine Meldung „Format nicht erkannt“, Buchungsdaten in der Prüftabelle plausibel (kein Datum im Jahr 1926 oder 0026).
+Variante A, ohne Kommandozeile: https://kontoklar.mirkandeniz.de/projects/kontoklar öffnen, den API-Schritt ausgeschaltet lassen (Standard) und die Datei hochladen. Die Datei bleibt im Browser; ohne API-Schritt geht keine Anfrage mit Inhalten an den Server (das prüft auch die E2E). Erwartung: „Ergebnis für <Dateiname>“, keine Meldung „Format nicht erkannt“, Buchungsdaten in der Prüftabelle plausibel (kein Datum im Jahr 1926 oder 0026).
 
 Variante B, Prüfskript (gibt nur Aufbau und Zählwerte aus, keine Inhalte, keine IBAN, keine Namen, keinen Dateinamen):
 

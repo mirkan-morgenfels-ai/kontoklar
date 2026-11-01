@@ -5,7 +5,7 @@ Kategorisiert Bankumsätze aus CSV-Exporten und zeigt, wohin das Geld geht. Rege
 [![CI](https://github.com/mirkan-morgenfels-ai/kontoklar/actions/workflows/ci.yml/badge.svg)](https://github.com/mirkan-morgenfels-ai/kontoklar/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
-Live-Demo: https://kontoklar-eight.vercel.app/projects/kontoklar
+Live-Demo: https://kontoklar.mirkandeniz.de/projects/kontoklar (die frühere Adresse kontoklar-eight.vercel.app leitet dorthin weiter). Werdegang und alle Projekte: https://mirkandeniz.de
 
 ![Dashboard mit synthetischen Beispieldaten: Kennzahlen, sechs Monate Ausgaben nach Kategorie als gestapelte Balken, Einnahmen als Linie, Verteilung nach Kategorie und erkannte wiederkehrende Zahlungen](docs/screenshots/dashboard.png)
 
@@ -189,7 +189,7 @@ Optional, mit Standardwert:
 
 | Variable | Standard | Wirkung |
 |---|---|---|
-| `NEXT_PUBLIC_SITE_URL` | `https://kontoklar-eight.vercel.app` | Basisadresse für kanonische Links, Link-Vorschau, `sitemap.xml` und `robots.txt` |
+| `NEXT_PUBLIC_SITE_URL` | `https://kontoklar.mirkandeniz.de` | Basisadresse für kanonische Links, Link-Vorschau, `sitemap.xml` und `robots.txt` |
 | `KONTOKLAR_FALLBACK_MODEL` | `gpt-5.6-luna` | Sprachmodell für den Fallback unter Konfidenz 0,5 |
 | `KONTOKLAR_EMBEDDING_MODEL` | `text-embedding-3-small` | Embedding-Modell für Beispielset und Anfragen |
 
@@ -290,8 +290,10 @@ KontoKlar ist ein Werkzeug zur Auswertung eigener Daten und stellt keine Finanz-
 
 ## Weitere Projekte
 
-- **DepotDoktor**: Depot-Steuer- und Performance-Analyzer für Broker-CSV-Exporte. Die Auswertung läuft vollständig im Browser. Live-Demo: https://depotdoktor.vercel.app/projects/depotdoktor · Repo: https://github.com/mirkan-morgenfels-ai/depotdoktor
-- **NetzRadar**: Anomalie-Erkennung in Transaktionsnetzwerken: klassische Baseline gegen Graph Neural Networks, mit zeitlichem Split und PR-AUC. Live-Demo: https://netzradar.vercel.app/projects/netzradar · Repo: https://github.com/mirkan-morgenfels-ai/netzradar
+Alle Projekte, Werdegang und Kontakt stehen auf [mirkandeniz.de](https://mirkandeniz.de/projekte). Kopf und Fuß jeder Projektseite führen dorthin zurück.
+
+- **DepotDoktor**: Depot-Steuer- und Performance-Analyzer für Broker-CSV-Exporte. Die Auswertung läuft vollständig im Browser. Live-Demo: https://depotdoktor.mirkandeniz.de/projects/depotdoktor · Repo: https://github.com/mirkan-morgenfels-ai/depotdoktor
+- **NetzRadar**: Anomalie-Erkennung in Transaktionsnetzwerken: klassische Baseline gegen Graph Neural Networks, mit zeitlichem Split und PR-AUC. Live-Demo: https://netzradar.mirkandeniz.de/projects/netzradar · Repo: https://github.com/mirkan-morgenfels-ai/netzradar
 
 ## Lizenz
 

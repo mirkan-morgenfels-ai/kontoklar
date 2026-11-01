@@ -21,16 +21,15 @@ const LEGAL_PAGES = [
   { path: "/datenschutz", heading: "Datenschutzerklärung", title: "Datenschutzerklärung · KontoKlar" },
   { path: "/nutzungsbedingungen", heading: "Nutzungsbedingungen", title: "Nutzungsbedingungen · KontoKlar" },
 ];
-const LEGAL_UPDATED = "08.10.2026";
+const LEGAL_UPDATED = "01.11.2026";
 const REPO_BASE = "https://github.com/mirkan-morgenfels-ai";
 const KONTOKLAR_REPO = `${REPO_BASE}/kontoklar`;
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://kontoklar-eight.vercel.app").replace(/\/+$/, "");
-const HOME_TITLE = "Projekte · Mirkan Deniz Günkaya";
-const HOME_DESCRIPTION =
-  "Drei Portfolio-Projekte zu Finanzdaten, maschinellem Lernen und Graph-ML: DepotDoktor, KontoKlar und NetzRadar, jeweils mit öffentlichem Quellcode auf GitHub.";
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://kontoklar.mirkandeniz.de").replace(/\/+$/, "");
+const LEGACY_HOST = "kontoklar-eight.vercel.app";
+const PORTFOLIO_URL = "https://mirkandeniz.de";
 const PROJECT_TITLE = "KontoKlar – Bankumsätze kategorisieren";
 const NOT_FOUND = "/gibt-es-nicht";
-const PUBLIC_PATHS = ["/", "/projects/kontoklar", ...LEGAL_PAGES.map((legal) => legal.path)];
+const PUBLIC_PATHS = ["/projects/kontoklar", ...LEGAL_PAGES.map((legal) => legal.path)];
 const AXE_SOURCE = readFileSync(require.resolve("axe-core/axe.min.js"), "utf8");
 const AXE_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "best-practice"];
 const AXE_WIDTHS = [390, 768, 1280];
@@ -93,63 +92,57 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("start page lists the three projects with project and source links", async ({ page }) => {
+test("start address opens KontoKlar directly", async ({ page, request }) => {
+  const response = await request.get("/", { maxRedirects: 0 });
+  expect(response.status()).toBe(308);
+  expect(response.headers()["location"]).toBe("/projects/kontoklar");
   await page.goto("/");
-  await expect(
-    page.getByRole("heading", { level: 1, name: "Drei Projekte zu Finanzdaten, maschinellem Lernen und Graph-ML" }),
-  ).toBeVisible();
-  await expect(page.getByRole("main").getByRole("heading", { level: 2, name: "Projekte", exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/projects\/kontoklar$/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   const headingFont = await page.getByRole("heading", { level: 1 }).evaluate((element) => getComputedStyle(element).fontFamily);
   expect(headingFont).toContain("Cormorant Garamond");
   const bodyFont = await page.locator("body").evaluate((element) => getComputedStyle(element).fontFamily);
   expect(bodyFont).toContain("Inter");
-  await expect(page.getByTestId(/^project-/)).toHaveCount(3);
-  await expect(page.getByRole("main")).not.toContainText("In Arbeit");
-
-  for (const slug of ["depotdoktor", "netzradar"]) {
-    const link = page.getByTestId(`project-${slug}`).getByRole("link", { name: /^Live ansehen/ });
-    await expect(link).toHaveAttribute("href", new RegExp(`^https://${slug}\\.vercel\\.app/projects/${slug}$`));
-    await expect(link).toHaveAttribute("rel", "noopener noreferrer");
-    await expect(link).not.toHaveAttribute("target", /.+/);
-    await expect(link).toContainText("(externe Seite)");
-  }
-
-  await expect(page.getByTestId("project-kontoklar").getByRole("link", { name: /^Live ansehen/ })).toHaveAttribute(
-    "href",
-    "/projects/kontoklar",
-  );
-
-  for (const slug of ["depotdoktor", "kontoklar", "netzradar"]) {
-    const repo = page.getByTestId(`project-${slug}`).getByRole("link", { name: /^Quellcode/ });
-    await expect(repo).toHaveAttribute("href", `${REPO_BASE}/${slug}`);
-    await expect(repo).toHaveAttribute("rel", "noopener noreferrer");
-    await expect(repo).not.toHaveAttribute("target", /.+/);
-  }
 });
 
-test("main navigation, skip link and aria-current", async ({ page }) => {
+test("the former Vercel address forwards to the subdomain of mirkandeniz.de", async ({ request }) => {
+  test.skip(new URL(SITE_URL).host === LEGACY_HOST, "NEXT_PUBLIC_SITE_URL zeigt noch auf die alte Adresse");
+  const project = await request.get("/projects/kontoklar?quelle=alt", { headers: { host: LEGACY_HOST }, maxRedirects: 0 });
+  expect(project.status()).toBe(308);
+  expect(project.headers()["location"]).toBe(`${SITE_URL}/projects/kontoklar?quelle=alt`);
+  const root = await request.get("/", { headers: { host: LEGACY_HOST }, maxRedirects: 0 });
+  expect(root.status()).toBe(308);
+  expect(root.headers()["location"]).toBe(SITE_URL);
+  const api = await request.get("/api/categorize", { headers: { host: LEGACY_HOST }, maxRedirects: 0 });
+  expect(api.status()).toBe(308);
+  expect(api.headers()["location"]).toBe(`${SITE_URL}/api/categorize`);
+});
+
+test("main navigation, way back to mirkandeniz.de, skip link and aria-current", async ({ page }) => {
   await openProject(page);
   const nav = page.getByRole("navigation", { name: "Hauptnavigation" });
   const links = nav.getByRole("list").getByRole("link");
-  await expect(links).toHaveCount(5);
-  await expect(links.nth(0)).toHaveText("Start");
-  await expect(links.nth(1)).toHaveAccessibleName("DepotDoktor (externe Seite)");
-  await expect(links.nth(2)).toHaveText("KontoKlar");
-  await expect(links.nth(3)).toHaveAccessibleName("NetzRadar (externe Seite)");
-  await expect(links.nth(4)).toHaveAccessibleName("GitHub (externe Seite)");
-  await expect(links.nth(4)).toHaveAttribute("href", REPO_BASE);
-  for (const index of [1, 3, 4]) {
-    await expect(links.nth(index)).toHaveAttribute("href", /^https:\/\//);
+  await expect(links).toHaveCount(4);
+  await expect(links.nth(0)).toHaveAccessibleName("DepotDoktor (externe Seite)");
+  await expect(links.nth(1)).toHaveText("KontoKlar");
+  await expect(links.nth(2)).toHaveAccessibleName("NetzRadar (externe Seite)");
+  await expect(links.nth(3)).toHaveAccessibleName("Alle Projekte (externe Seite)");
+  await expect(links.nth(0)).toHaveAttribute("href", "https://depotdoktor.mirkandeniz.de/projects/depotdoktor");
+  await expect(links.nth(2)).toHaveAttribute("href", "https://netzradar.mirkandeniz.de/projects/netzradar");
+  await expect(links.nth(3)).toHaveAttribute("href", `${PORTFOLIO_URL}/projekte`);
+  for (const index of [0, 2, 3]) {
     await expect(links.nth(index)).toHaveAttribute("rel", "noopener noreferrer");
     await expect(links.nth(index)).not.toHaveAttribute("target", /.+/);
   }
-  await expect(links.nth(2)).toHaveAttribute("aria-current", "page");
-  await expect(links.nth(0)).not.toHaveAttribute("aria-current", /.+/);
+  await expect(links.nth(1)).toHaveAttribute("aria-current", "page");
   await expect(page.locator("a.skip-link")).toHaveAttribute("href", "#main");
 
-  await page.goto("/");
-  await expect(nav.getByRole("link", { name: "Start" })).toHaveAttribute("aria-current", "page");
-  await expect(nav.getByRole("link", { name: "KontoKlar", exact: true })).not.toHaveAttribute("aria-current", /.+/);
+  const home = page.locator("header").getByTestId("portfolio-link");
+  await expect(home).toHaveAttribute("href", PORTFOLIO_URL);
+  await expect(home).toHaveAttribute("rel", "noopener noreferrer");
+  await expect(home).not.toHaveAttribute("target", /.+/);
+  await expect(home).toHaveAccessibleName(/^Mirkan Deniz.*\(externe Seite\)$/);
+  await expect(home).toContainText("mirkandeniz.de");
 });
 
 test("the header sticks from 640 px on and scrolls away on phones", async ({ page }) => {
@@ -176,7 +169,7 @@ test("every route has skip link, header, main and a footer with three legal link
 });
 
 test("keyboard focus shows a 2 px outline: gold-light on navy, gold-deep on light surfaces", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/projects/kontoklar");
   await page.keyboard.press("Tab");
   const skip = page.locator("a.skip-link");
   await expect(skip).toBeFocused();
@@ -184,7 +177,7 @@ test("keyboard focus shows a 2 px outline: gold-light on navy, gold-deep on ligh
   await expect(skip).toHaveCSS("outline-style", "solid");
   await expect(skip).toHaveCSS("outline-width", "2px");
   await page.keyboard.press("Tab");
-  const brand = page.locator("header").getByRole("link", { name: /^Mirkan Deniz Günkaya/ });
+  const brand = page.locator("header").getByRole("link", { name: /^Mirkan Deniz/ });
   await expect(brand).toBeFocused();
   await expect(brand).toHaveCSS("outline-color", GOLD_LIGHT);
   await expect(brand).toHaveCSS("outline-width", "2px");
@@ -205,8 +198,13 @@ test("keyboard focus shows a 2 px outline: gold-light on navy, gold-deep on ligh
   await expect(sample).toHaveCSS("outline-width", "2px");
 });
 
-test("footer and project page link the public repository", async ({ page }) => {
-  await page.goto("/");
+test("footer and project page link the public repository and mirkandeniz.de", async ({ page }) => {
+  await page.goto("/projects/kontoklar");
+  const portfolio = page.getByTestId("footer-portfolio-link");
+  await expect(portfolio).toHaveAttribute("href", PORTFOLIO_URL);
+  await expect(portfolio).toHaveAttribute("rel", "noopener noreferrer");
+  await expect(portfolio).toHaveAccessibleName("mirkandeniz.de (externe Seite)");
+  await expect(page.locator("footer").getByTestId("portfolio-link")).toHaveAttribute("href", PORTFOLIO_URL);
   const footerLink = page.getByTestId("footer-repo-link");
   await expect(footerLink).toHaveAttribute("href", KONTOKLAR_REPO);
   await expect(footerLink).toHaveAttribute("rel", "noopener noreferrer");
@@ -249,7 +247,7 @@ test("operator details on imprint and privacy page", async ({ page }) => {
   }
   const main = page.getByRole("main");
   await expect(main).toContainText("HMAC-SHA256");
-  await expect(main).toContainText("Diese Seite verlinkt auf die Projekte DepotDoktor und NetzRadar");
+  await expect(main).toContainText("Diese Seite verlinkt auf die Website mirkandeniz.de und die Projekte DepotDoktor und NetzRadar");
   await expect(main).toContainText("Quellcode-Repositories bei GitHub (GitHub, Inc., USA)");
   await expect(main).toContainText("den pseudonymisierten Zähler des Aufruflimits");
   await expect(main).toContainText("Konfidenz unter 0,5");
@@ -285,6 +283,11 @@ test("unknown paths answer 404 with a noindex title", async ({ page }) => {
   const robots = await page.locator('meta[name="robots"]').evaluateAll((metas) => metas.map((meta) => meta.getAttribute("content") ?? ""));
   expect(robots.length).toBeGreaterThan(0);
   for (const content of robots) expect(content).toContain("noindex");
+  await expect(page.getByRole("main").getByRole("link", { name: "Zu KontoKlar" })).toHaveAttribute("href", "/projects/kontoklar");
+  const website = page.getByRole("main").getByRole("link", { name: "Zur Website mirkandeniz.de (externe Seite)" });
+  await expect(website).toHaveAttribute("href", PORTFOLIO_URL);
+  await expect(website).toHaveAttribute("rel", "noopener noreferrer");
+  await expect(page.getByRole("main").getByRole("link", { name: "Zur Startseite" })).toHaveCount(0);
 });
 
 test("pages carry canonical links, link previews and distinct titles", async ({ page, request }) => {
@@ -308,10 +311,6 @@ test("pages carry canonical links, link previews and distinct titles", async ({ 
     expect(local.status(), target).toBe(200);
     expect(local.headers()["content-type"], target).toContain("image/png");
   }
-  await page.goto("/");
-  expect(await metaContent(page, 'meta[name="description"]')).toBe(HOME_DESCRIPTION);
-  expect(await metaContent(page, 'meta[property="og:description"]')).toBe(HOME_DESCRIPTION);
-  expect(titles["/"]).toBe(HOME_TITLE);
   expect(titles["/projects/kontoklar"]).toBe(PROJECT_TITLE);
   for (const legal of LEGAL_PAGES) expect(titles[legal.path]).toBe(legal.title);
   expect(await metaContent(page, 'meta[property="og:image:alt"]')).toBe("KontoKlar: Bankumsätze aus CSV-Exporten kategorisieren");
@@ -321,7 +320,7 @@ test("sitemap, robots.txt and icons", async ({ request }) => {
   const sitemap = await request.get("/sitemap.xml");
   expect(sitemap.status()).toBe(200);
   const xml = await sitemap.text();
-  expect(xml).toContain(`<loc>${SITE_URL}/</loc>`);
+  expect(xml).not.toContain(`<loc>${SITE_URL}/</loc>`);
   for (const target of ["/projects/kontoklar", ...LEGAL_PAGES.map((legal) => legal.path)]) {
     expect(xml).toContain(`<loc>${SITE_URL}${target}</loc>`);
   }
@@ -383,7 +382,7 @@ for (const width of AXE_WIDTHS) {
 }
 
 test("visible labels are part of the accessible names (label-content-name-mismatch)", async ({ page }) => {
-  for (const target of ["/", "/projects/kontoklar"]) {
+  for (const target of ["/projects/kontoklar", "/impressum"]) {
     await page.goto(target);
     await page.waitForLoadState("load");
     expect(await runAxe(page, { type: "rule", values: ["label-content-name-mismatch"] }), target).toEqual([]);

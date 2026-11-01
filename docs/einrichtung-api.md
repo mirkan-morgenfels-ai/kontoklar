@@ -33,7 +33,7 @@ Die Namen stehen in `API_REQUIREMENTS` (`apps/web/lib/kontoklar/config.ts`), in 
 | `IP_HASH_SECRET` | ja, mindestens 32 Zeichen | Schritt 6 | Secret | Production |
 | `KONTOKLAR_EMBEDDING_MODEL` | nein, Standard `text-embedding-3-small` | – | Config | – |
 | `KONTOKLAR_FALLBACK_MODEL` | nein, Standard `gpt-5.6-luna` (seit 27.10.2026, siehe Schritt 2) | – | Config | – |
-| `NEXT_PUBLIC_SITE_URL` | nein, leer bedeutet `https://kontoklar-eight.vercel.app` | – | Config | – |
+| `NEXT_PUBLIC_SITE_URL` | nein, leer bedeutet `https://kontoklar.mirkandeniz.de` | – | Config | – |
 
 Die optionalen Variablen nicht setzen, solange die Standardwerte passen. Wird `KONTOKLAR_EMBEDDING_MODEL` gesetzt, muss `labeled-embeddings.json` mit demselben Modell erzeugt sein. `KONTOKLAR_FALLBACK_MODEL` nur setzen, wenn der Wert zu dem Modell passt, das die Datenschutzerklärung nennt. `OPENAI_BASE_URL` nicht setzen: Das OpenAI-SDK liest die Variable selbst und würde den Endpunkt unbemerkt umstellen.
 
@@ -82,7 +82,7 @@ Remove-Item Env:OPENAI_API_KEY
 ## Schritt 5: Cloudflare Turnstile
 
 1. Unter https://dash.cloudflare.com anmelden bzw. registrieren und die Seite „Turnstile“ öffnen (https://dash.cloudflare.com/?to=/:account/turnstile).
-2. „Add widget“: Widget name „KontoKlar“; bei der Hostname-Verwaltung `kontoklar-eight.vercel.app` eintragen; Widget mode „Managed“; Pre-clearance nicht aktivieren; „Create“.
+2. „Add widget“: Widget name „KontoKlar“; bei der Hostname-Verwaltung `kontoklar.mirkandeniz.de` eintragen (die alte Adresse `kontoklar-eight.vercel.app` leitet dorthin weiter und braucht keinen Eintrag); Widget mode „Managed“; Pre-clearance nicht aktivieren; „Create“.
 3. Den angezeigten Sitekey als `NEXT_PUBLIC_TURNSTILE_SITE_KEY` und den Secret Key als `TURNSTILE_SECRET_KEY` übernehmen. Der Secret Key bleibt geheim, der Sitekey landet ohnehin im ausgelieferten JavaScript.
 4. Die dokumentierten Testschlüssel von Cloudflare (Sitekey `1x00000000000000000000AA`, Secret `1x0000000000000000000000000000000AA` und weitere) nur lokal verwenden. In der Produktion zählt KontoKlar sie als fehlend (`isTurnstileTestKey`); `GET /api/categorize` nennt dann den Grund.
 
@@ -108,7 +108,7 @@ Alternativ `openssl rand -hex 32`. Der Server bildet damit HMAC-SHA256 der IP-Ad
 In PowerShell 7 (`-SkipHttpErrorCheck` zeigt auch Antworten mit 4xx/5xx):
 
 ```powershell
-$api = "https://kontoklar-eight.vercel.app/api/categorize"
+$api = "https://kontoklar.mirkandeniz.de/api/categorize"
 Invoke-RestMethod $api | ConvertTo-Json
 Invoke-WebRequest $api -Method Post -ContentType "application/json" -Body '{"texts":["TEST"]}' -SkipHttpErrorCheck | Select-Object StatusCode, Content
 Invoke-WebRequest $api -Method Post -ContentType "application/json" -Body ("x" * 250000) -SkipHttpErrorCheck | Select-Object StatusCode, Content
@@ -116,7 +116,7 @@ Invoke-WebRequest $api -Method Post -ContentType "application/json" -Body ("x" *
 
 1. Fail-closed vorher: Solange etwas fehlt, liefert der erste Befehl `enabled: false`, eine Begründung und `missing` mit den fehlenden Namen (nie Werte); der zweite Status 503 mit `"disabled": true`. Das lässt sich nach jeder einzelnen Variable prüfen.
 2. Nach dem Redeploy: Der erste Befehl liefert `{"enabled": true, "turnstile": true}`. Der zweite liefert 403 „Bot-Prüfung fehlgeschlagen“, weil kein Turnstile-Token mitgeht; OpenAI wird dabei nicht aufgerufen. Der dritte liefert 413 „Anfrage zu groß“.
-3. Oberfläche: https://kontoklar-eight.vercel.app/projects/kontoklar öffnen, den API-Schritt anhaken (das Turnstile-Widget erscheint) und eine synthetische Datei hochladen, etwa diese, lokal als `api-probe.csv` gespeichert:
+3. Oberfläche: https://kontoklar.mirkandeniz.de/projects/kontoklar öffnen, den API-Schritt anhaken (das Turnstile-Widget erscheint) und eine synthetische Datei hochladen, etwa diese, lokal als `api-probe.csv` gespeichert:
 
    ```
    "Girokonto";"DE00000000000000000000"

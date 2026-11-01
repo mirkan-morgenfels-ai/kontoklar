@@ -137,9 +137,9 @@ export default function DatenschutzPage() {
 
       <LegalSection title="8. Externe Links">
         <p>
-          Diese Seite verlinkt auf die Projekte DepotDoktor und NetzRadar, die unter eigenen Adressen betrieben werden und
-          eigene Datenschutzerklärungen haben, sowie auf die öffentlichen Quellcode-Repositories bei GitHub (GitHub, Inc.,
-          USA). Erst beim Anklicken ruft Ihr Browser die fremde Seite auf; dort gilt die Datenschutzerklärung des jeweiligen
+          Diese Seite verlinkt auf die Website mirkandeniz.de und die Projekte DepotDoktor und NetzRadar, die unter eigenen
+          Adressen betrieben werden und eigene Datenschutzerklärungen haben, sowie auf die öffentlichen
+          Quellcode-Repositories bei GitHub (GitHub, Inc., USA). Erst beim Anklicken ruft Ihr Browser die fremde Seite auf; dort gilt die Datenschutzerklärung des jeweiligen
           Anbieters. Vorher werden keine Daten an diese Anbieter übertragen, und die Links übermitteln keine Herkunftsseite.
         </p>
       </LegalSection>

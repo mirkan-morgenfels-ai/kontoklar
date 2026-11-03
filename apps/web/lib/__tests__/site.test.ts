@@ -44,7 +44,7 @@ describe("PROJECTS", () => {
     expect(PROJECTS.map((project) => project.description)).toEqual([
       "Depot-Steuer- und Performance-Analyzer für Broker-CSV-Exporte. Die Auswertung läuft vollständig im Browser.",
       "Kategorisiert Bankumsätze aus CSV-Exporten und zeigt, wohin das Geld geht.",
-      "Anomalie-Erkennung in Transaktionsnetzwerken: klassische Baseline gegen Graph Neural Networks, mit zeitlichem Split und PR-AUC.",
+      "Anomalie-Erkennung in Transaktionsnetzwerken: klassische Baselines und Gradient Boosting gegen Graph Neural Networks, mit zeitlichem Split und PR-AUC.",
     ]);
   });
 

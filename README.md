@@ -291,7 +291,7 @@ KontoKlar ist ein Werkzeug zur Auswertung eigener Daten und stellt keine Finanz-
 ## Weitere Projekte
 
 - **DepotDoktor**: Depot-Steuer- und Performance-Analyzer für Broker-CSV-Exporte. Die Auswertung läuft vollständig im Browser. Live-Demo: https://depotdoktor.vercel.app/projects/depotdoktor · Repo: https://github.com/mirkan-morgenfels-ai/depotdoktor
-- **NetzRadar**: Anomalie-Erkennung in Transaktionsnetzwerken: klassische Baseline gegen Graph Neural Networks, mit zeitlichem Split und PR-AUC. Live-Demo: https://netzradar.vercel.app/projects/netzradar · Repo: https://github.com/mirkan-morgenfels-ai/netzradar
+- **NetzRadar**: Anomalie-Erkennung in Transaktionsnetzwerken: klassische Baselines und Gradient Boosting gegen Graph Neural Networks, mit zeitlichem Split und PR-AUC. Live-Demo: https://netzradar.vercel.app/projects/netzradar · Repo: https://github.com/mirkan-morgenfels-ai/netzradar
 
 ## Lizenz
 

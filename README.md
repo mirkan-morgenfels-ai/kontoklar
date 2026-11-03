@@ -292,8 +292,9 @@ KontoKlar ist ein Werkzeug zur Auswertung eigener Daten und stellt keine Finanz-
 
 Alle Projekte, Werdegang und Kontakt stehen auf [mirkandeniz.de](https://mirkandeniz.de/projekte). Kopf und Fuß jeder Projektseite führen dorthin zurück.
 
-- **DepotDoktor**: Depot-Steuer- und Performance-Analyzer für Broker-CSV-Exporte. Die Auswertung läuft vollständig im Browser. Live-Demo: https://depotdoktor.mirkandeniz.de/projects/depotdoktor · Repo: https://github.com/mirkan-morgenfels-ai/depotdoktor
-- **NetzRadar**: Anomalie-Erkennung in Transaktionsnetzwerken: klassische Baseline gegen Graph Neural Networks, mit zeitlichem Split und PR-AUC. Live-Demo: https://netzradar.mirkandeniz.de/projects/netzradar · Repo: https://github.com/mirkan-morgenfels-ai/netzradar
+- **DepotDoktor**: Depot-Steuer- und Performance-Analyzer für Broker-CSV-Exporte. Die Auswertung läuft vollständig im Browser.
+Live-Demo: https://depotdoktor.mirkandeniz.de/projects/depotdoktor · Repo: https://github.com/mirkan-morgenfels-ai/depotdoktor
+- **NetzRadar**: Anomalie-Erkennung in Transaktionsnetzwerken: klassische Baselines und Gradient Boosting gegen Graph Neural Networks, mit zeitlichem Split und PR-AUC. Live-Demo: https://netzradar.mirkandeniz.de/projects/netzradar · Repo: https://github.com/mirkan-morgenfels-ai/netzradar
 
 ## Lizenz
 

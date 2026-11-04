@@ -1,14 +1,11 @@
 export interface Project {
   slug: string;
-  code: string;
   number: string;
   topic: string;
   kicker: string;
   title: string;
-  description: string;
   href: string;
   external: boolean;
-  repo: string;
 }
 
 export interface NavLink {
@@ -40,41 +37,30 @@ export const REPO_URL = "https://github.com/mirkan-morgenfels-ai/kontoklar";
 export const PROJECTS: readonly Project[] = [
   {
     slug: "depotdoktor",
-    code: "K1",
     number: "01",
     topic: "Finanzdaten",
     kicker: "Projekt 01",
     title: "DepotDoktor",
-    description:
-      "Depot-Steuer- und Performance-Analyzer für Broker-CSV-Exporte. Die Auswertung läuft vollständig im Browser.",
     href: "https://depotdoktor.mirkandeniz.de/projects/depotdoktor",
     external: true,
-    repo: "https://github.com/mirkan-morgenfels-ai/depotdoktor",
   },
   {
     slug: "kontoklar",
-    code: "K2",
     number: "02",
     topic: "Maschinelles Lernen",
     kicker: "Projekt 02",
     title: "KontoKlar",
-    description: "Kategorisiert Bankumsätze aus CSV-Exporten und zeigt, wohin das Geld geht.",
     href: PROJECT_PATH,
     external: false,
-    repo: REPO_URL,
   },
   {
     slug: "netzradar",
-    code: "K3",
     number: "03",
     topic: "Graph-ML",
     kicker: "Projekt 03",
     title: "NetzRadar",
-    description:
-      "Anomalie-Erkennung in Transaktionsnetzwerken: klassische Baselines und Gradient Boosting gegen Graph Neural Networks, mit zeitlichem Split und PR-AUC.",
     href: "https://netzradar.mirkandeniz.de/projects/netzradar",
     external: true,
-    repo: "https://github.com/mirkan-morgenfels-ai/netzradar",
   },
 ];
 

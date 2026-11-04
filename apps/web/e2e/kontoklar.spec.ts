@@ -270,8 +270,17 @@ test("review table on a phone: amount and category fit, scroll hint only on over
     expect(box).not.toBeNull();
     expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(390);
   }
-  const overflowing = (await region.getAttribute("data-overflowing")) === "true";
-  await expect(page.getByTestId("scroll-hint")).toHaveCount(overflowing ? 1 : 0);
+  await expect
+    .poll(
+      () =>
+        region.evaluate((element) => {
+          const measured = element.getAttribute("data-overflowing") === String(element.scrollWidth > element.clientWidth + 1);
+          const overflowing = element.getAttribute("data-overflowing") === "true" ? 1 : 0;
+          return measured ? document.querySelectorAll('[data-testid="scroll-hint"]').length - overflowing : null;
+        }),
+      { message: "scroll hint shown exactly when the measured review table overflows" },
+    )
+    .toBe(0);
   const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
   expect(scrollWidth).toBeLessThanOrEqual(390);
 });

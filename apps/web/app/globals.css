@@ -34,7 +34,6 @@
   --radius-card: 16px;
   --radius-control: 10px;
   --shadow-card: 0 1px 2px rgb(11 22 38 / 0.04), 0 8px 24px rgb(11 22 38 / 0.06);
-  --shadow-float: 0 2px 6px rgb(11 22 38 / 0.06), 0 18px 48px rgb(11 22 38 / 0.12);
   --tracking-eyebrow: 0.16em;
   --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
 }
@@ -304,26 +303,6 @@
     text-decoration-color: var(--color-gold-deep);
   }
 
-  .bullet-list > li {
-    position: relative;
-    padding-left: 1.25rem;
-  }
-
-  .bullet-list > li + li {
-    margin-top: 0.5rem;
-  }
-
-  .bullet-list > li::before {
-    content: "";
-    position: absolute;
-    left: 0.125rem;
-    top: 0.62em;
-    width: 0.3125rem;
-    height: 0.3125rem;
-    transform: rotate(45deg);
-    background-color: var(--color-gold);
-  }
-
   .scroll-shadow {
     background:
       linear-gradient(to right, var(--color-surface) 30%, transparent) left center,
@@ -364,10 +343,6 @@
   stroke-dasharray: 1;
   stroke-dashoffset: 0;
   animation: draw-line 1.8s var(--ease-out-soft) both;
-}
-
-.draw-line-late {
-  animation-delay: 0.25s;
 }
 
 .portfolio-transition {

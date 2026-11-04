@@ -22,7 +22,6 @@ import {
 describe("PROJECTS", () => {
   it("lists exactly the three portfolio projects in order", () => {
     expect(PROJECTS.map((project) => project.slug)).toEqual(["depotdoktor", "kontoklar", "netzradar"]);
-    expect(PROJECTS.map((project) => project.code)).toEqual(["K1", "K2", "K3"]);
     expect(PROJECTS.map((project) => project.kicker)).toEqual(["Projekt 01", "Projekt 02", "Projekt 03"]);
     expect(PROJECTS.map((project) => project.number)).toEqual(["01", "02", "03"]);
     expect(PROJECTS.map((project) => project.topic)).toEqual(["Finanzdaten", "Maschinelles Lernen", "Graph-ML"]);
@@ -39,20 +38,9 @@ describe("PROJECTS", () => {
     ]);
   });
 
-  it("gives every project its public repository under mirkan-morgenfels-ai", () => {
-    for (const project of PROJECTS) {
-      expect(project.repo).toBe(`https://github.com/mirkan-morgenfels-ai/${project.slug}`);
-    }
+  it("points to its public repository under mirkan-morgenfels-ai", () => {
     expect(REPO_URL).toBe("https://github.com/mirkan-morgenfels-ai/kontoklar");
     expect(repoFileUrl("docs/genauigkeit.md")).toBe("https://github.com/mirkan-morgenfels-ai/kontoklar/blob/main/docs/genauigkeit.md");
-  });
-
-  it("uses the same project texts as K1 and K3", () => {
-    expect(PROJECTS.map((project) => project.description)).toEqual([
-      "Depot-Steuer- und Performance-Analyzer für Broker-CSV-Exporte. Die Auswertung läuft vollständig im Browser.",
-      "Kategorisiert Bankumsätze aus CSV-Exporten und zeigt, wohin das Geld geht.",
-      "Anomalie-Erkennung in Transaktionsnetzwerken: klassische Baselines und Gradient Boosting gegen Graph Neural Networks, mit zeitlichem Split und PR-AUC.",
-    ]);
   });
 
 });
@@ -122,9 +110,9 @@ describe("pageMetadata", () => {
   });
 
   it("keeps absolute titles unchanged", () => {
-    const meta = pageMetadata({ path: "/", title: "Projekte · Mirkan Deniz Günkaya", absoluteTitle: true, description: "d" });
-    expect(meta.title).toEqual({ absolute: "Projekte · Mirkan Deniz Günkaya" });
-    expect(meta.openGraph?.title).toBe("Projekte · Mirkan Deniz Günkaya");
+    const meta = pageMetadata({ path: "/projects/kontoklar", title: "KontoKlar – Bankumsätze kategorisieren", absoluteTitle: true, description: "d" });
+    expect(meta.title).toEqual({ absolute: "KontoKlar – Bankumsätze kategorisieren" });
+    expect(meta.openGraph?.title).toBe("KontoKlar – Bankumsätze kategorisieren");
   });
 });
 

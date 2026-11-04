@@ -41,15 +41,6 @@ export const ORNAMENT_AREA_PATH = `${ORNAMENT_BALANCE_PATH} L${LAST_BAR.x} ${ORN
 
 export const ORNAMENT_LAST = LAST_BAR;
 
-export function BrandMark({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false" className={className}>
-      <path d="M16 1.75 30.25 16 16 30.25 1.75 16Z" fill="none" stroke="currentColor" strokeWidth="1.4" />
-      <path d="M11.05 20V16.5M14.35 20V13.5M17.65 20V15M20.95 20V12" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 export function HeroOrnament({ idPrefix, className }: { idPrefix: string; className?: string }) {
   const barId = `${idPrefix}-bar`;
   const areaId = `${idPrefix}-area`;

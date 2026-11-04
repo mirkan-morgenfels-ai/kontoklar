@@ -1,12 +1,18 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { transitionDestination } from "../../components/site/transition";
 import { OG_IMAGE_ALT, OG_IMAGE_PATH, pageMetadata, withSiteName } from "../metadata";
 import {
   DEFAULT_SITE_URL,
   GITHUB_PROFILE_URL,
-  HOME_DESCRIPTION,
+  LEGACY_HOSTS,
   LEGAL_LINKS,
   NAV_LINKS,
   OWNER_NAME,
+  PORTFOLIO_HOME_URL,
+  PORTFOLIO_LABEL,
+  PORTFOLIO_PROJECTS_URL,
+  PORTFOLIO_URL,
+  PROJECT_PATH,
   PROJECTS,
   REPO_URL,
   repoFileUrl,
@@ -23,12 +29,13 @@ describe("PROJECTS", () => {
     expect(OWNER_NAME).toBe("Mirkan Deniz Günkaya");
   });
 
-  it("links KontoKlar internally and the other two projects externally over https", () => {
+  it("links KontoKlar internally and the other two projects on their mirkandeniz.de subdomains", () => {
     const kontoklar = PROJECTS.find((project) => project.slug === "kontoklar");
     expect(kontoklar).toMatchObject({ href: "/projects/kontoklar", external: false });
+    expect(PROJECT_PATH).toBe("/projects/kontoklar");
     expect(PROJECTS.filter((project) => project.external).map((project) => project.href)).toEqual([
-      "https://depotdoktor.vercel.app/projects/depotdoktor",
-      "https://netzradar.vercel.app/projects/netzradar",
+      "https://depotdoktor.mirkandeniz.de/projects/depotdoktor",
+      "https://netzradar.mirkandeniz.de/projects/netzradar",
     ]);
   });
 
@@ -48,21 +55,22 @@ describe("PROJECTS", () => {
     ]);
   });
 
-  it("uses the same start page description as the sibling sites", () => {
-    expect(HOME_DESCRIPTION).toBe(
-      "Drei Portfolio-Projekte zu Finanzdaten, maschinellem Lernen und Graph-ML: DepotDoktor, KontoKlar und NetzRadar, jeweils mit öffentlichem Quellcode auf GitHub.",
-    );
-    for (const project of PROJECTS) expect(HOME_DESCRIPTION).toContain(project.title);
-  });
 });
 
 describe("navigation", () => {
-  it("offers start, the three projects and the GitHub profile, only KontoKlar internal", () => {
-    expect(NAV_LINKS.map((link) => link.label)).toEqual(["Start", "DepotDoktor", "KontoKlar", "NetzRadar", "GitHub"]);
-    expect(NAV_LINKS.map((link) => link.external)).toEqual([false, true, false, true, true]);
-    expect(NAV_LINKS.filter((link) => !link.external).map((link) => link.href)).toEqual(["/", "/projects/kontoklar"]);
-    expect(NAV_LINKS.at(-1)?.href).toBe(GITHUB_PROFILE_URL);
+  it("offers the three projects and the project overview on mirkandeniz.de, only KontoKlar internal", () => {
+    expect(NAV_LINKS.map((link) => link.label)).toEqual(["DepotDoktor", "KontoKlar", "NetzRadar", "Alle Projekte"]);
+    expect(NAV_LINKS.map((link) => link.external)).toEqual([true, false, true, true]);
+    expect(NAV_LINKS.filter((link) => !link.external).map((link) => link.href)).toEqual(["/projects/kontoklar"]);
+    expect(NAV_LINKS.at(-1)?.href).toBe("https://mirkandeniz.de/projekte");
+    expect(PORTFOLIO_PROJECTS_URL).toBe(`${PORTFOLIO_URL}/projekte`);
     expect(GITHUB_PROFILE_URL).toBe("https://github.com/mirkan-morgenfels-ai");
+  });
+
+  it("leads back to the website mirkandeniz.de", () => {
+    expect(PORTFOLIO_URL).toBe("https://mirkandeniz.de");
+    expect(PORTFOLIO_HOME_URL).toBe("https://mirkandeniz.de/#start");
+    expect(PORTFOLIO_LABEL).toBe(new URL(PORTFOLIO_URL).host);
   });
 
   it("offers the three legal pages as internal links", () => {
@@ -77,9 +85,14 @@ describe("siteUrl", () => {
   });
 
   it("falls back to the production address for an empty value", () => {
-    expect(siteUrl("").href).toBe("https://kontoklar-eight.vercel.app/");
-    expect(siteUrl("   ").href).toBe("https://kontoklar-eight.vercel.app/");
-    expect(DEFAULT_SITE_URL).toBe("https://kontoklar-eight.vercel.app");
+    expect(siteUrl("").href).toBe("https://kontoklar.mirkandeniz.de/");
+    expect(siteUrl("   ").href).toBe("https://kontoklar.mirkandeniz.de/");
+    expect(DEFAULT_SITE_URL).toBe("https://kontoklar.mirkandeniz.de");
+  });
+
+  it("redirects only the former Vercel address", () => {
+    expect(LEGACY_HOSTS).toEqual(["kontoklar-eight.vercel.app"]);
+    expect(LEGACY_HOSTS).not.toContain(siteUrl("").host);
   });
 
   it("uses a configured value and reads NEXT_PUBLIC_SITE_URL", () => {
@@ -112,5 +125,21 @@ describe("pageMetadata", () => {
     const meta = pageMetadata({ path: "/", title: "Projekte · Mirkan Deniz Günkaya", absoluteTitle: true, description: "d" });
     expect(meta.title).toEqual({ absolute: "Projekte · Mirkan Deniz Günkaya" });
     expect(meta.openGraph?.title).toBe("Projekte · Mirkan Deniz Günkaya");
+  });
+});
+
+describe("transitionDestination", () => {
+  it("names the website and the sister projects as destinations of the transition", () => {
+    expect(transitionDestination(PORTFOLIO_HOME_URL)).toEqual({ eyebrow: "Zurück zur Website", title: "Mirkan", accent: "Deniz", host: "mirkandeniz.de" });
+    expect(transitionDestination(PORTFOLIO_PROJECTS_URL)?.host).toBe(PORTFOLIO_LABEL);
+    expect(transitionDestination("https://depotdoktor.mirkandeniz.de/projects/depotdoktor")).toEqual({
+      eyebrow: "Weiter zum Projekt",
+      title: "DepotDoktor",
+      accent: null,
+      host: "depotdoktor.mirkandeniz.de",
+    });
+    expect(transitionDestination(REPO_URL)).toBeNull();
+    expect(transitionDestination(GITHUB_PROFILE_URL)).toBeNull();
+    expect(transitionDestination("/impressum")).toBeNull();
   });
 });

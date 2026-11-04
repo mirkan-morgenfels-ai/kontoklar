@@ -370,6 +370,64 @@
   animation-delay: 0.25s;
 }
 
+.portfolio-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(55% 50% at 50% 46%, rgb(201 165 72 / 0.14), transparent 70%),
+    radial-gradient(60% 60% at 8% 100%, rgb(62 106 158 / 0.24), transparent 70%),
+    var(--color-navy-950);
+  animation: portfolio-transition-in 420ms var(--ease-out-soft) both;
+}
+
+.portfolio-transition-name {
+  animation: fade-rise 460ms 60ms var(--ease-out-soft) both;
+}
+
+.portfolio-transition-line {
+  transform-origin: center;
+  animation: portfolio-rule 520ms 40ms var(--ease-out-soft) both;
+}
+
+.portfolio-transition-eyebrow {
+  animation: portfolio-fade 360ms var(--ease-out-soft) both;
+}
+
+.portfolio-transition-host {
+  animation: portfolio-fade 360ms 180ms var(--ease-out-soft) both;
+}
+
+@keyframes portfolio-transition-in {
+  from {
+    clip-path: circle(0 at var(--x, 50%) var(--y, 50%));
+  }
+  to {
+    clip-path: circle(150vmax at var(--x, 50%) var(--y, 50%));
+  }
+}
+
+@keyframes portfolio-rule {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes portfolio-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

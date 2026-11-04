@@ -1,7 +1,7 @@
 export const OPERATOR = {
   name: "Mirkan Deniz Günkaya",
-  email: "mirkandeniz52@gmail.com",
+  email: "guenkaya@mirkandeniz.de",
   city: "München",
   siteName: "Portfolio-Seite von Mirkan Deniz Günkaya",
-  lastUpdated: "08.10.2026",
+  lastUpdated: "01.11.2026",
 } as const;

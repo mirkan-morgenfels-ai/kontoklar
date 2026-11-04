@@ -5,7 +5,7 @@ Kategorisiert Bankumsätze aus CSV-Exporten und zeigt, wohin das Geld geht. Rege
 [![CI](https://github.com/mirkan-morgenfels-ai/kontoklar/actions/workflows/ci.yml/badge.svg)](https://github.com/mirkan-morgenfels-ai/kontoklar/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
-Live-Demo: https://kontoklar-eight.vercel.app/projects/kontoklar
+Live-Demo: https://kontoklar.mirkandeniz.de/projects/kontoklar (die frühere Adresse kontoklar-eight.vercel.app leitet dorthin weiter). Werdegang und alle Projekte: https://mirkandeniz.de
 
 ![Dashboard mit synthetischen Beispieldaten: Kennzahlen, sechs Monate Ausgaben nach Kategorie als gestapelte Balken, Einnahmen als Linie, Verteilung nach Kategorie und erkannte wiederkehrende Zahlungen](docs/screenshots/dashboard.png)
 
@@ -189,7 +189,7 @@ Optional, mit Standardwert:
 
 | Variable | Standard | Wirkung |
 |---|---|---|
-| `NEXT_PUBLIC_SITE_URL` | `https://kontoklar-eight.vercel.app` | Basisadresse für kanonische Links, Link-Vorschau, `sitemap.xml` und `robots.txt` |
+| `NEXT_PUBLIC_SITE_URL` | `https://kontoklar.mirkandeniz.de` | Basisadresse für kanonische Links, Link-Vorschau, `sitemap.xml` und `robots.txt` |
 | `KONTOKLAR_FALLBACK_MODEL` | `gpt-5.6-luna` | Sprachmodell für den Fallback unter Konfidenz 0,5 |
 | `KONTOKLAR_EMBEDDING_MODEL` | `text-embedding-3-small` | Embedding-Modell für Beispielset und Anfragen |
 
@@ -219,7 +219,7 @@ CI=true pnpm test:e2e
 
 Das gelabelte Beispielset für die Embedding-Stufe liegt in `data/k2/labeled-examples.json`; die Vektoren entstehen einmalig und nur lokal mit `pnpm --filter web embeddings:build` (OpenAI-Key nötig). `pnpm --filter web embeddings:build --dry-run` zeigt ohne Schlüssel Umfang und Kosten: 278 Einträge, 277 verschiedene Texte, geschätzt 1.197 Token, etwa 0,000024 $.
 
-Unit-Tests decken die Bank-Parser (auch mit CRLF-Zeilenenden), die Regel-Engine (jede Muster-Alternative trifft ihre eigene Regel), die Normalisierung der Händlernamen und die Auswahl der API-Texte, Kosinus-Ähnlichkeit und kNN-Abstimmung, die Erkennung wiederkehrender Zahlungen, die persönliche Inflation, die Diagrammfarben und die Beispieldaten ab, außerdem das API-Testset (kein Regeltreffer, für die API zugelassen, disjunkt zum Beispielset, ausgewogen, Obergrenze durch Labels, die nur aus dem Verwendungszweck folgen). Die API-Route wird mit gemocktem OpenAI-Client, Redis-Mock und gemockter Turnstile-Prüfung getestet: für jede der sechs fehlenden Variablen (503 ohne OpenAI-Aufruf), für die IP-Pseudonymisierung (nur der HMAC erreicht das Rate-Limit, IPv6 je /64-Präfix), für ein Rate-Limit, das nicht antwortet (503 nach dem Timeout, kein OpenAI-Aufruf), für Cloudflare-Testschlüssel in der Produktionsumgebung und für das Body-Limit mit falschem oder fehlendem `content-length`. Ein Test liest das Lua-Skript der installierten Version von `@upstash/ratelimit` und prüft Ablaufzeit und UTC-Tagesfenster, die in der Datenschutzerklärung stehen. Weitere Tests prüfen den Destatis-Abruf mit erfundenen GENESIS-Antworten (Anfrage mit Token im Header, ZIP, Flat-CSV, nur Indexwerte, Abbruch bei unvollständigen Daten), den Aufbau des Beispielsets mit Vektoren mit einem gemockten Embedding-Anbieter und die Aufbauprüfung von Bank-CSVs (meldet nur Spaltennamen und Zählwerte, nie Inhalte) und den Fallback-Aufruf (Standardmodell `gpt-5.6-luna` gleich in Code, `.env.example` und README, gesendet werden nur Modell, JSON-Modus und Nachrichten, leere Modellvariablen zählen als nicht gesetzt, Zählung von Texten und Token für die Messung). Die Playwright-Tests prüfen Upload, Beispieldaten, Startseite, Navigation, Rechtsseiten, 404, Metadaten, dass nur Anfragen an die eigene Adresse gehen, und laufen axe bei 390, 768 und 1280 px. Stand 27.10.2026: 347 Unit-Tests (csv 45, ratelimit 24, web 278) und 34 Playwright-Tests, alle grün.
+Unit-Tests decken die Bank-Parser (auch mit CRLF-Zeilenenden), die Regel-Engine (jede Muster-Alternative trifft ihre eigene Regel), die Normalisierung der Händlernamen und die Auswahl der API-Texte, Kosinus-Ähnlichkeit und kNN-Abstimmung, die Erkennung wiederkehrender Zahlungen, die persönliche Inflation, die Diagrammfarben und die Beispieldaten ab, außerdem das API-Testset (kein Regeltreffer, für die API zugelassen, disjunkt zum Beispielset, ausgewogen, Obergrenze durch Labels, die nur aus dem Verwendungszweck folgen). Die API-Route wird mit gemocktem OpenAI-Client, Redis-Mock und gemockter Turnstile-Prüfung getestet: für jede der sechs fehlenden Variablen (503 ohne OpenAI-Aufruf), für die IP-Pseudonymisierung (nur der HMAC erreicht das Rate-Limit, IPv6 je /64-Präfix), für ein Rate-Limit, das nicht antwortet (503 nach dem Timeout, kein OpenAI-Aufruf), für Cloudflare-Testschlüssel in der Produktionsumgebung und für das Body-Limit mit falschem oder fehlendem `content-length`. Ein Test liest das Lua-Skript der installierten Version von `@upstash/ratelimit` und prüft Ablaufzeit und UTC-Tagesfenster, die in der Datenschutzerklärung stehen. Weitere Tests prüfen den Destatis-Abruf mit erfundenen GENESIS-Antworten (Anfrage mit Token im Header, ZIP, Flat-CSV, nur Indexwerte, Abbruch bei unvollständigen Daten), den Aufbau des Beispielsets mit Vektoren mit einem gemockten Embedding-Anbieter und die Aufbauprüfung von Bank-CSVs (meldet nur Spaltennamen und Zählwerte, nie Inhalte) und den Fallback-Aufruf (Standardmodell `gpt-5.6-luna` gleich in Code, `.env.example` und README, gesendet werden nur Modell, JSON-Modus und Nachrichten, leere Modellvariablen zählen als nicht gesetzt, Zählung von Texten und Token für die Messung). Die Playwright-Tests prüfen Upload, Beispieldaten, Startseite, Navigation, die Überleitung zu mirkandeniz.de und zu den Schwesterprojekten (nicht bei reduzierter Bewegung oder Klicks mit Zusatztaste), Rechtsseiten, 404, Metadaten, dass nur Anfragen an die eigene Adresse gehen, und laufen axe bei 390, 768 und 1280 px. Stand 01.11.2026: 349 Unit-Tests (csv 45, ratelimit 24, web 280) und 37 Playwright-Tests, alle grün (im Linux-Container scheitert ein Test zur Windows-1252-Erkennung an der ICU-Version von Node, in der CI nicht).
 
 Die CI führt bei jedem Push auf `main` und bei jedem Pull Request `install → typecheck → lint → test → accuracy (Accuracy der Regel-Engine auf zugeordneten Buchungen mindestens 0,9) → build → Playwright-E2E` aus.
 
@@ -290,8 +290,11 @@ KontoKlar ist ein Werkzeug zur Auswertung eigener Daten und stellt keine Finanz-
 
 ## Weitere Projekte
 
-- **DepotDoktor**: Depot-Steuer- und Performance-Analyzer für Broker-CSV-Exporte. Die Auswertung läuft vollständig im Browser. Live-Demo: https://depotdoktor.vercel.app/projects/depotdoktor · Repo: https://github.com/mirkan-morgenfels-ai/depotdoktor
-- **NetzRadar**: Anomalie-Erkennung in Transaktionsnetzwerken: klassische Baselines und Gradient Boosting gegen Graph Neural Networks, mit zeitlichem Split und PR-AUC. Live-Demo: https://netzradar.vercel.app/projects/netzradar · Repo: https://github.com/mirkan-morgenfels-ai/netzradar
+Alle Projekte, Werdegang und Kontakt stehen auf [mirkandeniz.de](https://mirkandeniz.de/projekte). Kopf und Fuß jeder Projektseite führen dorthin zurück.
+
+- **DepotDoktor**: Depot-Steuer- und Performance-Analyzer für Broker-CSV-Exporte. Die Auswertung läuft vollständig im Browser.
+Live-Demo: https://depotdoktor.mirkandeniz.de/projects/depotdoktor · Repo: https://github.com/mirkan-morgenfels-ai/depotdoktor
+- **NetzRadar**: Anomalie-Erkennung in Transaktionsnetzwerken: klassische Baselines und Gradient Boosting gegen Graph Neural Networks, mit zeitlichem Split und PR-AUC. Live-Demo: https://netzradar.mirkandeniz.de/projects/netzradar · Repo: https://github.com/mirkan-morgenfels-ai/netzradar
 
 ## Lizenz
 

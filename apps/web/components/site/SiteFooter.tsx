@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GITHUB_PROFILE_URL, LEGAL_LINKS, OWNER_NAME, PROJECTS, REPO_URL } from "@/lib/site";
+import { GITHUB_PROFILE_URL, LEGAL_LINKS, OWNER_NAME, PORTFOLIO_HOME_URL, PORTFOLIO_LABEL, PROJECTS, REPO_URL } from "@/lib/site";
 import { Brand } from "./Brand";
 import { ExternalMark } from "./ExternalMark";
 import { Shell } from "./Shell";
@@ -19,7 +19,13 @@ export function SiteFooter() {
           <div className="lg:col-span-5">
             <Brand />
             <p className="mt-6 max-w-sm text-sm leading-relaxed text-navy-300">
-              Privates, nicht-kommerzielles Portfolio zu Daten, KI und Finanzen. Alle Projekte mit öffentlichem Quellcode.
+              Ein Projekt von {OWNER_NAME}. Werdegang, alle Projekte und Kontakt auf{" "}
+              <a href={PORTFOLIO_HOME_URL} rel="noopener noreferrer" className={LINK_CLASS} data-testid="footer-portfolio-link">
+                {PORTFOLIO_LABEL}
+                <span className="sr-only"> (externe Seite)</span>
+                <ExternalMark className="ml-1.5 h-2.5 w-2.5 text-gold/80" />
+              </a>
+              . Privat, nicht-kommerziell und mit öffentlichem Quellcode.
             </p>
           </div>
           <div className="grid grid-cols-1 gap-x-6 gap-y-10 min-[360px]:grid-cols-2 sm:grid-cols-[1fr_1fr_1.35fr] lg:col-span-7">

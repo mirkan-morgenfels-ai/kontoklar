@@ -34,8 +34,6 @@ Measured on a 198-transaction synthetic test set: rules cover 96.5 % at 99.0 % a
 
 </details>
 
-![Dashboard mit synthetischen Beispieldaten: Kennzahlen, sechs Monate Ausgaben nach Kategorie als gestapelte Balken, Einnahmen als Linie, Verteilung nach Kategorie und erkannte wiederkehrende Zahlungen](docs/screenshots/dashboard.png)
-
 ## Auf einen Blick
 
 | | |
@@ -113,14 +111,14 @@ Aufgenommen mit Playwright bei 1280 px gegen `next start` (Produktions-Build, De
 
 <table>
   <tr>
-    <td width="33%"><img src="docs/screenshots/upload.png" alt="Upload mit Karte für synthetische Beispieldaten und Hinweis, was den Browser verlässt"></td>
-    <td width="33%"><img src="docs/screenshots/ergebnis.png" alt="Ergebnis mit synthetischen Beispieldaten: Kennzahlen, Prüftabelle mit Quelle und Konfidenz, eine Buchung manuell korrigiert"></td>
-    <td width="33%"><img src="docs/screenshots/inflation.png" alt="Persönliche Inflation mit synthetischen Beispieldaten, als Beispielwert gekennzeichnet"></td>
+    <td width="50%" rowspan="3" valign="top"><img src="docs/screenshots/dashboard.png" alt="Dashboard mit synthetischen Beispieldaten: Kennzahlen, sechs Monate Ausgaben nach Kategorie als gestapelte Balken, Einnahmen als Linie, Verteilung nach Kategorie und erkannte wiederkehrende Zahlungen"><p align="center">Dashboard: Kennzahlen, Monatsverlauf, Verteilung und wiederkehrende Zahlungen</p></td>
+    <td width="50%" valign="top"><img src="docs/screenshots/upload.png" alt="Upload mit Karte für synthetische Beispieldaten und Hinweis, was den Browser verlässt"><p align="center">Upload mit Beispieldaten und Hinweis, was den Browser verlässt</p></td>
   </tr>
   <tr>
-    <td align="center">Upload mit Beispieldaten und Hinweis, was den Browser verlässt</td>
-    <td align="center">Prüftabelle mit Quelle und Konfidenz</td>
-    <td align="center">Persönliche Inflation (Beispielwerte)</td>
+    <td valign="top"><img src="docs/screenshots/ergebnis.png" alt="Ergebnis mit synthetischen Beispieldaten: Kennzahlen, Prüftabelle mit Quelle und Konfidenz, eine Buchung manuell korrigiert"><p align="center">Prüftabelle mit Quelle und Konfidenz</p></td>
+  </tr>
+  <tr>
+    <td valign="top"><img src="docs/screenshots/inflation.png" alt="Persönliche Inflation mit synthetischen Beispieldaten, als Beispielwert gekennzeichnet"><p align="center">Persönliche Inflation (Beispielwerte)</p></td>
   </tr>
 </table>
 

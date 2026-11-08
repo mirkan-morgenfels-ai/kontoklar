@@ -1,18 +1,51 @@
-# KontoKlar
+<p align="center">
+  <a href="https://kontoklar.mirkandeniz.de/projects/kontoklar"><img src="docs/banner.svg" alt="KontoKlar: Bankumsätze aus CSV-Exporten kategorisieren" width="100%"></a>
+</p>
 
-Kategorisiert Bankumsätze aus CSV-Exporten und zeigt, wohin das Geld geht. Regel-Engine zuerst, Embeddings zweitens, Sprachmodell nur als Fallback. Keine Kontoanbindung, keine Speicherung von Umsätzen.
+<p align="center">
+  <a href="https://kontoklar.mirkandeniz.de/projects/kontoklar"><b>Live ansehen</b></a>
+  &nbsp;·&nbsp;
+  <a href="#so-funktioniert-es">So funktioniert es</a>
+  &nbsp;·&nbsp;
+  <a href="#datenschutz-was-den-browser-verlässt">Datenschutz</a>
+  &nbsp;·&nbsp;
+  <a href="#genauigkeit">Genauigkeit</a>
+  &nbsp;·&nbsp;
+  <a href="https://mirkandeniz.de/projekte">Alle Projekte</a>
+</p>
 
-[![CI](https://github.com/mirkan-morgenfels-ai/kontoklar/actions/workflows/ci.yml/badge.svg)](https://github.com/mirkan-morgenfels-ai/kontoklar/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+<p align="center">
+  <a href="https://github.com/mirkan-morgenfels-ai/kontoklar/actions/workflows/ci.yml"><img src="https://github.com/mirkan-morgenfels-ai/kontoklar/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT"></a>
+</p>
+
+Kategorisiert Bankumsätze aus CSV-Exporten und zeigt, wohin das Geld geht. **Regel-Engine zuerst, Embeddings zweitens, Sprachmodell nur als Fallback.** Keine Kontoanbindung, keine Speicherung von Umsätzen.
 
 Live-Demo: https://kontoklar.mirkandeniz.de/projects/kontoklar (die frühere Adresse kontoklar-eight.vercel.app leitet dorthin weiter). Werdegang und alle Projekte: https://mirkandeniz.de
 
-![Dashboard mit synthetischen Beispieldaten: Kennzahlen, sechs Monate Ausgaben nach Kategorie als gestapelte Balken, Einnahmen als Linie, Verteilung nach Kategorie und erkannte wiederkehrende Zahlungen](docs/screenshots/dashboard.png)
+<details>
+<summary><b>English summary</b></summary>
+<br>
 
-**English summary.** KontoKlar categorizes German bank account CSV exports (DKB, ING, comdirect, N26, VR-Bank in the new and old format, Sparkasse, plus a generic column mapping for other banks) and builds a household dashboard: monthly spending by category, recurring payments, and a personal inflation rate that weights consumer price sub-indices with the user's own spending shares. Categorization is a three-stage hybrid: a client-side rule engine, then OpenAI embeddings with k-nearest-neighbour voting against a labelled example set, then a small LLM only for low-confidence cases. Results are cached per merchant, requests are rate-limited (keyed by an HMAC of the client IP or, for IPv6, of its /64 prefix, never the raw IP) and bot-protected, so variable API cost stays near zero. The API route is fail-closed: unless the OpenAI key, Upstash Redis, Cloudflare Turnstile and the IP hashing secret are all configured, it answers 503 and never calls OpenAI. No transactions are stored server-side; with the optional API step, only cleaned merchant names of card payments, direct debits and transfers to recipients with a company marker leave the browser; never purposes (for PayPal only the merchant from "Ihr Einkauf bei …", and only if it carries a company marker), amounts, credits or transfers to recipients without a company marker.
+KontoKlar categorizes German bank account CSV exports (DKB, ING, comdirect, N26, VR-Bank in the new and old format, Sparkasse, plus a generic column mapping for other banks) and builds a household dashboard: monthly spending by category, recurring payments, and a personal inflation rate that weights consumer price sub-indices with the user's own spending shares. Categorization is a three-stage hybrid: a client-side rule engine, then OpenAI embeddings with k-nearest-neighbour voting against a labelled example set, then a small LLM only for low-confidence cases. Results are cached per merchant, requests are rate-limited (keyed by an HMAC of the client IP or, for IPv6, of its /64 prefix, never the raw IP) and bot-protected, so variable API cost stays near zero. The API route is fail-closed: unless the OpenAI key, Upstash Redis, Cloudflare Turnstile and the IP hashing secret are all configured, it answers 503 and never calls OpenAI. No transactions are stored server-side; with the optional API step, only cleaned merchant names of card payments, direct debits and transfers to recipients with a company marker leave the browser; never purposes (for PayPal only the merchant from "Ihr Einkauf bei …", and only if it carries a company marker), amounts, credits or transfers to recipients without a company marker.
 
 Status: live with the in-browser rule engine; the embedding/LLM stage is implemented and tested with mocks but not enabled yet (setup guide in German: [docs/einrichtung-api.md](docs/einrichtung-api.md)).
 Measured on a 198-transaction synthetic test set: rules cover 96.5 % at 99.0 % accuracy (95.5 % overall, uncovered counted as wrong); the test set was built alongside the rules.
+
+</details>
+
+![Dashboard mit synthetischen Beispieldaten: Kennzahlen, sechs Monate Ausgaben nach Kategorie als gestapelte Balken, Einnahmen als Linie, Verteilung nach Kategorie und erkannte wiederkehrende Zahlungen](docs/screenshots/dashboard.png)
+
+## Auf einen Blick
+
+| | |
+|---|---|
+| **Eingabe** | Umsatz-CSV von DKB, ING, comdirect, N26, VR-Bank oder Sparkasse; andere Banken über ein Spalten-Mapping |
+| **Ergebnis** | Kategorien mit Konfidenz, Ausgaben je Monat, wiederkehrende Zahlungen und eine persönliche Inflationsrate |
+| **Datenschutz** | Auswertung im Browser; der optionale API-Schritt ist standardmäßig aus und sendet höchstens bereinigte Händlernamen |
+| **Gemessen** | Regel-Engine auf 198 synthetischen Buchungen: 96,5 % Abdeckung, 99,0 % richtig auf den zugeordneten Buchungen |
+| **Offen** | Einrichtung und Messung der API-Stufe, echte Destatis-Daten, Prüfung mit einem echten DKB-Export |
+| **Technik** | Next.js 16, TypeScript, Papa Parse, Recharts, OpenAI (Embeddings, Fallback), Upstash Redis, Cloudflare Turnstile |
 
 ## Problem
 
@@ -20,25 +53,38 @@ Wer wissen will, wohin das Geld geht, hat bei deutschen Banken drei Wege: die Au
 
 ## Was KontoKlar macht
 
-- Liest die Umsatz-CSV von DKB, ING, comdirect, N26, VR-Bank und Sparkasse ein; andere Banken über ein generisches Spalten-Mapping. PDF-Kontoauszüge werden nicht gelesen; die Oberfläche erklärt dann den Weg zum CSV-Export.
-- Kategorisiert jede Buchung in drei Stufen: Regel-Engine, Embedding-Ähnlichkeit, Sprachmodell-Fallback.
-- Zeigt jede automatische Zuordnung mit Konfidenz an; unsichere Fälle sind zur Prüfung markiert und lassen sich mit einem Klick korrigieren.
-- Erkennt wiederkehrende Zahlungen (Abos, Miete, Versicherungen, Rundfunkbeitrag) über Rhythmus (monatlich, vierteljährlich, halbjährlich, jährlich) und Betrag und rechnet sie anteilig auf den Monat um.
-- Berechnet eine persönliche Inflationsrate aus den eigenen Ausgabenanteilen und den Teilindizes des Verbraucherpreisindex (Destatis).
-- Bietet synthetische Beispieldaten zum Ausprobieren (Schaltfläche „Mit Beispieldaten ausprobieren“, 147 Buchungen von Januar bis Juni 2026, Personen und Konten erfunden).
-- Speichert keine Umsätze. Der Server kennt nur einen Cache von Händlername zu Kategorie.
-
-## Screenshots
-
-Aufgenommen mit Playwright bei 1280 px gegen `next start` (Produktions-Build, Design „Navy & Gold“ wie DepotDoktor und NetzRadar) mit den synthetischen Beispieldaten („Mit Beispieldaten ausprobieren“, Datei `packages/csv/fixtures/demo-synthetic.csv`). Der API-Schritt ist dabei nicht eingerichtet; es wurden keine Buchungsdaten gesendet (kein POST, nur der Statusabruf `GET /api/categorize`). Die Inflationswerte sind Beispielwerte, die Oberfläche kennzeichnet sie so.
-
-![Upload mit Karte für synthetische Beispieldaten und Hinweis, was den Browser verlässt](docs/screenshots/upload.png)
-
-![Ergebnis mit synthetischen Beispieldaten: Kennzahlen, Prüftabelle mit Quelle und Konfidenz, eine Buchung manuell korrigiert](docs/screenshots/ergebnis.png)
-
-![Persönliche Inflation mit synthetischen Beispieldaten, als Beispielwert gekennzeichnet](docs/screenshots/inflation.png)
+- **Einlesen:** Liest die Umsatz-CSV von DKB, ING, comdirect, N26, VR-Bank und Sparkasse ein; andere Banken über ein generisches Spalten-Mapping. PDF-Kontoauszüge werden nicht gelesen; die Oberfläche erklärt dann den Weg zum CSV-Export.
+- **Kategorisieren:** Kategorisiert jede Buchung in drei Stufen: Regel-Engine, Embedding-Ähnlichkeit, Sprachmodell-Fallback.
+- **Prüfen:** Zeigt jede automatische Zuordnung mit Konfidenz an; unsichere Fälle sind zur Prüfung markiert und lassen sich mit einem Klick korrigieren.
+- **Abos finden:** Erkennt wiederkehrende Zahlungen (Abos, Miete, Versicherungen, Rundfunkbeitrag) über Rhythmus (monatlich, vierteljährlich, halbjährlich, jährlich) und Betrag und rechnet sie anteilig auf den Monat um.
+- **Inflation:** Berechnet eine persönliche Inflationsrate aus den eigenen Ausgabenanteilen und den Teilindizes des Verbraucherpreisindex (Destatis).
+- **Ausprobieren:** Bietet synthetische Beispieldaten zum Ausprobieren (Schaltfläche „Mit Beispieldaten ausprobieren“, 147 Buchungen von Januar bis Juni 2026, Personen und Konten erfunden).
+- **Nichts speichern:** Speichert keine Umsätze. Der Server kennt nur einen Cache von Händlername zu Kategorie.
 
 ## So funktioniert es
+
+```mermaid
+flowchart TD
+  A["Bank-CSV<br/>Papa Parse und Normalisierung<br/>(im Browser)"] --> C{"Regel-Engine<br/>(im Browser)"}
+  C -- "Regel trifft: Konfidenz 1,0" --> R["Review-Tabelle, danach<br/>Dashboard, Abos und<br/>persönliche Inflation"]
+  C -- "keine Regel" --> D{"API-Schritt<br/>angehakt?"}
+  D -- "nein: nichts verlässt den Browser" --> R
+  D -- "ja: nur normalisierte Händlertexte,<br/>ein Batch je Upload" --> E["/api/categorize<br/>fail-closed, Turnstile,<br/>Rate-Limit"]
+  E --> F["Cache (Upstash Redis)"]
+  F -- "neue Texte" --> G["Embedding + kNN<br/>gegen das Beispielset"]
+  G -- "Konfidenz unter 0,5" --> H["Sprachmodell-Fallback"]
+  G --> R
+  H --> R
+  F --> R
+```
+
+Konfidenzschwellen: Regel trifft → 1,0. Embedding-kNN ≥ 0,80 → übernehmen. 0,50 bis 0,80 → übernehmen und zur Prüfung markieren. Unter 0,50 → Sprachmodell entscheidet, Ergebnis wird mit 0,50 gecacht. kNN-Konfidenz = mittlere Kosinus-Ähnlichkeit der Nachbarn der Mehrheitskategorie (k = 3); ohne Mehrheit zusätzlich mit dem Gewichtsanteil multipliziert. Rechenbeispiel: zwei Nachbarn Lebensmittel (0,94 und 0,88), ein Nachbar Drogerie (0,71); die Konfidenz für Lebensmittel ist der Mittelwert 0,91.
+
+Regeln mit dem Feld `merchant` prüfen den normalisierten Händlerteil und zusätzlich den Empfängernamen mit Ziffern, damit Muster wie „BLUME 2000“, „HUK24“ oder „CHECK24“ greifen. Ohne Regeltreffer bleibt eine Buchung offen: Ausgaben als „Sonstiges“, Eingänge als „Einkommen“, jeweils zur Prüfung markiert und ohne Konfidenzwert.
+
+<details>
+<summary><b>Der Ablauf Schritt für Schritt</b>, mit allen Prüfungen der API-Route</summary>
+<br>
 
 ```
 Bank-CSV (Browser) -> Papa Parse -> Normalisierung
@@ -59,35 +105,38 @@ Bank-CSV (Browser) -> Papa Parse -> Normalisierung
   -> persönliche Inflation aus data/k2/cpi.json
 ```
 
-Konfidenzschwellen: Regel trifft → 1,0. Embedding-kNN ≥ 0,80 → übernehmen. 0,50 bis 0,80 → übernehmen und zur Prüfung markieren. Unter 0,50 → Sprachmodell entscheidet, Ergebnis wird mit 0,50 gecacht. kNN-Konfidenz = mittlere Kosinus-Ähnlichkeit der Nachbarn der Mehrheitskategorie (k = 3); ohne Mehrheit zusätzlich mit dem Gewichtsanteil multipliziert. Rechenbeispiel: zwei Nachbarn Lebensmittel (0,94 und 0,88), ein Nachbar Drogerie (0,71); die Konfidenz für Lebensmittel ist der Mittelwert 0,91.
+</details>
 
-Regeln mit dem Feld `merchant` prüfen den normalisierten Händlerteil und zusätzlich den Empfängernamen mit Ziffern, damit Muster wie „BLUME 2000“, „HUK24“ oder „CHECK24“ greifen. Ohne Regeltreffer bleibt eine Buchung offen: Ausgaben als „Sonstiges“, Eingänge als „Einkommen“, jeweils zur Prüfung markiert und ohne Konfidenzwert.
+## Screenshots
+
+Aufgenommen mit Playwright bei 1280 px gegen `next start` (Produktions-Build, Design „Navy & Gold“ wie DepotDoktor und NetzRadar) mit den synthetischen Beispieldaten („Mit Beispieldaten ausprobieren“, Datei `packages/csv/fixtures/demo-synthetic.csv`). Der API-Schritt ist dabei nicht eingerichtet; es wurden keine Buchungsdaten gesendet (kein POST, nur der Statusabruf `GET /api/categorize`). Die Inflationswerte sind Beispielwerte, die Oberfläche kennzeichnet sie so.
+
+<table>
+  <tr>
+    <td width="33%"><img src="docs/screenshots/upload.png" alt="Upload mit Karte für synthetische Beispieldaten und Hinweis, was den Browser verlässt"></td>
+    <td width="33%"><img src="docs/screenshots/ergebnis.png" alt="Ergebnis mit synthetischen Beispieldaten: Kennzahlen, Prüftabelle mit Quelle und Konfidenz, eine Buchung manuell korrigiert"></td>
+    <td width="33%"><img src="docs/screenshots/inflation.png" alt="Persönliche Inflation mit synthetischen Beispieldaten, als Beispielwert gekennzeichnet"></td>
+  </tr>
+  <tr>
+    <td align="center">Upload mit Beispieldaten und Hinweis, was den Browser verlässt</td>
+    <td align="center">Prüftabelle mit Quelle und Konfidenz</td>
+    <td align="center">Persönliche Inflation (Beispielwerte)</td>
+  </tr>
+</table>
 
 ## Datenschutz: Was den Browser verlässt
 
 Der API-Schritt ist standardmäßig aus und muss vor dem Upload angehakt werden; ohne ihn verlässt nichts den Browser.
+
+| Mit eingeschaltetem API-Schritt gesendet | Nie gesendet |
+|---|---|
+| höchstens bereinigte Händlernamen von Kartenzahlungen und Lastschriften sowie von Überweisungen und sonstigen Abbuchungen an Empfänger mit Firmenkennzeichen, nur für Buchungen, die die Regel-Engine nicht kennt | Gutschriften, Überweisungen an Empfänger ohne Firmenkennzeichen, Verwendungszwecke, IBANs, Beträge, Buchungsdaten, Kontonummern, vollständige Buchungszeilen |
 
 Mit eingeschaltetem API-Schritt gesendet werden höchstens bereinigte Händlernamen von Kartenzahlungen und Lastschriften sowie von Überweisungen und sonstigen Abbuchungen an Empfänger mit Firmenkennzeichen (etwa GmbH, AG, Versicherung), und nur für Buchungen, die die Regel-Engine nicht kennt, zum Beispiel `REWE SAGT DANKE`. Die Normalisierung entfernt IBANs, BICs, Daten, Uhrzeiten, Nummern, SEPA-Kürzel, Zahlungsart-Wörter und Rechtsformen und kürzt auf 60 Zeichen. Bei PayPal wird der Händler aus „Ihr Einkauf bei …“ genommen, nicht der PayPal-Text, und nur gesendet, wenn er ein Firmenkennzeichen trägt.
 
 Nicht gesendet werden: Gutschriften, Überweisungen an Empfänger ohne Firmenkennzeichen, PayPal-Einkäufe bei Verkäufern ohne Firmenkennzeichen (etwa Privatpersonen), Buchungen ohne lesbaren Empfängernamen, Verwendungszwecke, IBANs, Beträge, Buchungsdaten, Kontonummern und vollständige Buchungszeilen. Diese Buchungen bleiben zur Prüfung markiert. Die Erkennung ist regelbasiert (`isApiEligible` in `apps/web/lib/kontoklar/merchant.ts`); die Oberfläche zeigt nach jedem Upload die Liste der tatsächlich übertragenen Texte.
 
 Serverseitig gespeichert werden ausschließlich ein Cache von normalisiertem Händlernamen zu Kategorie und Konfidenz (30 Tage) sowie der Zähler des Tageslimits. Den Zählerschlüssel bildet der Server als HMAC-SHA256 der IP-Adresse mit dem geheimen Server-Schlüssel `IP_HASH_SECRET`, bei IPv6 nur aus den ersten 64 Bit (alle Adressen eines /64-Netzes teilen sich ein Limit); die rohe IP geht nicht an Upstash. Upstash löscht jeden Zähler 48 Stunden und 1 Sekunde nach dem ersten Aufruf im jeweiligen Tagesfenster (Ablaufzeit der Bibliothek `@upstash/ratelimit`: zwei Fensterlängen plus 1 Sekunde). Für die Bot-Prüfung sendet der Server das Turnstile-Token und die IP-Adresse an Cloudflare. Umsätze werden nicht gespeichert. Für die Embedding- und Fallback-Aufrufe gelten die Datenverarbeitungsvereinbarungen des API-Anbieters; die Datenschutzerklärung der Seite nennt sie. Wer keine Übertragung möchte, lässt den API-Schritt aus; dann arbeitet nur die Regel-Engine.
-
-## Kostenkontrolle
-
-| Maßnahme | Wirkung |
-|---|---|
-| Regel-Engine clientseitig | Buchungen mit Regeltreffer kosten nichts (Planannahme etwa 70 %, auf dem synthetischen Testset 96,5 %) |
-| Cache pro Händlername | jeder Händlertext kostet höchstens einmal |
-| Ein Batch-Aufruf pro Upload, höchstens 500 Texte | wenige Function Invocations und Redis-Befehle |
-| Embeddings statt Sprachmodell als Standard | 0,02 $ pro Mio. Token statt eines LLM-Aufrufs je Buchung |
-| Sprachmodell nur unter Konfidenz 0,5 | Fallback nur für unsichere Fälle (Planannahme etwa 2 % der Buchungen, noch nicht gemessen) |
-| Tageslimit 30 Aufrufe je IP-Hash, Cloudflare Turnstile | Schutz vor Skripten und Massenanfragen |
-| Hartes Monatslimit an der Anbieter-Konsole | Kosten sind nach oben gedeckelt |
-
-Die API-Route ist fail-closed. Der API-Schritt ist nur aktiv, wenn alle sechs Variablen gesetzt sind: `OPENAI_API_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `TURNSTILE_SECRET_KEY`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY` und `IP_HASH_SECRET` (mindestens 32 Zeichen). Fehlt eine davon, meldet `GET /api/categorize` `enabled: false` mit einer deutschen Begründung und der Liste der fehlenden Variablen (nie mit Werten), und `POST` antwortet mit 503, ohne OpenAI aufzurufen. Ebenfalls 503 gibt es ohne Beispielset, ohne gültige Client-IP in `x-real-ip`, `x-forwarded-for` oder `cf-connecting-ip` und wenn das Rate-Limit nicht erreichbar ist; als nicht erreichbar gilt auch eine Antwort, die nicht binnen 5 Sekunden eintrifft. In der Produktionsumgebung (`VERCEL_ENV=production`, ohne Vercel `NODE_ENV=production`) zählen die dokumentierten Cloudflare-Testschlüssel als fehlend. Bodies über 200.000 Byte werden mit 413 abgelehnt; geprüft werden der `content-length`-Header und die tatsächlich gelesenen Bytes. Mehr als 500 unbekannte Händler je Upload bleiben unangefragt zur Prüfung markiert.
-
-Variable Kosten sind noch nicht gemessen, weil der API-Schritt nicht eingerichtet ist. Planannahme, nicht gemessen: je Nutzer und Monat (300 Buchungen) ein Fallback-Aufruf mit etwa 1.000 Eingabe- und 400 Ausgabe-Token, ohne Reasoning-Token. Mit `gpt-5.6-luna` (0,20 $ je Million Eingabe- und 1,20 $ je Million Ausgabe-Token) kostet der Fallback damit etwa 0,07 $ bei 100 und etwa 6,80 $ bei 10.000 Nutzern im Monat. Mit den Preisen von GPT-5 nano, dem Standard bis 27.10.2026, ergibt dieselbe Annahme die bisher genannten 0,02 $ bzw. 2,10 $; die Token-Annahme ist aus diesen Beträgen zurückgerechnet. Die Embeddings fallen kaum ins Gewicht (etwa 15 neue Händlernamen zu je rund 8 Token, bei 10.000 Nutzern unter 0,03 $). `gpt-5.6-luna` ist ein Reasoning-Modell: OpenAI berechnet Reasoning-Token als Ausgabe-Token, und der Code setzt keinen Reasoning-Aufwand, also gilt der Standard `medium`. Bei zum Beispiel 2.000 Reasoning-Token je Aufruf lägen die Kosten bei etwa 31 $ für 10.000 Nutzer. Die tatsächliche Zahl misst der erste `pnpm --filter web accuracy --api` („davon … Reasoning“); ist sie hoch, lässt sich der Aufwand mit `reasoning_effort: "low"` senken. Nach oben deckelt das harte Monatslimit an der Anbieter-Konsole die Kosten (5 $; ohne Reasoning-Token nach dieser Annahme bei rund 7.300 Nutzern erreicht, mit 2.000 Reasoning-Token je Aufruf bei rund 1.600). Bei Erreichen eines Limits bleibt die Regel-Engine aktiv.
 
 ## Genauigkeit
 
@@ -101,9 +150,38 @@ Gemessen mit `pnpm --filter web accuracy` auf einem von Hand gelabelten, synthet
 | offen (keine Regel) | 3,5 % | – |
 | Gesamt (offene zählen als falsch) | 100 % | 95,5 % |
 
-Das Testset wurde parallel zum Regelsatz erstellt; die hohe Regelabdeckung ist deshalb kein Beleg für echte Kontohistorien. Precision und Recall je Kategorie, die Fehlerliste mit allen 9 Fehlfällen und offene Messungen stehen in [`docs/genauigkeit.md`](docs/genauigkeit.md), der Rohbericht in [`docs/genauigkeit.json`](docs/genauigkeit.json). Ziel für v1: mindestens 90 % Accuracy auf den häufigen Kategorien.
+> [!NOTE]
+> Das Testset wurde parallel zum Regelsatz erstellt; die hohe Regelabdeckung ist deshalb kein Beleg für echte Kontohistorien. Precision und Recall je Kategorie, die Fehlerliste mit allen 9 Fehlfällen und offene Messungen stehen in [`docs/genauigkeit.md`](docs/genauigkeit.md), der Rohbericht in [`docs/genauigkeit.json`](docs/genauigkeit.json). Ziel für v1: mindestens 90 % Accuracy auf den häufigen Kategorien.
+
+<details>
+<summary><b>Eigenes Testset für die API-Stufe</b>: 95 Buchungen, disjunkt zum Beispielset</summary>
+<br>
 
 Die API-Stufe wird nicht auf diesem Testset gemessen: 113 seiner 198 Händlerschlüssel stehen wörtlich oder als Präfix im Beispielset der Embedding-Stufe, und an die API gingen von dort nur 4 Texte. Dafür gibt es ein eigenes Testset, [`data/k2/testset-api.json`](data/k2/testset-api.json), mit 95 Buchungen, je 5 in jeder Kategorie außer Einkommen. Es enthält nur Ausgaben, die keine Regel trifft und die für die API zugelassen sind. Die Händler sind frei erfunden; bei den beiden PayPal-Einkäufen ist PayPal Europe der Empfänger, an die API ginge nur der erfundene Händler aus „Ihr Einkauf bei …“. Kein Händlerschlüssel steht wörtlich oder als Präfix im Beispielset oder umgekehrt. Bei 3 Buchungen (alle in Gebühren & Zinsen) folgt das Label nur aus dem Verwendungszweck, den die API nie bekommt; trifft die API-Stufe diese nicht zufällig, beträgt ihre Gesamt-Accuracy auf dem Set höchstens 96,8 %. `--api` gibt die Kennzahlen deshalb auch ohne diese 3 Buchungen aus. Erstellt und gelabelt hat es Claude (KI-Assistent von Anthropic) am 08.10.2026; die stichprobenartige Prüfung der Labels durch den Autor steht aus (Prüfliste mit allen Buchungen: [`docs/pruefung-testset-api.md`](docs/pruefung-testset-api.md)). `pnpm --filter web accuracy` prüft diese Bedingungen bei jedem Lauf, `pnpm --filter web accuracy --api` misst Embedding-kNN und Fallback auf dem Set. Gemessen ist das noch nicht, weil kein OpenAI-Schlüssel eingerichtet ist; ohne Schlüssel endet `--api` nach der Prüfung mit einem Hinweis. Einzelheiten, Grenzfälle der Labels, die Obergrenze und die Kosten stehen in [`docs/genauigkeit.md`](docs/genauigkeit.md#api-stufe-eigenes-testset).
+
+</details>
+
+## Kostenkontrolle
+
+| Maßnahme | Wirkung |
+|---|---|
+| Regel-Engine clientseitig | Buchungen mit Regeltreffer kosten nichts (Planannahme etwa 70 %, auf dem synthetischen Testset 96,5 %) |
+| Cache pro Händlername | jeder Händlertext kostet höchstens einmal |
+| Ein Batch-Aufruf pro Upload, höchstens 500 Texte | wenige Function Invocations und Redis-Befehle |
+| Embeddings statt Sprachmodell als Standard | 0,02 $ pro Mio. Token statt eines LLM-Aufrufs je Buchung |
+| Sprachmodell nur unter Konfidenz 0,5 | Fallback nur für unsichere Fälle (Planannahme etwa 2 % der Buchungen, noch nicht gemessen) |
+| Tageslimit 30 Aufrufe je IP-Hash, Cloudflare Turnstile | Schutz vor Skripten und Massenanfragen |
+| Hartes Monatslimit an der Anbieter-Konsole | Kosten sind nach oben gedeckelt |
+
+<details>
+<summary><b>Fail-closed und Kostenschätzung</b> im Detail</summary>
+<br>
+
+Die API-Route ist fail-closed. Der API-Schritt ist nur aktiv, wenn alle sechs Variablen gesetzt sind: `OPENAI_API_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `TURNSTILE_SECRET_KEY`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY` und `IP_HASH_SECRET` (mindestens 32 Zeichen). Fehlt eine davon, meldet `GET /api/categorize` `enabled: false` mit einer deutschen Begründung und der Liste der fehlenden Variablen (nie mit Werten), und `POST` antwortet mit 503, ohne OpenAI aufzurufen. Ebenfalls 503 gibt es ohne Beispielset, ohne gültige Client-IP in `x-real-ip`, `x-forwarded-for` oder `cf-connecting-ip` und wenn das Rate-Limit nicht erreichbar ist; als nicht erreichbar gilt auch eine Antwort, die nicht binnen 5 Sekunden eintrifft. In der Produktionsumgebung (`VERCEL_ENV=production`, ohne Vercel `NODE_ENV=production`) zählen die dokumentierten Cloudflare-Testschlüssel als fehlend. Bodies über 200.000 Byte werden mit 413 abgelehnt; geprüft werden der `content-length`-Header und die tatsächlich gelesenen Bytes. Mehr als 500 unbekannte Händler je Upload bleiben unangefragt zur Prüfung markiert.
+
+Variable Kosten sind noch nicht gemessen, weil der API-Schritt nicht eingerichtet ist. Planannahme, nicht gemessen: je Nutzer und Monat (300 Buchungen) ein Fallback-Aufruf mit etwa 1.000 Eingabe- und 400 Ausgabe-Token, ohne Reasoning-Token. Mit `gpt-5.6-luna` (0,20 $ je Million Eingabe- und 1,20 $ je Million Ausgabe-Token) kostet der Fallback damit etwa 0,07 $ bei 100 und etwa 6,80 $ bei 10.000 Nutzern im Monat. Mit den Preisen von GPT-5 nano, dem Standard bis 27.10.2026, ergibt dieselbe Annahme die bisher genannten 0,02 $ bzw. 2,10 $; die Token-Annahme ist aus diesen Beträgen zurückgerechnet. Die Embeddings fallen kaum ins Gewicht (etwa 15 neue Händlernamen zu je rund 8 Token, bei 10.000 Nutzern unter 0,03 $). `gpt-5.6-luna` ist ein Reasoning-Modell: OpenAI berechnet Reasoning-Token als Ausgabe-Token, und der Code setzt keinen Reasoning-Aufwand, also gilt der Standard `medium`. Bei zum Beispiel 2.000 Reasoning-Token je Aufruf lägen die Kosten bei etwa 31 $ für 10.000 Nutzer. Die tatsächliche Zahl misst der erste `pnpm --filter web accuracy --api` („davon … Reasoning“); ist sie hoch, lässt sich der Aufwand mit `reasoning_effort: "low"` senken. Nach oben deckelt das harte Monatslimit an der Anbieter-Konsole die Kosten (5 $; ohne Reasoning-Token nach dieser Annahme bei rund 7.300 Nutzern erreicht, mit 2.000 Reasoning-Token je Aufruf bei rund 1.600). Bei Erreichen eines Limits bleibt die Regel-Engine aktiv.
+
+</details>
 
 ## Unterstützte Banken
 
@@ -121,7 +199,13 @@ Testdateien liegen unter `packages/csv/fixtures/` und sind synthetisch. Die Pars
 
 ## Persönliche Inflation
 
-Persönliche Rate = Σ (Anteil an den abgedeckten Ausgaben je COICOP-Abteilung × Vorjahresveränderung des Teilindex). Die eigenen Kategorien werden auf die COICOP-Abteilungen des Verbraucherpreisindex abgebildet. Kategorien ohne Zuordnung (Online-Handel, Bargeld, Gebühren & Zinsen, Sonstiges) und Abteilungen ohne Indexwert sind nicht abgedeckt; die Anteile der übrigen Ausgaben werden auf 100 % normiert, die Oberfläche nennt den abgedeckten Anteil (mit den synthetischen Beispieldaten 93 %). Verwendet wird die Vorjahresveränderung des letzten verfügbaren Monats; die Gewichte stammen aus dem hochgeladenen Zeitraum. Die Tabelle der Oberfläche rundet Anteile und Beiträge nach dem Verfahren der größten Reste, sodass die angezeigten Anteile 100,0 % und die angezeigten Beiträge die persönliche Rate ergeben. Beispiel: Anteile Lebensmittel 30 %, Wohnen 40 %, Mobilität 15 %, Freizeit 15 % bei Teilindex-Veränderungen +5 %, +2 %, +6 %, +3 % ergeben 3,65 %.
+Persönliche Rate = Σ (Anteil an den abgedeckten Ausgaben je COICOP-Abteilung × Vorjahresveränderung des Teilindex). Die eigenen Kategorien werden auf die COICOP-Abteilungen des Verbraucherpreisindex abgebildet. Kategorien ohne Zuordnung (Online-Handel, Bargeld, Gebühren & Zinsen, Sonstiges) und Abteilungen ohne Indexwert sind nicht abgedeckt; die Anteile der übrigen Ausgaben werden auf 100 % normiert, die Oberfläche nennt den abgedeckten Anteil (mit den synthetischen Beispieldaten 93 %). Verwendet wird die Vorjahresveränderung des letzten verfügbaren Monats; die Gewichte stammen aus dem hochgeladenen Zeitraum. Die Tabelle der Oberfläche rundet Anteile und Beiträge nach dem Verfahren der größten Reste, sodass die angezeigten Anteile 100,0 % und die angezeigten Beiträge die persönliche Rate ergeben.
+
+**Beispiel:** Anteile Lebensmittel 30 %, Wohnen 40 %, Mobilität 15 %, Freizeit 15 % bei Teilindex-Veränderungen +5 %, +2 %, +6 %, +3 % ergeben 3,65 %.
+
+<details>
+<summary><b>Zuordnung der Kategorien zu den COICOP-Abteilungen</b>, mit Begründung der Näherungen</summary>
+<br>
 
 | Kategorie | COICOP-Abteilung |
 |---|---|
@@ -156,11 +240,9 @@ Grundlage ist die Gliederung des Verbraucherpreisindex auf Basis 2020 laut Wägu
 
 Einkommen und Umbuchungen sind keine Ausgaben und fließen nicht ein.
 
+</details>
+
 Datenquelle: Statistisches Bundesamt (Destatis), GENESIS-Online, Tabellen 61111-0002 (Gesamtindex, Monate) und 61111-0006 (Teilindizes nach COICOP-Abteilungen, Monate, Merkmal `CC13A2`), Datenlizenz Deutschland – Namensnennung – Version 2.0 (https://www.govdata.de/dl-de/by-2-0). Die Indexwerte werden nicht verändert, nur zu Vorjahresveränderungen umgerechnet und gewichtet. Sie werden monatlich per GitHub Actions abgerufen und als `data/k2/cpi.json` im Repository abgelegt; zur Laufzeit gibt es keinen Destatis-Aufruf. Token, Tabellen, Abruf und Prüfung: [`docs/destatis.md`](docs/destatis.md). Derzeit enthält `cpi.json` Beispielwerte (`"sample": true`); die Oberfläche zeigt dann „Gesamtrate (Beispielwert)“ und „Persönliche Rate (Beispielrechnung)“.
-
-## Tech-Stack
-
-Next.js 16 (App Router, Turbopack), TypeScript 6.0 (strict), Tailwind CSS 4, Papa Parse, Recharts, OpenAI Node SDK 7 (`text-embedding-3-small`, `gpt-5.6-luna`), Upstash Redis und `@upstash/ratelimit`, Cloudflare Turnstile, Vitest 5, Playwright mit axe-core, ESLint 10, pnpm Workspaces, GitHub Actions, Vercel. TypeScript 7 ist noch nicht im Einsatz, weil typescript-eslint es nicht unterstützt (Begründung in [`CLAUDE.md`](CLAUDE.md), Abschnitt „Abhängigkeiten“).
 
 ## Lokale Ausführung
 
@@ -173,6 +255,12 @@ pnpm install
 cp apps/web/.env.example apps/web/.env.local
 pnpm --filter web dev
 ```
+
+Ohne Umgebungsvariablen läuft die Anwendung mit der Regel-Engine allein.
+
+<details>
+<summary><b>Umgebungsvariablen für den API-Schritt</b> und Destatis-Daten</summary>
+<br>
 
 Umgebungsvariablen in `apps/web/.env.local`, alle für den API-Schritt nötig:
 
@@ -205,6 +293,8 @@ Das CPI-JSON wird im Repository mitgeliefert. Aktuell enthält `data/k2/cpi.json
 DESTATIS_TOKEN=... pnpm --filter web cpi:build
 ```
 
+</details>
+
 ## Tests
 
 ```bash
@@ -215,15 +305,49 @@ pnpm --filter web exec playwright install chromium
 CI=true pnpm test:e2e
 ```
 
+Stand 04.11.2026 (nach dem Livegang unter kontoklar.mirkandeniz.de und dem Aufräumen): **348 Unit-Tests** (csv 45, ratelimit 24, web 279) und **37 Playwright-Tests**, alle grün (im Linux-Container scheitert ein Test zur Windows-1252-Erkennung an der ICU-Version von Node, in der CI nicht).
+
+Die CI führt bei jedem Push auf `main` und bei jedem Pull Request `install → typecheck → lint → test → accuracy (Accuracy der Regel-Engine auf zugeordneten Buchungen mindestens 0,9) → build → Playwright-E2E` aus.
+
+<details>
+<summary><b>Was die Tests abdecken</b></summary>
+<br>
+
 `pnpm --filter web accuracy` gibt die Kennzahlen nur aus und prüft das API-Testset; `pnpm --filter web accuracy --write` schreibt `docs/genauigkeit.json` neu. `pnpm --filter web accuracy --api` misst die API-Stufe auf `data/k2/testset-api.json` (braucht `OPENAI_API_KEY` und `data/k2/labeled-embeddings.json`), mit `--write` in `docs/genauigkeit-api.json`. Die E2E-Tests starten ohne `CI` den Entwicklungsserver (`next dev`), mit `CI=true` `next start` auf dem vorher gebauten Stand. Der Port kommt aus `PORT` (Standard 3000), zum Beispiel `PORT=3111 pnpm test:e2e`. `pnpm ci` führt Typecheck, Lint, Unit-Tests, Accuracy und Build nacheinander aus.
 
 Das gelabelte Beispielset für die Embedding-Stufe liegt in `data/k2/labeled-examples.json`; die Vektoren entstehen einmalig und nur lokal mit `pnpm --filter web embeddings:build` (OpenAI-Key nötig). `pnpm --filter web embeddings:build --dry-run` zeigt ohne Schlüssel Umfang und Kosten: 278 Einträge, 277 verschiedene Texte, geschätzt 1.197 Token, etwa 0,000024 $.
 
-Unit-Tests decken die Bank-Parser (auch mit CRLF-Zeilenenden), die Regel-Engine (jede Muster-Alternative trifft ihre eigene Regel), die Normalisierung der Händlernamen und die Auswahl der API-Texte, Kosinus-Ähnlichkeit und kNN-Abstimmung, die Erkennung wiederkehrender Zahlungen, die persönliche Inflation, die Diagrammfarben und die Beispieldaten ab, außerdem das API-Testset (kein Regeltreffer, für die API zugelassen, disjunkt zum Beispielset, ausgewogen, Obergrenze durch Labels, die nur aus dem Verwendungszweck folgen). Die API-Route wird mit gemocktem OpenAI-Client, Redis-Mock und gemockter Turnstile-Prüfung getestet: für jede der sechs fehlenden Variablen (503 ohne OpenAI-Aufruf), für die IP-Pseudonymisierung (nur der HMAC erreicht das Rate-Limit, IPv6 je /64-Präfix), für ein Rate-Limit, das nicht antwortet (503 nach dem Timeout, kein OpenAI-Aufruf), für Cloudflare-Testschlüssel in der Produktionsumgebung und für das Body-Limit mit falschem oder fehlendem `content-length`. Ein Test liest das Lua-Skript der installierten Version von `@upstash/ratelimit` und prüft Ablaufzeit und UTC-Tagesfenster, die in der Datenschutzerklärung stehen. Weitere Tests prüfen den Destatis-Abruf mit erfundenen GENESIS-Antworten (Anfrage mit Token im Header, ZIP, Flat-CSV, nur Indexwerte, Abbruch bei unvollständigen Daten), den Aufbau des Beispielsets mit Vektoren mit einem gemockten Embedding-Anbieter und die Aufbauprüfung von Bank-CSVs (meldet nur Spaltennamen und Zählwerte, nie Inhalte) und den Fallback-Aufruf (Standardmodell `gpt-5.6-luna` gleich in Code, `.env.example` und README, gesendet werden nur Modell, JSON-Modus und Nachrichten, leere Modellvariablen zählen als nicht gesetzt, Zählung von Texten und Token für die Messung). Die Playwright-Tests prüfen Upload, Beispieldaten, die Weiterleitung der Startadresse und der früheren Vercel-Adresse, Navigation, die Überleitung zu mirkandeniz.de und zu den Schwesterprojekten (nicht bei reduzierter Bewegung oder Klicks mit Zusatztaste), Rechtsseiten, 404, Metadaten, dass nur Anfragen an die eigene Adresse gehen, und laufen axe bei 390, 768 und 1280 px. Stand 01.11.2026: 349 Unit-Tests (csv 45, ratelimit 24, web 280) und 37 Playwright-Tests, alle grün (im Linux-Container scheitert ein Test zur Windows-1252-Erkennung an der ICU-Version von Node, in der CI nicht).
+- **Kategorisierung:** Bank-Parser (auch mit CRLF-Zeilenenden), Regel-Engine (jede Muster-Alternative trifft ihre eigene Regel), Normalisierung der Händlernamen und Auswahl der API-Texte, Kosinus-Ähnlichkeit und kNN-Abstimmung.
+- **Auswertung:** Erkennung wiederkehrender Zahlungen, persönliche Inflation, Diagrammfarben, Beispieldaten.
+- **API-Testset:** kein Regeltreffer, für die API zugelassen, disjunkt zum Beispielset, ausgewogen, Obergrenze durch Labels, die nur aus dem Verwendungszweck folgen.
+- **API-Route** (mit gemocktem OpenAI-Client, Redis-Mock und gemockter Turnstile-Prüfung): jede der sechs fehlenden Variablen (503 ohne OpenAI-Aufruf), IP-Pseudonymisierung (nur der HMAC erreicht das Rate-Limit, IPv6 je /64-Präfix), ein Rate-Limit, das nicht antwortet (503 nach dem Timeout, kein OpenAI-Aufruf), Cloudflare-Testschlüssel in der Produktionsumgebung, Body-Limit mit falschem oder fehlendem `content-length`. Ein Test liest das Lua-Skript der installierten Version von `@upstash/ratelimit` und prüft Ablaufzeit und UTC-Tagesfenster, die in der Datenschutzerklärung stehen.
+- **Werkzeuge:** Destatis-Abruf mit erfundenen GENESIS-Antworten (Anfrage mit Token im Header, ZIP, Flat-CSV, nur Indexwerte, Abbruch bei unvollständigen Daten), Aufbau des Beispielsets mit Vektoren mit einem gemockten Embedding-Anbieter, Aufbauprüfung von Bank-CSVs (meldet nur Spaltennamen und Zählwerte, nie Inhalte), Fallback-Aufruf (Standardmodell `gpt-5.6-luna` gleich in Code, `.env.example` und README, gesendet werden nur Modell, JSON-Modus und Nachrichten, leere Modellvariablen zählen als nicht gesetzt, Zählung von Texten und Token für die Messung).
+- **Playwright:** Upload, Beispieldaten, die Weiterleitung der Startadresse und der früheren Vercel-Adresse, Navigation, die Überleitung zu mirkandeniz.de und zu den Schwesterprojekten (nicht bei reduzierter Bewegung oder Klicks mit Zusatztaste), Rechtsseiten, 404, Metadaten, dass nur Anfragen an die eigene Adresse gehen, und axe bei 390, 768 und 1280 px.
 
-Die CI führt bei jedem Push auf `main` und bei jedem Pull Request `install → typecheck → lint → test → accuracy (Accuracy der Regel-Engine auf zugeordneten Buchungen mindestens 0,9) → build → Playwright-E2E` aus.
+</details>
 
-## Projektstruktur
+## Grenzen
+
+- Kein Kontozugriff und kein automatischer Abgleich; der Nutzer exportiert die CSV selbst.
+- Die Kategorisierung ist nur so gut wie Regelsatz und Beispielset; ungewöhnliche Händler landen in der Prüfliste.
+- Die persönliche Inflation ist eine Näherung auf Ebene der COICOP-Abteilungen, nicht auf Produktebene.
+- Bankformate ändern sich; bei unbekannter Kopfzeile greift das manuelle Spalten-Mapping.
+- Der API-Schritt überträgt normalisierte Händlertexte an einen externen Anbieter.
+
+## Roadmap
+
+- **v1:** Sechs Banken (DKB, ING, comdirect, N26, VR-Bank in neuem und altem Format, Sparkasse) plus generisches Spalten-Mapping, dreistufige Kategorisierung, Dashboard, Abo-Erkennung, persönliche Inflation. Stand 21.10.2026: live auf Vercel mit der Regel-Engine; der API-Schritt ist fail-closed abgesichert, aber noch nicht eingerichtet. Offen sind OpenAI-Key, Upstash, Turnstile-Schlüssel, `IP_HASH_SECRET` und Embedding-Vektoren ([`docs/einrichtung-api.md`](docs/einrichtung-api.md), vorher [`docs/entwurf-datenschutz-api.md`](docs/entwurf-datenschutz-api.md)), echte Destatis-Daten ([`docs/destatis.md`](docs/destatis.md)), die Prüfung des echten DKB-Exports ([`docs/pruefung-dkb.md`](docs/pruefung-dkb.md)) und die Stichprobe der Labels im API-Testset ([`docs/pruefung-testset-api.md`](docs/pruefung-testset-api.md)).
+- **v2:** Budget-Prognose je Kategorie für den Folgemonat (saisonale Zeitreihenmethode) mit Unsicherheitsband.
+- **v3:** Anomalie-Erkennung auf dem Zahlungsgraph (Händler, Kategorien, Geldflüsse) mit einem Graph Neural Network: neue ungewöhnliche Empfänger, Betragsausreißer.
+
+## Disclaimer
+
+> [!IMPORTANT]
+> KontoKlar ist ein Werkzeug zur Auswertung eigener Daten und stellt keine Finanz- oder Steuerberatung dar. Alle Angaben ohne Gewähr.
+
+<details>
+<summary><b>Projektstruktur und Tech-Stack</b></summary>
+<br>
 
 ```
 apps/web/app/projects/kontoklar/      Seite, Upload, Review-Tabelle, Dashboard
@@ -251,6 +375,7 @@ docs/destatis.md                      Destatis-Token, GENESIS-Tabellen und Abruf
 docs/pruefung-dkb.md                  Prüfung mit einem echten DKB-Export
 docs/pruefung-testset-api.md          Prüfliste der Labels im API-Testset
 docs/screenshots/                     Screenshots für dieses README
+docs/banner.svg                       Banner dieses README
 packages/csv/                         Bank-Parser, Erkennung, Fixtures (inkl. demo-synthetic.csv)
 packages/ratelimit/                   Rate-Limit, IP-Pseudonymisierung (HMAC), Turnstile-Verifikation
 .github/workflows/ci.yml              install, typecheck, lint, test, accuracy, build, E2E
@@ -258,25 +383,13 @@ packages/ratelimit/                   Rate-Limit, IP-Pseudonymisierung (HMAC), T
 .github/dependabot.yml                monatliche Updates für npm und GitHub Actions (ohne TypeScript 7.x)
 ```
 
-## Grenzen
+Tech-Stack: Next.js 16 (App Router, Turbopack), TypeScript 6.0 (strict), Tailwind CSS 4, Papa Parse, Recharts, OpenAI Node SDK 7 (`text-embedding-3-small`, `gpt-5.6-luna`), Upstash Redis und `@upstash/ratelimit`, Cloudflare Turnstile, Vitest 5, Playwright mit axe-core, ESLint 10, pnpm Workspaces, GitHub Actions, Vercel. TypeScript 7 ist noch nicht im Einsatz, weil typescript-eslint es nicht unterstützt (Begründung in [`CLAUDE.md`](CLAUDE.md), Abschnitt „Abhängigkeiten“).
 
-- Kein Kontozugriff und kein automatischer Abgleich; der Nutzer exportiert die CSV selbst.
-- Die Kategorisierung ist nur so gut wie Regelsatz und Beispielset; ungewöhnliche Händler landen in der Prüfliste.
-- Die persönliche Inflation ist eine Näherung auf Ebene der COICOP-Abteilungen, nicht auf Produktebene.
-- Bankformate ändern sich; bei unbekannter Kopfzeile greift das manuelle Spalten-Mapping.
-- Der API-Schritt überträgt normalisierte Händlertexte an einen externen Anbieter.
+</details>
 
-## Roadmap
-
-- v1: Sechs Banken (DKB, ING, comdirect, N26, VR-Bank in neuem und altem Format, Sparkasse) plus generisches Spalten-Mapping, dreistufige Kategorisierung, Dashboard, Abo-Erkennung, persönliche Inflation. Stand 21.10.2026: live auf Vercel mit der Regel-Engine; der API-Schritt ist fail-closed abgesichert, aber noch nicht eingerichtet. Offen sind OpenAI-Key, Upstash, Turnstile-Schlüssel, `IP_HASH_SECRET` und Embedding-Vektoren ([`docs/einrichtung-api.md`](docs/einrichtung-api.md), vorher [`docs/entwurf-datenschutz-api.md`](docs/entwurf-datenschutz-api.md)), echte Destatis-Daten ([`docs/destatis.md`](docs/destatis.md)), die Prüfung des echten DKB-Exports ([`docs/pruefung-dkb.md`](docs/pruefung-dkb.md)) und die Stichprobe der Labels im API-Testset ([`docs/pruefung-testset-api.md`](docs/pruefung-testset-api.md)).
-- v2: Budget-Prognose je Kategorie für den Folgemonat (saisonale Zeitreihenmethode) mit Unsicherheitsband.
-- v3: Anomalie-Erkennung auf dem Zahlungsgraph (Händler, Kategorien, Geldflüsse) mit einem Graph Neural Network: neue ungewöhnliche Empfänger, Betragsausreißer.
-
-## Disclaimer
-
-KontoKlar ist ein Werkzeug zur Auswertung eigener Daten und stellt keine Finanz- oder Steuerberatung dar. Alle Angaben ohne Gewähr.
-
-## Quellen
+<details>
+<summary><b>Quellen</b></summary>
+<br>
 
 - Statistisches Bundesamt, GENESIS-Online, Verbraucherpreisindex, Tabelle 61111-0002: https://genesis.destatis.de/datenbank/online/statistic/61111/table/61111-0002 (abgerufen am 07.10.2026)
 - Statistisches Bundesamt, GENESIS-Online, Verbraucherpreisindex nach Verwendungszwecken, Tabelle 61111-0006: https://genesis.destatis.de/datenbank/online/statistic/61111/table/61111-0006 (geprüft am 20.10.2026; weitere Quellen zur GENESIS-API in [`docs/destatis.md`](docs/destatis.md))
@@ -288,12 +401,16 @@ KontoKlar ist ein Werkzeug zur Auswertung eigener Daten und stellt keine Finanz-
 - Upstash, Preise und Free-Tier-Limits für Redis: https://upstash.com/pricing/redis (abgerufen am 07.10.2026)
 - Cloudflare Turnstile, Dokumentation: https://developers.cloudflare.com/turnstile/ und Testschlüssel: https://developers.cloudflare.com/turnstile/troubleshooting/testing/ (abgerufen am 07.10.2026, Testschlüssel erneut am 21.10.2026)
 
+</details>
+
 ## Weitere Projekte
 
 Alle Projekte, Werdegang und Kontakt stehen auf [mirkandeniz.de](https://mirkandeniz.de/projekte). Kopf und Fuß jeder Projektseite führen dorthin zurück.
 
-- **DepotDoktor**: Depot-Steuer- und Performance-Analyzer für Broker-CSV-Exporte. Die Auswertung läuft vollständig im Browser. Live-Demo: https://depotdoktor.mirkandeniz.de/projects/depotdoktor · Repo: https://github.com/mirkan-morgenfels-ai/depotdoktor
-- **NetzRadar**: Anomalie-Erkennung in Transaktionsnetzwerken: klassische Baselines und Gradient Boosting gegen Graph Neural Networks, mit zeitlichem Split und PR-AUC. Live-Demo: https://netzradar.mirkandeniz.de/projects/netzradar · Repo: https://github.com/mirkan-morgenfels-ai/netzradar
+| Projekt | Worum es geht | Links |
+|---|---|---|
+| **DepotDoktor** | Depot-Steuer- und Performance-Analyzer für Broker-CSV-Exporte. Die Auswertung läuft vollständig im Browser. | [Live-Demo](https://depotdoktor.mirkandeniz.de/projects/depotdoktor) · [Quellcode](https://github.com/mirkan-morgenfels-ai/depotdoktor) |
+| **NetzRadar** | Anomalie-Erkennung in Transaktionsnetzwerken: klassische Baselines und Gradient Boosting gegen Graph Neural Networks, mit zeitlichem Split und PR-AUC. | [Live-Demo](https://netzradar.mirkandeniz.de/projects/netzradar) · [Quellcode](https://github.com/mirkan-morgenfels-ai/netzradar) |
 
 ## Lizenz
 

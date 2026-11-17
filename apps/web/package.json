@@ -19,7 +19,7 @@
     "@portfolio/csv": "workspace:*",
     "@portfolio/ratelimit": "workspace:*",
     "@upstash/redis": "^1.40.0",
-    "next": "^16.4.3",
+    "next": "^16.4.5",
     "openai": "^7.45.1",
     "papaparse": "^5.5.3",
     "react": "^19.3.1",
